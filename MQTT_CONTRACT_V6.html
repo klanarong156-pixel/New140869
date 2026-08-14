@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>NewFarm V6.2 MQTT Contract | smartfarm7.0</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="NewFarm V6.2 MQTT Contract" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://klanarong156-pixel.github.io/smartfarm7.0/MQTT_CONTRACT_V6.html" />
+<meta property="og:url" content="https://klanarong156-pixel.github.io/smartfarm7.0/MQTT_CONTRACT_V6.html" />
+<meta property="og:site_name" content="smartfarm7.0" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="NewFarm V6.2 MQTT Contract" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","headline":"NewFarm V6.2 MQTT Contract","url":"https://klanarong156-pixel.github.io/smartfarm7.0/MQTT_CONTRACT_V6.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/smartfarm7.0/assets/css/style.css?v=af5613a29dfbc7e31879fb7bacfd98bfe97c7867">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/smartfarm7.0/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://klanarong156-pixel.github.io/smartfarm7.0/">smartfarm7.0</a></h1>
+      
+
+      <h1 id="newfarm-v62-mqtt-contract">NewFarm V6.2 MQTT Contract</h1>
+
+<p>This is the active MQTT contract for the V6.0.1 Production Hardened firmware and V6.2 web app.</p>
+
+<h2 id="relay">Relay</h2>
+<ul>
+  <li>Command: <code class="language-plaintext highlighter-rouge">smartfarm/relay/{relay}/set</code></li>
+  <li>Payload: <code class="language-plaintext highlighter-rouge">ON</code> or <code class="language-plaintext highlighter-rouge">OFF</code></li>
+  <li>Status: <code class="language-plaintext highlighter-rouge">smartfarm/relay/{relay}/status</code></li>
+  <li>Status payload: <code class="language-plaintext highlighter-rouge">ON</code> or <code class="language-plaintext highlighter-rouge">OFF</code></li>
+</ul>
+
+<p>Relay IDs: <code class="language-plaintext highlighter-rouge">pump</code>, <code class="language-plaintext highlighter-rouge">zone1</code>, <code class="language-plaintext highlighter-rouge">lighthome</code>, <code class="language-plaintext highlighter-rouge">lightsala</code>.</p>
+
+<h2 id="mode">Mode</h2>
+<ul>
+  <li>Command: <code class="language-plaintext highlighter-rouge">smartfarm/mode/set</code></li>
+  <li>Status: <code class="language-plaintext highlighter-rouge">smartfarm/mode/status</code></li>
+  <li>Payload: <code class="language-plaintext highlighter-rouge">MANUAL</code> or <code class="language-plaintext highlighter-rouge">AUTO</code></li>
+  <li>A manual relay command received by firmware exits AUTO first, so firmware remains authoritative.</li>
+</ul>
+
+<h2 id="four-independent-schedules-per-relay">Four independent schedules per relay</h2>
+<ul>
+  <li>Command: <code class="language-plaintext highlighter-rouge">smartfarm/schedule/{relay}/set</code></li>
+  <li>Payload: <code class="language-plaintext highlighter-rouge">{ "slots": [ {"enabled":true,"on":"HH:MM","off":"HH:MM"}, ... ] }</code></li>
+  <li>Maximum: 4 slots per relay.</li>
+  <li>Each relay owns its own four slots; changing one relay never changes another.</li>
+  <li><code class="language-plaintext highlighter-rouge">DELETE</code> clears all four slots for that relay.</li>
+  <li>Status: <code class="language-plaintext highlighter-rouge">smartfarm/schedule/{relay}/status</code></li>
+  <li>Status payload: <code class="language-plaintext highlighter-rouge">{ "slots": [ ...up to 4 slots... ] }</code></li>
+  <li>Schedules are stored in ESP8266 LittleFS and continue locally in AUTO when MQTT is temporarily unavailable.</li>
+</ul>
+
+<h2 id="esp-status">ESP status</h2>
+<ul>
+  <li>Online/LWT: <code class="language-plaintext highlighter-rouge">smartfarm/status/online</code></li>
+  <li>Payload: retained <code class="language-plaintext highlighter-rouge">true</code> while connected; broker LWT publishes retained <code class="language-plaintext highlighter-rouge">false</code> after an unexpected disconnect.</li>
+  <li>Runtime heartbeat: <code class="language-plaintext highlighter-rouge">smartfarm/device/status</code> every 10 seconds while MQTT is connected.</li>
+  <li>Heartbeat includes firmware version, free heap, RSSI, mode, pump safety lock, RTC validity and time when available.</li>
+  <li>Dashboard considers the device offline after 25 seconds without a heartbeat/presence event.</li>
+  <li>Browser MQTT disconnect does not by itself declare the ESP offline; ESP presence is determined from device messages.</li>
+</ul>
+
+<h2 id="sensor">Sensor</h2>
+<p>Current active sensor is DHT11.</p>
+<ul>
+  <li>Topic: <code class="language-plaintext highlighter-rouge">smartfarm/sensor/dht11</code></li>
+  <li>Payload JSON: <code class="language-plaintext highlighter-rouge">{ "temperature": number, "humidity": number }</code></li>
+  <li>No Soil Sensor topic exists; A0 is reserved.</li>
+</ul>
+
+<h2 id="time">Time</h2>
+<ul>
+  <li>DS3231 is supported and used as the preferred local schedule clock when present and valid.</li>
+  <li>I2C: SDA D2/GPIO4, SCL D1/GPIO5.</li>
+  <li>If DS3231 is unavailable or invalid, the firmware falls back to NTP.</li>
+  <li>NTP is used to synchronize DS3231 when Wi-Fi is available; periodic sync interval is 6 hours.</li>
+</ul>
+
+<h2 id="pump-safety">Pump safety</h2>
+<ul>
+  <li>Maximum continuous pump runtime: 30 minutes.</li>
+  <li>In AUTO, reaching the limit latches the pump OFF until the active schedule window ends.</li>
+  <li>In MANUAL, reaching the limit latches the pump OFF until a new explicit ON command.</li>
+  <li>In MANUAL, if MQTT remains disconnected for 60 seconds while the pump is running, the pump is forced OFF.</li>
+  <li>ESP8266 boots with all four relays OFF.</li>
+</ul>
+
+<h2 id="browser-mqtt-credentials">Browser MQTT credentials</h2>
+<ul>
+  <li>Username/password are not committed to source control.</li>
+  <li>V6.2 remembers credentials in the browser’s local storage when the user selects the remember option; otherwise they remain session-only.</li>
+  <li>Invalid broker credentials clear the saved browser credentials and reopen the setup dialog.</li>
+  <li>Commands issued during a short MQTT reconnect window are queued for up to 30 seconds and then discarded.</li>
+  <li>A static GitHub Pages client cannot keep a shared MQTT credential secret from the browser; HiveMQ ACLs should be configured for broker-level authorization.</li>
+</ul>
+
+<h2 id="security">Security</h2>
+<ul>
+  <li>Firebase Authentication provides user/admin roles for the web UI and Firebase rules protect role data.</li>
+  <li>User: Dashboard, Relay and schedules. Admin: all user capabilities plus MQTT settings, role management and OTA page.</li>
+  <li>Firmware currently uses TLS transport with certificate verification disabled (<code class="language-plaintext highlighter-rouge">setInsecure()</code>); certificate validation remains a firmware hardening option.</li>
+</ul>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>

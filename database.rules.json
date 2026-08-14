@@ -1,0 +1,24 @@
+{
+  "rules": {
+    "roles": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('roles').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (root.child('roles').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $uid && !data.exists() && newData.child('role').val() === 'user'))",
+        ".validate": "newData.hasChildren(['role']) && (newData.child('role').val() === 'admin' || newData.child('role').val() === 'user')"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "finance": {
+          "$item": {
+            ".validate": "newData.hasChildren(['id','type','item','amount','createdAt']) && (newData.child('type').val() === 'income' || newData.child('type').val() === 'expense' || newData.child('type').val() === 'pending') && newData.child('amount').isNumber() && newData.child('amount').val() >= 0"
+          }
+        }
+      }
+    }
+  }
+}

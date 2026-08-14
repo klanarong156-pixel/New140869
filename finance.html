@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Finance Cloud - Smart Farm</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { kanit: ['Kanit', 'sans-serif'] },
+                    colors: {
+                        dark: {
+                            bg: '#071321',
+                            card: '#0D1B2A',
+                            border: '#1B2A3D',
+                            accent: '#3E6BF2',
+                            green: '#10B981',
+                            red: '#EF4444',
+                            gold: '#F59E0B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #071321;
+            color: #FFFFFF;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass {
+            background: rgba(13, 27, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .input-field {
+            background: #162435;
+            border: 1px solid #1B2A3D;
+            transition: all 0.2s;
+        }
+        .input-field:focus {
+            border-color: #3E6BF2;
+            box-shadow: 0 0 0 2px rgba(62, 107, 242, 0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3E6BF2 0%, #2563EB 100%);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        .tab-bar {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-32">
+
+    <!-- Header -->
+    <header class="px-6 pt-8 pb-4 flex justify-between items-center sticky top-0 bg-dark-bg/80 backdrop-blur-md z-50">
+        <div>
+            <h1 class="text-2xl font-bold text-white">การเงินฟาร์ม</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest">Finance Cloud V6.2</p>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-dark-card border border-dark-border flex items-center justify-center">
+            <i data-lucide="wallet" class="w-5 h-5 text-dark-accent"></i>
+        </div>
+    </header>
+
+    <main class="px-6 space-y-6">
+        
+        <!-- Summary Cards -->
+        <section class="grid grid-cols-2 gap-4">
+            <div class="glass p-5 rounded-[24px] space-y-1">
+                <span class="text-[10px] text-slate-400 uppercase font-medium">รายรับรวม</span>
+                <div class="text-xl font-bold text-emerald-400">฿<span id="income">0</span></div>
+            </div>
+            <div class="glass p-5 rounded-[24px] space-y-1">
+                <span class="text-[10px] text-slate-400 uppercase font-medium">รายจ่ายรวม</span>
+                <div class="text-xl font-bold text-red-400">฿<span id="expense">0</span></div>
+            </div>
+            <div class="glass p-5 rounded-[24px] space-y-1">
+                <span class="text-[10px] text-slate-400 uppercase font-medium">ค้างซื้อ</span>
+                <div class="text-xl font-bold text-amber-400">฿<span id="pending">0</span></div>
+            </div>
+            <div class="glass p-5 rounded-[24px] bg-gradient-to-br from-blue-600/20 to-transparent border-blue-500/20 space-y-1">
+                <span class="text-[10px] text-blue-300 uppercase font-medium">กำไรสุทธิ</span>
+                <div class="text-xl font-bold text-blue-400">฿<span id="profit">0</span></div>
+            </div>
+        </section>
+
+        <!-- Add Transaction Form -->
+        <section class="glass p-6 rounded-[32px] space-y-4">
+            <h3 class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มรายการใหม่
+            </h3>
+            
+            <div class="space-y-3">
+                <div class="flex gap-2">
+                    <select id="type" class="input-field flex-1 rounded-2xl px-4 py-3 text-sm outline-none appearance-none">
+                        <option value="income">➕ รายรับ</option>
+                        <option value="expense">➖ รายจ่าย</option>
+                        <option value="pending">⏳ ยังต้องซื้อ</option>
+                    </select>
+                    <input id="amount" type="number" placeholder="จำนวนเงิน" class="input-field w-1/3 rounded-2xl px-4 py-3 text-sm outline-none">
+                </div>
+                <input id="item" type="text" placeholder="ชื่อรายการ (เช่น ค่าปุ๋ย, ขายมะพร้าว)" class="input-field w-full rounded-2xl px-4 py-3 text-sm outline-none">
+                
+                <div class="flex gap-2 pt-2">
+                    <button onclick="addItem()" class="btn-primary flex-[2] py-4 rounded-2xl font-bold text-sm">บันทึกข้อมูล</button>
+                    <button onclick="exportPDF()" class="bg-slate-800 hover:bg-slate-700 flex-1 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2">
+                        <i data-lucide="file-text" class="w-4 h-4"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transaction List -->
+        <section class="space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-medium text-slate-300">รายการล่าสุด</h3>
+                <span id="itemCount" class="text-[10px] bg-dark-card px-2 py-1 rounded-md text-slate-500">0 รายการ</span>
+            </div>
+            
+            <div id="transactionList" class="space-y-3">
+                <!-- Transactions will be injected here -->
+                <div class="text-center py-10 text-slate-500 text-sm">กำลังโหลดข้อมูล...</div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 glass border-t border-white/5 tab-bar z-50">
+        <div class="flex justify-around items-center py-4">
+            <a href="index.html" class="flex flex-col items-center gap-1 text-slate-500">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span class="text-[10px]">หน้าหลัก</span>
+            </a>
+            <a href="finance.html" class="flex flex-col items-center gap-1 text-dark-accent">
+                <i data-lucide="line-chart" class="w-6 h-6"></i>
+                <span class="text-[10px]">การเงิน</span>
+            </a>
+            <a href="index.html#control" class="flex flex-col items-center gap-1 text-slate-500">
+                <i data-lucide="droplets" class="w-6 h-6"></i>
+                <span class="text-[10px]">ควบคุม</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="fonts/noto-thai.js"></script>
+    <script src="firebase.js"></script>
+    <script src="finance-firebase.js"></script>
+    <script src="finance-core.js"></script>
+    
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        let items = [];
+
+        // Load data on start
+        async function init() {
+            try {
+                loadFinanceItems(x => {
+                    items = x;
+                    render();
+                });
+            } catch (e) {
+                console.error(e);
+                alert("กรุณาเข้าสู่ระบบที่หน้าหลักก่อนใช้งาน");
+                window.location.href = "index.html";
+            }
+        }
+
+        async function addItem() {
+            const type = document.getElementById("type").value;
+            const item = document.getElementById("item").value.trim();
+            const amount = Number(document.getElementById("amount").value);
+
+            if (!item || !amount) {
+                alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+                return;
+            }
+
+            try {
+                await saveFinanceItem({ type, item, amount });
+                document.getElementById("item").value = "";
+                document.getElementById("amount").value = "";
+                // Data will be updated automatically by loadFinanceItems listener
+            } catch (e) {
+                alert("บันทึกไม่สำเร็จ: " + e.message);
+            }
+        }
+
+        async function deleteItem(id) {
+            if (!confirm("ต้องการลบรายการนี้ใช่หรือไม่?")) return;
+            try {
+                await deleteFinanceItem(id);
+            } catch (e) {
+                alert("ลบไม่สำเร็จ: " + e.message);
+            }
+        }
+
+        function render() {
+            const list = document.getElementById("transactionList");
+            const summary = window.FinanceCore 
+                ? FinanceCore.summary(items) 
+                : { income: 0, expense: 0, pending: 0, profit: 0 };
+
+            // Update Summary
+            document.getElementById("income").textContent = summary.income.toLocaleString();
+            document.getElementById("expense").textContent = summary.expense.toLocaleString();
+            document.getElementById("pending").textContent = summary.pending.toLocaleString();
+            document.getElementById("profit").textContent = summary.profit.toLocaleString();
+            document.getElementById("itemCount").textContent = items.length + " รายการ";
+
+            // Update List
+            if (items.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 text-slate-500 text-sm">ไม่มีข้อมูลการเงิน</div>`;
+                return;
+            }
+
+            list.innerHTML = items.map(x => {
+                let colorClass = "text-emerald-400";
+                let icon = "trending-up";
+                let prefix = "+";
+                
+                if (x.type === "expense") {
+                    colorClass = "text-red-400";
+                    icon = "trending-down";
+                    prefix = "-";
+                } else if (x.type === "pending") {
+                    colorClass = "text-amber-400";
+                    icon = "clock";
+                    prefix = "";
+                }
+
+                return `
+                    <div class="glass p-4 rounded-2xl flex justify-between items-center group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${colorClass.replace('text', 'bg').replace('400', '400/10')}">
+                                <i data-lucide="${icon}" class="w-5 h-5 ${colorClass}"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-white">${x.item}</div>
+                                <div class="text-[10px] text-slate-500">${new Date(x.createdAt).toLocaleDateString('th-TH')}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <div class="text-sm font-bold ${colorClass}">${prefix}฿${Number(x.amount).toLocaleString()}</div>
+                                <div class="text-[9px] text-slate-600 uppercase tracking-tighter">${x.type}</div>
+                            </div>
+                            <button onclick="deleteItem('${x.id}')" class="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-400 transition-all">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            lucide.createIcons();
+        }
+
+        function exportPDF() {
+            if (!items.length) return alert("ไม่มีข้อมูลสำหรับส่งออก");
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: "mm", format: "a4" });
+            try {
+                doc.addFileToVFS("NotoSansThai-Regular.ttf", window.THAI_FONT_BASE64);
+                doc.addFont("NotoSansThai-Regular.ttf", "NotoSansThai", "normal");
+                doc.setFont("NotoSansThai", "normal");
+            } catch (e) { console.error("Thai font registration failed:", e); }
+            const s = FinanceCore.summary(items);
+            const money = n => Number(n || 0).toLocaleString("th-TH");
+            const today = new Date().toLocaleDateString("th-TH");
+            doc.setFontSize(20);
+            doc.text("รายงานรายรับ - รายจ่าย Smart Farm", 20, 20);
+            doc.setFontSize(12);
+            doc.text(`วันที่ออกรายงาน: ${today}`, 20, 30);
+            doc.line(20, 35, 190, 35);
+            doc.text(`รายรับรวม: ${money(s.income)} บาท`, 20, 45);
+            doc.text(`รายจ่ายรวม: ${money(s.expense)} บาท`, 20, 52);
+            doc.text(`ค้างซื้อ: ${money(s.pending)} บาท`, 20, 59);
+            doc.text(`กำไรสุทธิ: ${money(s.profit)} บาท`, 20, 66);
+            doc.line(20, 72, 190, 72);
+            doc.text("รายการเดินบัญชี:", 20, 80);
+            let y = 90;
+            items.forEach((x, i) => {
+                if (y > 270) { doc.addPage(); y = 20; doc.setFont("NotoSansThai", "normal"); }
+                const txt = `${i + 1}. [${x.type}] ${x.item} : ${money(x.amount)} บาท`;
+                doc.text(txt, 20, y);
+                y += 8;
+            });
+            doc.save(`SmartFarm_Finance_${new Date().toISOString().slice(0, 10)}.pdf`);
+        }
+
+        init();
+    </script>
+</body>
+</html>

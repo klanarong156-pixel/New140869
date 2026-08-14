@@ -1,0 +1,24 @@
+/* Smart Farm V6.2 — Modern UI layer for next-generation farmers */
+:root{--ui-bg:#06110d;--ui-surface:rgba(14,35,27,.92);--ui-line:rgba(255,255,255,.09);--ui-text:#f3faf6;--ui-muted:#91a89d;--ui-green:#35d58a;--ui-blue:#45b5ff;--ui-warn:#ffc65c;--ui-danger:#ff687b}
+html{background:var(--ui-bg)}
+body{background:radial-gradient(circle at 8% -10%,rgba(53,213,138,.16),transparent 32%),radial-gradient(circle at 100% 0,rgba(69,181,255,.10),transparent 26%),linear-gradient(180deg,#081912 0%,#06110d 48%,#030906 100%);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",Tahoma,sans-serif;letter-spacing:.005em}
+#app{padding-top:18px}
+.hero{border:1px solid var(--ui-line);background:linear-gradient(145deg,rgba(17,42,32,.97),rgba(7,24,17,.97));box-shadow:0 16px 44px rgba(0,0,0,.28);border-radius:26px}
+.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(53,213,138,.06),transparent 45%);pointer-events:none}
+.brand-mark{background:linear-gradient(135deg,#35d58a,#0f7049);box-shadow:0 10px 30px rgba(53,213,138,.22)}
+h1{font-weight:800;letter-spacing:-.035em}.subtitle{color:#9ab0a5}.eyebrow{color:#68e7aa;font-weight:850}
+.panel,.metric-card,.system-card,.schedule-card,.account-card{border-color:var(--ui-line);background:linear-gradient(145deg,rgba(15,38,29,.96),rgba(7,24,17,.96));box-shadow:0 12px 36px rgba(0,0,0,.22);border-radius:20px}
+.panel{padding:20px}.panel-head{margin-bottom:15px}.panel h2,.section-head h2{font-weight:800;letter-spacing:-.02em}
+.metric-card,.system-card,.schedule-card,.device-card{transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.metric-card:hover,.system-card:hover,.schedule-card:hover,.device-card:hover{transform:translateY(-2px);border-color:rgba(53,213,138,.24);box-shadow:0 18px 45px rgba(0,0,0,.28)}
+.status-pill,.live-dot,.hint{background:rgba(255,255,255,.045);border-color:var(--ui-line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.primary,.mode-btn.auto{background:linear-gradient(135deg,#2fd287,#138956);box-shadow:0 8px 20px rgba(24,145,91,.18)}
+.primary:hover,.mode-btn.auto:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.mode-btn,.danger{border-color:var(--ui-line)}
+input,select,textarea{background:rgba(255,255,255,.045);color:var(--ui-text);border:1px solid var(--ui-line);border-radius:12px;min-height:42px;padding:9px 11px}input:focus,select:focus,textarea:focus{border-color:rgba(53,213,138,.55);box-shadow:0 0 0 3px rgba(53,213,138,.09);outline:none}
+.status-box,.info-list div,.hardware-grid span{background:rgba(255,255,255,.028);border-color:var(--ui-line)}
+.bottom-nav{grid-template-columns:repeat(5,1fr);background:rgba(5,22,16,.94);border-top:1px solid rgba(255,255,255,.10);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -12px 34px rgba(0,0,0,.32)}
+.bottom-nav a{min-height:48px;border-radius:14px}.bottom-nav a.active{background:rgba(53,213,138,.10);color:#70e8ad;box-shadow:inset 0 0 0 1px rgba(53,213,138,.15)}
+footer{opacity:.85}
+@media(max-width:650px){#app{padding:11px}.hero{border-radius:21px;padding:17px}.panel{padding:15px;border-radius:18px}.bottom-nav{padding-top:6px}.bottom-nav a small{font-size:8px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}

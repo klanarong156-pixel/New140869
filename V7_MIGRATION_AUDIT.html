@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Smart Farm V7 Migration Audit | smartfarm7.0</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Smart Farm V7 Migration Audit" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://klanarong156-pixel.github.io/smartfarm7.0/V7_MIGRATION_AUDIT.html" />
+<meta property="og:url" content="https://klanarong156-pixel.github.io/smartfarm7.0/V7_MIGRATION_AUDIT.html" />
+<meta property="og:site_name" content="smartfarm7.0" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Smart Farm V7 Migration Audit" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","headline":"Smart Farm V7 Migration Audit","url":"https://klanarong156-pixel.github.io/smartfarm7.0/V7_MIGRATION_AUDIT.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/smartfarm7.0/assets/css/style.css?v=af5613a29dfbc7e31879fb7bacfd98bfe97c7867">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/smartfarm7.0/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://klanarong156-pixel.github.io/smartfarm7.0/">smartfarm7.0</a></h1>
+      
+
+      <h1 id="smart-farm-v7-migration-audit">Smart Farm V7 Migration Audit</h1>
+
+<p>Date: 2026-08-12
+Repository: klanarong156-pixel/Newfarm
+Branch: main</p>
+
+<h2 id="decision">Decision</h2>
+
+<p>Rebuild the Dashboard UI/application layer from the existing production base, while preserving the proven ESP8266 firmware contract, Firebase data model, authentication, finance records, MQTT topics, schedules, and safety behavior.</p>
+
+<p>Do not delete or overwrite the V6 production implementation until the V7 replacement passes functional checks.</p>
+
+<h2 id="keep--production-foundations">KEEP — production foundations</h2>
+
+<h3 id="firmware">Firmware</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">SmartFarm_V6_PRODUCTION.ino</code> is the active firmware source.</li>
+  <li>Preserve MANUAL/AUTO behavior.</li>
+  <li>Preserve four relay IDs: <code class="language-plaintext highlighter-rouge">pump</code>, <code class="language-plaintext highlighter-rouge">zone1</code>, <code class="language-plaintext highlighter-rouge">lighthome</code>, <code class="language-plaintext highlighter-rouge">lightsala</code>.</li>
+  <li>Preserve MQTT topic contract.</li>
+  <li>Preserve local LittleFS schedules.</li>
+  <li>Preserve pump 30-minute maximum runtime and MQTT-loss safety behavior.</li>
+  <li>Preserve DHT11 and RTC/NTP time services.</li>
+  <li>Preserve OTA capability in firmware, but remove OTA from normal farmer UI.</li>
+</ul>
+
+<p>The firmware source is already documented as the single production source and CI build target. fileciteturn49file0</p>
+
+<h3 id="mqtt">MQTT</h3>
+<p>Preserve the existing contract in <code class="language-plaintext highlighter-rouge">MQTT_CONTRACT_V6.md</code>: relay control, mode, schedules, device presence/heartbeat, and DHT11 sensor messages. fileciteturn53file0</p>
+
+<h3 id="firebase">Firebase</h3>
+<p>Preserve Firebase Authentication, per-user database storage, root role checks, and finance storage. The current Firebase wrapper separates user-scoped data from root role access. fileciteturn50file0</p>
+
+<h3 id="finance-data">Finance data</h3>
+<p>Keep the existing finance data structure and operations:</p>
+<ul>
+  <li>income</li>
+  <li>expense</li>
+  <li>pending</li>
+  <li>createdAt</li>
+  <li>per-user Firebase storage</li>
+  <li>summary/profit calculation</li>
+  <li>delete</li>
+  <li>PDF export capability</li>
+</ul>
+
+<p>The current finance module writes to <code class="language-plaintext highlighter-rouge">users/{uid}/finance/{id}</code>. fileciteturn52file0turn58file0</p>
+
+<h3 id="weather">Weather</h3>
+<p>Keep Open-Meteo integration and the agreed Rain Protection rules:</p>
+<ul>
+  <li>location 7.798754, 99.990505</li>
+  <li>7-day forecast</li>
+  <li>rain probability threshold 60%</li>
+  <li>6-hour precipitation threshold 1 mm</li>
+  <li>API failure blocks Auto Watering</li>
+</ul>
+
+<p>The current implementation already contains these rules. fileciteturn51file0</p>
+
+<h3 id="ci">CI</h3>
+<p>Keep firmware build, dashboard smoke test, and static deployment workflows. Current repository contains separate firmware, dashboard-check, and static workflows. fileciteturn47file0</p>
+
+<h2 id="refactor--application-layer">REFACTOR — application layer</h2>
+
+<h3 id="current-home">Current Home</h3>
+<p><code class="language-plaintext highlighter-rouge">index.html</code> currently combines the V6.2 shell, relay controls, MQTT state, hardware information, weather injection, and five-item navigation. This should become the new V7 Home module and should no longer expose hardware pin details to ordinary farmers. fileciteturn42file0</p>
+
+<h3 id="current-schedule">Current Schedule</h3>
+<p><code class="language-plaintext highlighter-rouge">schedule.html</code> is functionally valuable but is still a separate document with its own Firebase/access/MQTT/script stack. Rebuild it as the V7 Watering module while retaining the four-slot-per-relay MQTT contract. fileciteturn63file0</p>
+
+<h3 id="current-finance">Current Finance</h3>
+<p><code class="language-plaintext highlighter-rouge">finance.html</code> contains the important finance behavior but uses a separate Tailwind/Lucide visual system. Rebuild the UI only; keep the existing finance Firebase/core logic. fileciteturn64file0</p>
+
+<h3 id="current-account">Current Account</h3>
+<p><code class="language-plaintext highlighter-rouge">account.html</code> contains useful identity/role/logout behavior. Rebuild the presentation as a small V7 Account module. Keep admin access hidden from normal farmer navigation. fileciteturn65file0</p>
+
+<h3 id="navigation">Navigation</h3>
+<p>Replace the five-item V6 navigation with four farmer-facing modules:</p>
+<ol>
+  <li>Home</li>
+  <li>Watering</li>
+  <li>Finance</li>
+  <li>Account</li>
+</ol>
+
+<p>Settings and OTA must not appear in the normal farmer UI.</p>
+
+<h2 id="remove-from-farmer-ui">REMOVE FROM FARMER UI</h2>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">settings.html</code> as a normal navigation destination</li>
+  <li><code class="language-plaintext highlighter-rouge">ota.html</code> as a normal navigation destination</li>
+  <li>hardware pin maps</li>
+  <li>MQTT credential management</li>
+  <li>developer/debug controls</li>
+  <li>Firebase technical settings</li>
+  <li>duplicate navigation implementations</li>
+  <li>page-specific visual themes</li>
+</ul>
+
+<p>The existing settings page is explicitly an admin/settings surface and exposes MQTT/hardware information; it should remain outside the farmer shell rather than be presented as a primary feature. fileciteturn66file0</p>
+
+<p>The existing OTA page is an engineering/admin surface and should not be a farmer-facing menu item. fileciteturn67file0</p>
+
+<h2 id="v7-target-structure">V7 target structure</h2>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>v7/
+├── index.html
+├── assets/
+│   ├── css/
+│   │   ├── app.css
+│   │   ├── components.css
+│   │   └── responsive.css
+│   └── js/
+│       ├── app.js
+│       ├── navigation.js
+│       ├── auth.js
+│       ├── mqtt.js
+│       ├── weather.js
+│       ├── watering.js
+│       └── finance.js
+└── modules/
+    ├── home/
+    ├── watering/
+    ├── finance/
+    └── account/
+</code></pre></div></div>
+
+<p>The first V7 implementation should be created beside V6, then switched into production only after QA. This avoids breaking the current firmware/dashboard while the replacement is being built.</p>
+
+<h2 id="v7-ui-rules">V7 UI rules</h2>
+
+<ul>
+  <li>Mobile-first.</li>
+  <li>One design system across every module.</li>
+  <li>Large touch targets for outdoor use.</li>
+  <li>High contrast in sunlight.</li>
+  <li>No technical hardware details on normal screens.</li>
+  <li>Clear online/offline state.</li>
+  <li>Weather and Rain Protection visible on Home and Watering.</li>
+  <li>Auto Watering must remain blocked when weather data is invalid/unavailable.</li>
+  <li>Finance remains accessible from the main navigation.</li>
+</ul>
+
+<h2 id="critical-security-finding">Critical security finding</h2>
+
+<p><code class="language-plaintext highlighter-rouge">config.js</code> currently contains an MQTT username/password in repository source. This conflicts with the documented security policy that browser MQTT credentials should not be committed. The credentials must be rotated and removed from source before V7 production. Do not copy them into the V7 code. fileciteturn60file0</p>
+
+<p>This is a security remediation item, not a UI refactor. The new V7 client must receive credentials through the approved runtime/session mechanism or another secured broker architecture.</p>
+
+<h2 id="firmware-constraint">Firmware constraint</h2>
+
+<p>The latest documented firmware build uses about 94% IRAM. V7 must not add firmware features merely to support the new UI unless necessary; keep the Dashboard changes on the web side wherever possible. fileciteturn55file0</p>
+
+<h2 id="migration-order">Migration order</h2>
+
+<ol>
+  <li>Freeze V6 production behavior.</li>
+  <li>Create V7 shell and design system.</li>
+  <li>Implement Home.</li>
+  <li>Implement Watering + Rain Protection.</li>
+  <li>Implement Finance using existing Firebase data.</li>
+  <li>Implement Account/auth.</li>
+  <li>Add four-item navigation.</li>
+  <li>Add automated smoke tests for all V7 modules.</li>
+  <li>Run CI and browser/mobile QA.</li>
+  <li>Only then make V7 the production entry point.</li>
+  <li>Archive/remove obsolete farmer-facing V6 pages after successful cutover.</li>
+</ol>
+
+<h2 id="acceptance-criteria">Acceptance criteria</h2>
+
+<p>V7 is ready only when:</p>
+
+<ul>
+  <li>Home, Watering, Finance and Account look like one application.</li>
+  <li>No Settings/OTA appears in farmer navigation.</li>
+  <li>Finance data remains intact and editable.</li>
+  <li>Existing MQTT relay commands still work.</li>
+  <li>Existing schedules remain compatible with ESP8266.</li>
+  <li>AUTO is blocked by Rain Protection and by weather API failure.</li>
+  <li>Authentication and role protection remain intact.</li>
+  <li>No MQTT secret is committed to the repository.</li>
+  <li>Firmware source and MQTT contract remain backward compatible.</li>
+  <li>Dashboard smoke tests pass.</li>
+  <li>Firmware CI remains green.</li>
+</ul>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>

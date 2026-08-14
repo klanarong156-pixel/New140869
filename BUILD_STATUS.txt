@@ -1,0 +1,40 @@
+Newfarm V6.0.1 stability and production review
+
+Repository: klanarong156-pixel/Newfarm
+Default branch: main
+Active firmware source: SmartFarm_V6_PRODUCTION.ino
+Build target: ESP8266 NodeMCU V3 / esp8266:esp8266:nodemcuv2
+
+Verified contract alignment:
+- Relay IDs match: pump, zone1, lighthome, lightsala.
+- DHT11 topic matches: smartfarm/sensor/dht11.
+- Device heartbeat matches: smartfarm/device/status.
+- Schedule topics match: smartfarm/schedule/{relay}/set and /status.
+- DS3231 firmware mapping matches dashboard/docs: SDA D2/GPIO4, SCL D1/GPIO5.
+- A0 remains reserved; no soil sensor topic is published.
+- GitHub Actions compiles the firmware and uploads SmartFarm_V6_PRODUCTION.bin.
+
+Latest verified GitHub Actions build for commit de23cff80d78d88f10a1d77606ca45e1f0aa3571:
+- Build result: SUCCESS
+- ESP8266 core: 3.1.2
+- ArduinoJson: 7.4.3
+- PubSubClient: 2.8.0
+- DHT sensor library: 1.4.7
+- NTPClient: 3.2.1
+- WiFiManager: 2.0.17
+- RTClib: 2.1.4
+- Binary SHA256 from build log: e29c794d1b93491af27826ba4368b499b1741be8c38790a3f7f10fcaddd9f707
+- Artifact: SmartFarm-V6-PRODUCTION-ESP8266-BIN
+- Artifact ID: 9089754816
+- Artifact expires: 2026-09-10
+
+Build resource usage:
+- Global/static RAM: 33,508 / 80,192 bytes (41%)
+- IRAM: 62,099 / 65,536 bytes (94%) — HIGH; avoid adding large IRAM-heavy features without rechecking the build.
+- Flash/IROM: 509,152 / 1,048,576 bytes (48%)
+
+Important hardware validation:
+- The GitHub build proves the source compiles and produces a valid .bin.
+- It does NOT prove physical Wi-Fi, MQTT, DS3231, DHT11, relay wiring or pump behavior.
+- The NodeMCU must be tested on the real hardware with Serial Monitor at 115200 baud.
+- If the ESP still loops after Wi-Fi connection, capture the new Reset reason / Reset info printed by V6.0.1 at boot.

@@ -1,0 +1,19 @@
+{
+  "name": "สวนลุงนะ Smart Farm V6.0",
+  "short_name": "สวนลุงนะ",
+  "description": "ระบบจัดการฟาร์มอัจฉริยะ NewFarm V6.0 Production",
+  "lang": "th",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "portrait-primary",
+  "background_color": "#06130f",
+  "theme_color": "#071a16",
+  "icons": [
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},
+    {"src":"apple-touch-icon.png","sizes":"180x180","type":"image/png","purpose":"any"}
+  ]
+}

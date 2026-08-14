@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Firebase V6.0 Production Safe setup | smartfarm7.0</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Firebase V6.0 Production Safe setup" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://klanarong156-pixel.github.io/smartfarm7.0/firebase-setup.html" />
+<meta property="og:url" content="https://klanarong156-pixel.github.io/smartfarm7.0/firebase-setup.html" />
+<meta property="og:site_name" content="smartfarm7.0" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Firebase V6.0 Production Safe setup" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","headline":"Firebase V6.0 Production Safe setup","url":"https://klanarong156-pixel.github.io/smartfarm7.0/firebase-setup.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/smartfarm7.0/assets/css/style.css?v=af5613a29dfbc7e31879fb7bacfd98bfe97c7867">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/smartfarm7.0/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://klanarong156-pixel.github.io/smartfarm7.0/">smartfarm7.0</a></h1>
+      
+
+      <h1 id="firebase-v60-production-safe-setup">Firebase V6.0 Production Safe setup</h1>
+
+<h2 id="1-firebase-console">1. Firebase Console</h2>
+<ol>
+  <li>Open Firebase Console and select project <code class="language-plaintext highlighter-rouge">smart-farm-platfor</code>.</li>
+  <li><strong>Authentication → Sign-in method → Email/Password → Enable</strong>.</li>
+  <li><strong>Realtime Database → Create database</strong> in <code class="language-plaintext highlighter-rouge">asia-southeast1</code>.</li>
+  <li>Paste <code class="language-plaintext highlighter-rouge">firebase.rules.json</code> into <strong>Realtime Database → Rules</strong> and publish.</li>
+  <li><strong>Project settings → Your apps → Web app</strong>. The Firebase Web API key may remain in the frontend; it is not a database password.</li>
+</ol>
+
+<h2 id="2-roles">2. Roles</h2>
+<p>The web app creates a new account as <code class="language-plaintext highlighter-rouge">user</code> automatically.</p>
+
+<p>To bootstrap the first administrator, after that account signs up:</p>
+<ol>
+  <li>Open Realtime Database → Data.</li>
+  <li>Find <code class="language-plaintext highlighter-rouge">roles/&lt;Firebase UID&gt;</code>.</li>
+  <li>Set <code class="language-plaintext highlighter-rouge">role</code> to <code class="language-plaintext highlighter-rouge">admin</code>.</li>
+  <li>Sign out/in on the web app.</li>
+</ol>
+
+<p>After the first admin exists, the <strong>Admin</strong> page can change other accounts between <code class="language-plaintext highlighter-rouge">user</code> and <code class="language-plaintext highlighter-rouge">admin</code>.</p>
+
+<p>Role permissions:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">user</code>: Dashboard, Relay control and four-slot schedules.</li>
+  <li><code class="language-plaintext highlighter-rouge">admin</code>: all user permissions + MQTT settings, role management and OTA.</li>
+</ul>
+
+<h2 id="3-data-isolation">3. Data isolation</h2>
+<p>Each authenticated account is isolated at:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>users/
+  &lt;Firebase UID&gt;/
+    farm/
+    finance/
+roles/
+  &lt;Firebase UID&gt;/
+    role: user|admin
+</code></pre></div></div>
+
+<h2 id="4-mqtt-security">4. MQTT security</h2>
+<p>MQTT credentials must not be committed to GitHub Pages source code.</p>
+
+<p>The dashboard asks for MQTT credentials at runtime and stores them locally in the browser. If an old MQTT password was ever exposed, rotate/revoke it in HiveMQ Cloud.</p>
+
+<p>For production security, configure HiveMQ ACLs/credentials so each client can only use the required topics. A static GitHub Pages application cannot keep a shared MQTT password secret from a determined browser user.</p>
+
+<h2 id="5-production-checklist">5. Production checklist</h2>
+<ul>
+  <li>Publish the Firebase rules before using role management.</li>
+  <li>Verify the first admin account manually.</li>
+  <li>Verify user cannot open admin/settings/OTA pages.</li>
+  <li>Verify admin can manage roles.</li>
+  <li>Verify ESP8266 and dashboard use the same MQTT contract.</li>
+  <li>Test all four schedule slots independently for every relay.</li>
+  <li>Test pump 30-minute safety and MQTT-loss cut-off before unattended 24/7 operation.</li>
+  <li>Do not commit Firebase service-account keys, MQTT passwords, OTA passwords or private keys.</li>
+</ul>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>
