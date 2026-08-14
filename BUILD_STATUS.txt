@@ -18,3 +18,12 @@ Required validation before production use
 7. Verify OTA with a stable power supply and the configured OTA password.
 
 The known build resource profile from the historical V6 compile was approximately 41% global RAM, 94% IRAM and 48% flash. IRAM headroom was limited, so the V7 compile result must be reviewed before new firmware is deployed.
+
+
+Latest V7 CI verification
+- Commit: 7cedf18c88d74a5ae602c238b41a274a8f0d4c27.
+- Workflow: Smart Farm quality, run 31807405341.
+- Web syntax/assets job: SUCCESS.
+- ESP8266 firmware build job: SUCCESS in approximately 1 minute 5 seconds.
+- Artifact: SmartFarm-V7-ESP8266-BIN.
+- This CI result verifies compilation and static checks. It does not replace physical relay, sensor, Wi-Fi, MQTT, RTC or OTA validation.

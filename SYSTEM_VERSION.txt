@@ -11,3 +11,9 @@ V7 verification status
 - JavaScript and JSON syntax: checked locally.
 - Dashboard responsive rendering and Open-Meteo data: checked in browser.
 - MQTT relay, schedule, Firebase live operations and ESP8266 firmware: require authorized credentials and physical hardware validation before release.
+
+CI release evidence
+- Quality workflow run 31807405341 passed on commit 7cedf18.
+- Web syntax/assets checks passed.
+- ESP8266 firmware build passed and produced SmartFarm-V7-ESP8266-BIN.
+- Physical hardware verification remains required before field deployment.
