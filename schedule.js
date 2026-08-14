@@ -128,11 +128,54 @@
     return true;
   }
 
+  function formatCropDate(value) {
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? 'ไม่ระบุวันที่' : date.toLocaleDateString('th-TH', { dateStyle: 'long' });
+  }
+
+  function renderCropCycle(data) {
+    const summary = $('cropCycleSummary');
+    if (!summary) return;
+    const age = window.cropCycle?.age(data) || 0;
+    summary.innerHTML = '<span>🌱</span><span><strong></strong><br><small></small></span>';
+    summary.querySelector('strong').textContent = data.crop ? `${data.crop} · ปลูกมาแล้ว ${age} วัน` : 'ยังไม่ได้บันทึกรอบปลูก';
+    summary.querySelector('small').textContent = data.startDate ? `วันที่ปลูก ${formatCropDate(data.startDate)}` : 'กรอกชื่อพืชและวันที่ปลูกเพื่อเริ่มนับวัน';
+  }
+
+  async function loadCropCycle() {
+    if (!window.cropCycle) return;
+    const data = await window.cropCycle.load();
+    if ($('cropName')) $('cropName').value = data.crop || '';
+    if ($('cropStartDate')) $('cropStartDate').value = data.startDate || '';
+    renderCropCycle(data);
+  }
+
+  async function saveCropCycle(event) {
+    event.preventDefault();
+    const button = $('cropCycleSubmit');
+    button.disabled = true;
+    try {
+      const data = await window.cropCycle.save($('cropStartDate').value, $('cropName').value);
+      renderCropCycle(data);
+      window.showToast?.('บันทึกรอบปลูกแล้ว', 'success');
+    } catch (error) {
+      window.showToast?.(error.message || 'บันทึกรอบปลูกไม่สำเร็จ', 'error');
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function bindCropCycle() {
+    $('cropCycleForm')?.addEventListener('submit', saveCropCycle);
+    loadCropCycle().catch(error => window.showToast?.(error.message || 'โหลดข้อมูลรอบปลูกไม่สำเร็จ', 'warning'));
+  }
+
   function bind() {
     document.querySelectorAll('[data-schedule-relay]').forEach(button => button.addEventListener('click', () => switchSchedTab(button.dataset.scheduleRelay)));
     slots().forEach(index => ['slotEnable', 'slotOn', 'slotOff'].forEach(prefix => $(`${prefix}${index}`)?.addEventListener('change', updateSummary)));
     writeSlots(cache[activeRelay] || { slots: emptySlots() });
     switchSchedTab(activeRelay);
+    bindCropCycle();
     window.addEventListener('schedule:status', event => {
       const relay = event.detail?.relay;
       if (!relay) return;

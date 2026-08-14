@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="app.css?v=7">
   <title>สวนลุงนะ · Smart Farm</title>
 </head>
-<body class="app-shell">
+<body class="app-shell" data-auth-required="true">
   <header class="topbar">
     <a class="brand" href="index.html" aria-label="หน้าแดชบอร์ด Smart Farm">
       <span class="brand-symbol" aria-hidden="true">✦</span>
@@ -48,6 +48,8 @@
       </div>
     </section>
 
+    <section class="section card pad" aria-labelledby="crop-dashboard-title"><div class="section-head"><div><p class="kicker">CROP CYCLE</p><h2 id="crop-dashboard-title">รอบปลูกปัจจุบัน</h2><p id="dashboardCropStatus" class="helper">กำลังโหลดข้อมูลรอบปลูก…</p></div><a class="btn secondary" href="schedule.html">จัดการรอบปลูก</a></div><div class="grid three" style="margin-top:15px"><div class="notice"><span>🌱</span><span><strong id="dashboardCropName">กำลังโหลด…</strong>ชื่อพืช</span></div><div class="notice"><span>◷</span><span><strong id="dashboardCropDate">—</strong>วันที่ปลูก</span></div><div class="notice"><span>⌛</span><span><strong id="dashboardCropAge">—</strong>อายุการปลูก</span></div></div></section>
+
     <section id="weatherBox" class="section card pad" aria-labelledby="weather-title">
       <div class="section-head"><div><p class="kicker">OPEN‑METEO · RAIN PROTECTION</p><h2 id="weather-title">อากาศที่ช่วยตัดสินใจ</h2><p id="weatherLocation" class="helper">กำลังเตรียมข้อมูลตำแหน่ง…</p></div><span class="tag">ไม่ใช้ API Key</span></div>
       <div class="weather-grid">
@@ -83,8 +85,8 @@
 
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-  <script src="config.js?v=7"></script><script src="mqtt-handler.js?v=7"></script><script src="app.js?v=7"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="firebase.js?v=8"></script><script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="config.js?v=7"></script><script src="mqtt-handler.js?v=7"></script><script src="app.js?v=8"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-dashboard.js?v=1"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
