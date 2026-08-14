@@ -67,7 +67,7 @@ jobs:
       - name: Compile firmware
         run: |
           mkdir -p /tmp/smartfarm-sketch
-          cp SmartFarm_V6_PRODUCTION.ino /tmp/smartfarm-sketch/smartfarm.ino
+          cp SmartFarm_V6_PRODUCTION.ino /tmp/smartfarm-sketch/smartfarm-sketch.ino
           arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --output-dir build /tmp/smartfarm-sketch
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
