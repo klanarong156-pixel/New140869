@@ -5,6 +5,8 @@
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <Updater.h>
 #include <WiFiManager.h>
 #include <PubSubClient.h>
 #include <WiFiClientSecure.h>
@@ -45,6 +47,7 @@ const uint8_t MQTT_AUTH_FAIL_LIMIT = 3;
 
 WiFiClientSecure tls;
 PubSubClient mqtt(tls);
+ESP8266WebServer otaServer(80);
 WiFiUDP udp;
 NTPClient ntp(udp, "pool.ntp.org", TZ_OFFSET_SECONDS, 60000UL);
 RTC_DS3231 rtc;
@@ -55,6 +58,8 @@ uint32_t lastRtcSync=0, lastMqttAttempt=0, lastSensor=0, lastHeartbeat=0, lastSc
 uint8_t mqttAuthFailures=0;
 bool mqttPortalOpened=false;
 bool mqttConfigReported=false;
+bool otaHttpRestartPending=false;
+uint32_t otaHttpRestartAt=0;
 
 char mqttUser[64]="";
 char mqttPass[96]="";
@@ -151,6 +156,60 @@ void connectMqtt(){
   }
 }
 
+bool otaHttpAuthorized(){
+  if(!otaPass[0]){
+    Serial.println(F("OTA HTTP WARNING: ota_pass is empty; upload endpoint is unauthenticated"));
+    return true;
+  }
+  if(!otaServer.authenticate("admin",otaPass)){
+    otaServer.requestAuthentication(BASIC_AUTH, "SmartFarm OTA");
+    return false;
+  }
+  return true;
+}
+
+void otaHttpUpload(){
+  if(!otaHttpAuthorized())return;
+  HTTPUpload& upload=otaServer.upload();
+  if(upload.status==UPLOAD_FILE_START){
+    Serial.printf("OTA HTTP: START %s\n",upload.filename.c_str());
+    if(!Update.begin(UPDATE_SIZE_UNKNOWN))Update.printError(Serial);
+  }else if(upload.status==UPLOAD_FILE_WRITE){
+    if(Update.write(upload.buf,upload.currentSize)!=upload.currentSize)Update.printError(Serial);
+  }else if(upload.status==UPLOAD_FILE_END){
+    if(Update.end(true))Serial.printf("OTA HTTP: END (%u bytes)\n",upload.totalSize);
+    else Update.printError(Serial);
+  }else if(upload.status==UPLOAD_FILE_ABORTED){
+    Update.end();
+    Serial.println(F("OTA HTTP: ABORTED"));
+  }
+  yield();
+}
+
+void setupOtaHttpServer(){
+  otaServer.on("/",HTTP_GET,[](){
+    if(!otaHttpAuthorized())return;
+    String page=F("<!doctype html><html lang='en'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>SmartFarm OTA</title><style>body{font:16px sans-serif;max-width:640px;margin:40px auto;padding:0 16px;background:#f5f7f5;color:#17251d}input,button{font:16px;padding:10px;margin:8px 0}button{cursor:pointer}</style><h1>SmartFarm OTA</h1><p>Firmware: ");
+    page+=SMARTFARM_VERSION;
+    page+=F("</p><p>Device: ");page+=deviceName;page+=F("</p><form method='POST' action='/update' enctype='multipart/form-data'><input type='file' name='firmware' accept='.bin' required><br><button type='submit'>Upload firmware</button></form></html>");
+    otaServer.send(200,"text/html; charset=utf-8",page);
+  });
+  otaServer.on("/update",HTTP_POST,[](){
+    if(!otaHttpAuthorized())return;
+    bool ok=!Update.hasError();
+    otaServer.send(ok?200:500,"text/plain; charset=utf-8",ok?"Update complete. Device is restarting.":"Update failed.");
+    if(ok){otaHttpRestartPending=true;otaHttpRestartAt=millis()+1000UL;}
+  },otaHttpUpload);
+  otaServer.on("/api/status",HTTP_GET,[](){
+    if(!otaHttpAuthorized())return;
+    StaticJsonDocument<256>d;d["device"]=deviceName;d["firmware"]=SMARTFARM_VERSION;d["ip"]=WiFi.localIP().toString();d["rssi"]=WiFi.RSSI();
+    String out;serializeJson(d,out);otaServer.send(200,"application/json",out);
+  });
+  otaServer.onNotFound([](){otaServer.send(404,"text/plain","Not found");});
+  otaServer.begin();
+  Serial.print(F("OTA HTTP READY: http://"));Serial.print(WiFi.localIP());Serial.println(F("/"));
+}
+
 void setupWifi(){
   WiFi.mode(WIFI_STA);WiFi.setAutoReconnect(true);WiFi.persistent(true);
   WiFiManager wm;wm.setConfigPortalTimeout(180);
@@ -167,7 +226,7 @@ void setupWifi(){
 void setup(){
   Serial.begin(115200);delay(100);Serial.println();Serial.println(F("\n=== SmartFarm V6.0.1 HARDENED BOOT ==="));Serial.print(F("Reset reason: "));Serial.println(ESP.getResetReason());Serial.print(F("Reset info: "));Serial.println(ESP.getResetInfo());Serial.print(F("Free heap at boot: "));Serial.println(ESP.getFreeHeap());
   for(uint8_t i=0;i<RELAY_COUNT;i++){pinMode(relayPins[i],OUTPUT);digitalWrite(relayPins[i],RELAY_OFF);}initFS();loadConfig();initRTC();dht.begin();ntp.begin();Serial.print(F("Heap before WiFi: "));Serial.println(ESP.getFreeHeap());setupWifi();Serial.print(F("Heap after WiFi: "));Serial.println(ESP.getFreeHeap());
-  tls.setInsecure();mqtt.setServer(MQTT_SERVER,MQTT_PORT);mqtt.setCallback(mqttCallback);mqtt.setBufferSize(1536);mqtt.setKeepAlive(30);syncRTCFromNTP(true);if(mode==AUTO)applyAutoState(currentMinutes());ArduinoOTA.setHostname(deviceName);if(otaPass[0])ArduinoOTA.setPassword(otaPass);ArduinoOTA.onStart([](){Serial.println(F("OTA: START"));});ArduinoOTA.onEnd([](){Serial.println(F("OTA: END"));});ArduinoOTA.onError([](ota_error_t e){Serial.printf("OTA: ERROR %u\n",e);});ArduinoOTA.begin();Serial.println(F("OTA: READY"));Serial.print(F("MQTT server: "));Serial.print(MQTT_SERVER);Serial.print(F(":"));Serial.println(MQTT_PORT);Serial.print(F("MQTT credentials: "));Serial.println((mqttUser[0]&&mqttPass[0])?F("PRESENT"):F("MISSING"));Serial.print(F("Boot complete, heap: "));Serial.println(ESP.getFreeHeap());
+  tls.setInsecure();mqtt.setServer(MQTT_SERVER,MQTT_PORT);mqtt.setCallback(mqttCallback);mqtt.setBufferSize(1536);mqtt.setKeepAlive(30);syncRTCFromNTP(true);if(mode==AUTO)applyAutoState(currentMinutes());ArduinoOTA.setHostname(deviceName);if(otaPass[0])ArduinoOTA.setPassword(otaPass);ArduinoOTA.onStart([](){Serial.println(F("OTA: START"));});ArduinoOTA.onEnd([](){Serial.println(F("OTA: END"));});ArduinoOTA.onError([](ota_error_t e){Serial.printf("OTA: ERROR %u\n",e);});ArduinoOTA.begin();Serial.println(F("OTA: READY"));setupOtaHttpServer();Serial.print(F("MQTT server: "));Serial.print(MQTT_SERVER);Serial.print(F(":"));Serial.println(MQTT_PORT);Serial.print(F("MQTT credentials: "));Serial.println((mqttUser[0]&&mqttPass[0])?F("PRESENT"):F("MISSING"));Serial.print(F("Boot complete, heap: "));Serial.println(ESP.getFreeHeap());
 }
 
 void runSafety(){if(!relayOn(0)){pumpStartedAt=0;pumpMqttLostAt=0;return;}if(!pumpStartedAt)pumpStartedAt=millis();if((uint32_t)(millis()-pumpStartedAt)>=PUMP_MAX_RUNTIME_MS){forcePumpOff("max runtime");return;}if(mode==MANUAL&&!mqtt.connected()){if(!pumpMqttLostAt)pumpMqttLostAt=millis();if((uint32_t)(millis()-pumpMqttLostAt)>=PUMP_MQTT_LOSS_OFF_MS)forcePumpOff("MQTT lost");}else pumpMqttLostAt=0;}
@@ -175,4 +234,4 @@ void runSchedules(){if(mode!=AUTO||(uint32_t)(millis()-lastSchedule)<SCHEDULE_IN
 
 void publishHeartbeat(){if(!mqtt.connected())return;StaticJsonDocument<384>d;d["online"]=true;d["firmware"]=SMARTFARM_VERSION;d["heap"]=ESP.getFreeHeap();d["rssi"]=WiFi.RSSI();d["mode"]=mode==AUTO?"AUTO":"MANUAL";d["pumpSafeLock"]=pumpSafetyLatched;d["rtc"]=rtcAvailable&&rtcTimeValid;String iso=rtcIso();if(iso.length())d["time"]=iso;char out[384];serializeJson(d,out,sizeof(out));mqtt.publish(MQTT_BASE "/device/status",out,false);}
 
-void loop(){ESP.wdtFeed();if(WiFi.status()==WL_CONNECTED){connectMqtt();if(mqtt.connected())mqtt.loop();ntp.update();syncRTCFromNTP(false);}else{if(relayOn(0)&&mode==MANUAL&&!pumpMqttLostAt)pumpMqttLostAt=millis();}ArduinoOTA.handle();runSafety();runSchedules();if((uint32_t)(millis()-lastSensor)>=SENSOR_INTERVAL_MS){lastSensor=millis();float h=dht.readHumidity(),c=dht.readTemperature();if(mqtt.connected()&&!isnan(h)&&!isnan(c)){StaticJsonDocument<160>d;d["temperature"]=c;d["humidity"]=h;char out[160];serializeJson(d,out,sizeof(out));mqtt.publish(MQTT_BASE "/sensor/dht11",out,false);}}if((uint32_t)(millis()-lastHeartbeat)>=HEARTBEAT_INTERVAL_MS){lastHeartbeat=millis();publishHeartbeat();}yield();}
+void loop(){ESP.wdtFeed();if(WiFi.status()==WL_CONNECTED){connectMqtt();if(mqtt.connected())mqtt.loop();ntp.update();syncRTCFromNTP(false);}else{if(relayOn(0)&&mode==MANUAL&&!pumpMqttLostAt)pumpMqttLostAt=millis();}otaServer.handleClient();ArduinoOTA.handle();if(otaHttpRestartPending&&(int32_t)(millis()-otaHttpRestartAt)>=0)ESP.restart();runSafety();runSchedules();if((uint32_t)(millis()-lastSensor)>=SENSOR_INTERVAL_MS){lastSensor=millis();float h=dht.readHumidity(),c=dht.readTemperature();if(mqtt.connected()&&!isnan(h)&&!isnan(c)){StaticJsonDocument<160>d;d["temperature"]=c;d["humidity"]=h;char out[160];serializeJson(d,out,sizeof(out));mqtt.publish(MQTT_BASE "/sensor/dht11",out,false);}}if((uint32_t)(millis()-lastHeartbeat)>=HEARTBEAT_INTERVAL_MS){lastHeartbeat=millis();publishHeartbeat();}yield();}
