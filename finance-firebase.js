@@ -50,8 +50,12 @@
   }
 
   async function deleteFinanceItem(id) {
-    if (!id) throw new Error('ไม่พบรายการที่ต้องการลบ');
-    await FirebaseDB.delete(`finance/${encodeURIComponent(id)}`);
+    const key = String(id || '').trim();
+    if (!key || key.includes('/') || key.includes('.') || key.includes('#') || key.includes('$') || key.includes('[') || key.includes(']')) throw new Error('รหัสรายการไม่ถูกต้อง');
+    const path = `finance/${key}`;
+    await FirebaseDB.delete(path);
+    const remaining = await FirebaseDB.get(path);
+    if (remaining !== null) throw new Error('Firebase ยังไม่ยืนยันการลบรายการ กรุณาลองใหม่');
   }
 
   window.saveFinanceItem = saveFinanceItem;
