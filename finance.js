@@ -118,25 +118,38 @@
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const totals = summary();
+      const thaiFont = window.THAI_FONT_BASE64 ? 'NotoThai' : 'helvetica';
+      const setPdfFont = (font = thaiFont, size = 11) => { doc.setFont(font, 'normal'); doc.setFontSize(size); };
+      const pdfNumber = value => `THB ${Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const pdfDate = value => {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '-';
+        const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(date);
+        const get = type => parts.find(part => part.type === type)?.value || '';
+        return `${get('day')}/${get('month')}/${get('year')} ${get('hour')}:${get('minute')}`;
+      };
       let y = 18;
-      const line = (text, x = 14, size = 11) => { doc.setFontSize(size); doc.text(String(text), x, y); y += 7; };
-      doc.setFontSize(18); doc.text('รายงานการเงินฟาร์ม', 14, y); y += 8;
-      doc.setFontSize(10); doc.text(`สวนลุงนะ Smart Farm · ${new Date().toLocaleString('th-TH')}`, 14, y); y += 10;
-      line(`รายรับรวม: ${formatter.format(totals.income)}`);
-      line(`รายจ่ายรวม: ${formatter.format(totals.expense)}`);
-      line(`ค้างซื้อ: ${formatter.format(totals.pending)}`);
-      line(`กำไรสุทธิ: ${formatter.format(totals.profit)}`);
+      setPdfFont(thaiFont, 18); doc.text('รายงานการเงินฟาร์ม', 14, y); y += 8;
+      setPdfFont(thaiFont, 10); doc.text('สวนลุงนะ Smart Farm', 14, y); y += 8;
+      const totalLine = (label, value) => {
+        setPdfFont(thaiFont, 11); doc.text(`${label}:`, 14, y);
+        setPdfFont('helvetica', 11); doc.text(pdfNumber(value), 62, y);
+        y += 7;
+      };
+      totalLine('รายรับรวม', totals.income);
+      totalLine('รายจ่ายรวม', totals.expense);
+      totalLine('ค้างซื้อ', totals.pending);
+      totalLine('กำไรสุทธิ', totals.profit);
       y += 3;
-      doc.setFontSize(10); doc.text('วันที่', 14, y); doc.text('ประเภท', 49, y); doc.text('รายการ', 82, y); doc.text('จำนวนเงิน', pageWidth - 45, y); y += 3;
+      setPdfFont(thaiFont, 10); doc.text('วันที่', 14, y); doc.text('ประเภท', 49, y); doc.text('รายการ', 82, y); doc.text('จำนวนเงิน', pageWidth - 45, y); y += 3;
       doc.line(14, y, pageWidth - 14, y); y += 7;
       items.forEach(item => {
         if (y > pageHeight - 18) { doc.addPage(); y = 18; }
         const label = typeMeta[item.type]?.label || item.type;
         const name = doc.splitTextToSize(item.item, 58)[0];
-        doc.text(formatDate(item.createdAt), 14, y, { maxWidth: 30 });
-        doc.text(label, 49, y);
-        doc.text(name, 82, y);
-        doc.text(formatter.format(item.amount), pageWidth - 45, y);
+        setPdfFont('helvetica', 9); doc.text(pdfDate(item.createdAt), 14, y, { maxWidth: 30 });
+        setPdfFont(thaiFont, 9); doc.text(label, 49, y); doc.text(name, 82, y);
+        setPdfFont('helvetica', 9); doc.text(pdfNumber(item.amount), pageWidth - 45, y);
         y += 7;
       });
       doc.save(`รายงานการเงิน-${new Date().toISOString().slice(0, 10)}.pdf`);
