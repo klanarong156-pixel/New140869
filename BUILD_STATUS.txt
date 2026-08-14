@@ -1,40 +1,20 @@
-Newfarm V6.0.1 stability and production review
+Smart Farm V7.0 build and validation status
 
-Repository: klanarong156-pixel/Newfarm
-Default branch: main
-Active firmware source: SmartFarm_V6_PRODUCTION.ino
-Build target: ESP8266 NodeMCU V3 / esp8266:esp8266:nodemcuv2
+The most recent historical CI evidence in this repository predates the V7.0 source changes. It confirmed that the previous ESP8266 source compiled successfully, but it is not evidence that the modified V7.0 firmware compiles or behaves correctly.
 
-Verified contract alignment:
-- Relay IDs match: pump, zone1, lighthome, lightsala.
-- DHT11 topic matches: smartfarm/sensor/dht11.
-- Device heartbeat matches: smartfarm/device/status.
-- Schedule topics match: smartfarm/schedule/{relay}/set and /status.
-- DS3231 firmware mapping matches dashboard/docs: SDA D2/GPIO4, SCL D1/GPIO5.
-- A0 remains reserved; no soil sensor topic is published.
-- GitHub Actions compiles the firmware and uploads SmartFarm_V6_PRODUCTION.bin.
+Current source changes requiring validation
+- Firmware version string is now V7.0.0-PRODUCTION-HARDENED.
+- Switching from AUTO to MANUAL explicitly turns all relays OFF before accepting individual manual commands.
+- Dashboard MQTT credentials were removed from source and must now be supplied by the operator in the browser.
+- Dashboard pin-map content was aligned to the current firmware: DHT11=D2, DS3231 SDA=D3, DS3231 SCL=D4, relays D5–D8.
 
-Latest verified GitHub Actions build for commit de23cff80d78d88f10a1d77606ca45e1f0aa3571:
-- Build result: SUCCESS
-- ESP8266 core: 3.1.2
-- ArduinoJson: 7.4.3
-- PubSubClient: 2.8.0
-- DHT sensor library: 1.4.7
-- NTPClient: 3.2.1
-- WiFiManager: 2.0.17
-- RTClib: 2.1.4
-- Binary SHA256 from build log: e29c794d1b93491af27826ba4368b499b1741be8c38790a3f7f10fcaddd9f707
-- Artifact: SmartFarm-V6-PRODUCTION-ESP8266-BIN
-- Artifact ID: 9089754816
-- Artifact expires: 2026-09-10
+Required validation before production use
+1. Compile SmartFarm_V6_PRODUCTION.ino for esp8266:esp8266:nodemcuv2 with the project libraries.
+2. Flash a test NodeMCU and verify boot state: all relays are OFF.
+3. Verify MQTT connect, retained relay/mode/schedule statuses, and DHT11 heartbeat.
+4. Verify all four schedule slots for every relay in AUTO mode, including an overnight slot.
+5. Verify a switch from AUTO to MANUAL turns every relay OFF and publishes their statuses.
+6. Verify pump safety timeout and the 60-second MANUAL MQTT-loss cutoff on real hardware.
+7. Verify OTA with a stable power supply and the configured OTA password.
 
-Build resource usage:
-- Global/static RAM: 33,508 / 80,192 bytes (41%)
-- IRAM: 62,099 / 65,536 bytes (94%) — HIGH; avoid adding large IRAM-heavy features without rechecking the build.
-- Flash/IROM: 509,152 / 1,048,576 bytes (48%)
-
-Important hardware validation:
-- The GitHub build proves the source compiles and produces a valid .bin.
-- It does NOT prove physical Wi-Fi, MQTT, DS3231, DHT11, relay wiring or pump behavior.
-- The NodeMCU must be tested on the real hardware with Serial Monitor at 115200 baud.
-- If the ESP still loops after Wi-Fi connection, capture the new Reset reason / Reset info printed by V6.0.1 at boot.
+The known build resource profile from the historical V6 compile was approximately 41% global RAM, 94% IRAM and 48% flash. IRAM headroom was limited, so the V7 compile result must be reviewed before new firmware is deployed.

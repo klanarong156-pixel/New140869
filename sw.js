@@ -1,24 +1,39 @@
-// SmartFarm V6.2 Service Worker
-// Navigation-first cache strategy. Every production deployment gets a new cache namespace.
-const CACHE_NAME='smartfarm-v6.2-app-1';
-const APP_SHELL=['./','./index.html','./schedule.html','./account.html','./settings.html','./ota.html','./admin.html','./auth.html','./finance.html','./manifest.json','./style.css','./page-nav.js','./config.js','./firebase.js','./access.js','./script.js','./mqtt-handler.js','./cloud-farm-sync.js','./finance-core.js','./finance-config.js','./logo.png','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
-const MEDIA_EXT=/\.(?:png|jpg|jpeg|gif|webp|svg|ico|woff2?|ttf)$/i;
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('smartfarm-')&&k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',e=>{
-  const r=e.request;
-  if(r.method!=='GET')return;
-  const u=new URL(r.url);
-  if(u.origin!==self.location.origin)return;
-  if(r.mode==='navigate'){
-    e.respondWith(fetch(r,{cache:'no-store'}).then(res=>res).catch(()=>caches.match(r).then(c=>c||caches.match('./index.html'))));
+const CACHE_NAME = 'smartfarm-v7-app-1';
+const APP_SHELL = [
+  './', './index.html', './404.html', './auth.html', './schedule.html', './finance.html', './account.html', './settings.html', './admin.html', './ota.html',
+  './manifest.json', './app.css', './app.js', './config.js', './mqtt-handler.js', './weather.js', './auto-weather-guard.js', './schedule.js', './firebase.js', './access.js', './auth-page.js', './finance-core.js', './finance-firebase.js', './finance.js', './account.js', './admin.js',
+  './logo.png', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
+];
+const MEDIA_EXT = /\.(?:png|jpg|jpeg|gif|webp|svg|ico|woff2?|ttf)$/i;
+
+self.addEventListener('install', event => event.waitUntil(
+  caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
+));
+self.addEventListener('activate', event => event.waitUntil(
+  caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('smartfarm-') && key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim())
+));
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request, { cache: 'no-store' }).catch(() => caches.match('./index.html')));
     return;
   }
-  if(/\.(?:js|css|html|json)$/i.test(u.pathname)){
-    e.respondWith(fetch(r,{cache:'no-store'}).then(res=>{const c=res.clone();caches.open(CACHE_NAME).then(x=>x.put(r,c)).catch(()=>{});return res;}).catch(()=>caches.match(r)));
+  if (/\.(?:js|css|html|json)$/i.test(url.pathname)) {
+    event.respondWith(fetch(request, { cache: 'no-store' }).then(response => {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => {});
+      return response;
+    }).catch(() => caches.match(request)));
     return;
   }
-  if(MEDIA_EXT.test(u.pathname)){
-    e.respondWith(caches.match(r).then(c=>c||fetch(r).then(res=>{const x=res.clone();caches.open(CACHE_NAME).then(z=>z.put(r,x)).catch(()=>{});return res;})));
+  if (MEDIA_EXT.test(url.pathname)) {
+    event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => {});
+      return response;
+    })));
   }
 });

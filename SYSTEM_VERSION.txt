@@ -1,28 +1,13 @@
-SMART FARM LUNGNA V6.2 DASHBOARD HARDENED
+SMART FARM LUNGNA V7.0
 
-Dashboard: V6.2
-MQTT Contract: V6.2
-Firebase Auth/Roles: V6.0.1 compatible
-Firmware: V6.0.1-PRODUCTION-HARDENED (unchanged in this dashboard release)
-Build target: ESP8266 NodeMCU V3 (esp8266:esp8266:nodemcuv2)
+Dashboard: V7.0 modern farm UI
+MQTT Contract: unchanged topic contract; credential handling redesigned
+Firebase Auth/Roles: account, profile, finance and admin-role flow restored
+Firmware: V7.0.0-PRODUCTION-HARDENED
+Hardware map: DHT11 D2; DS3231 D3/D4; relays D5–D8; soil sensor A0 reserved
+PWA cache: smartfarm-v7-app-1
 
-Production rules:
-- One active firmware source: SmartFarm_V6_PRODUCTION.ino.
-- MQTT is the single real-time transport for Dashboard <-> ESP8266.
-- Browser MQTT credentials are remembered only on the local browser when the user chooses to save them; credentials are never committed to GitHub.
-- Firebase Authentication + Realtime Database roles protect web pages and admin data.
-- User: Dashboard, Relay and schedules. Admin: all user capabilities + settings, roles and OTA page.
-- Four independent schedule slots exist for each relay.
-- ESP8266 stores schedules in LittleFS and executes AUTO locally.
-- All relays boot OFF.
-- Pump hard maximum continuous runtime: 30 minutes.
-- MANUAL pump is forced OFF after 60 seconds of MQTT loss.
-- DHT11 is the only active sensor.
-- DS3231 is supported on D2/D1 and is the preferred local schedule clock when valid; NTP is the fallback/synchronization source.
-- Soil Sensor is not installed; A0 is reserved.
-- Dashboard does not invent sensor values or success states.
-- Dashboard commands are queued briefly while MQTT reconnects instead of being silently discarded.
-- Device online state is based on ESP heartbeat/LWT, not merely browser MQTT connectivity.
-- Service-worker cache namespace is bumped for each production dashboard release.
-- GitHub Actions must compile and publish SmartFarm_V6_PRODUCTION.bin.
-- Production firmware build must be checked for RAM/IRAM headroom before hardware deployment.
+V7 verification status
+- JavaScript and JSON syntax: checked locally.
+- Dashboard responsive rendering and Open-Meteo data: checked in browser.
+- MQTT relay, schedule, Firebase live operations and ESP8266 firmware: require authorized credentials and physical hardware validation before release.

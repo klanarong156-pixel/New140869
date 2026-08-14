@@ -1,66 +1,41 @@
-# NewFarm V6.2 MQTT Contract
+# Smart Farm V7.0 MQTT contract
 
-This is the active MQTT contract for the V6.0.1 Production Hardened firmware and V6.2 web app.
+เฟิร์มแวร์ `V7.0.0-PRODUCTION-HARDENED` และเว็บแอป V7 ใช้ topic ต่อไปนี้
 
-## Relay
-- Command: `smartfarm/relay/{relay}/set`
-- Payload: `ON` or `OFF`
-- Status: `smartfarm/relay/{relay}/status`
-- Status payload: `ON` or `OFF`
+| Feature | Command topic | Status topic | Payload |
+| --- | --- | --- | --- |
+| Relay | `smartfarm/relay/{relay}/set` | `smartfarm/relay/{relay}/status` | `ON` or `OFF` |
+| Mode | `smartfarm/mode/set` | `smartfarm/mode/status` | `MANUAL` or `AUTO` |
+| Schedule | `smartfarm/schedule/{relay}/set` | `smartfarm/schedule/{relay}/status` | JSON slots or `DELETE` |
+| Presence | — | `smartfarm/status/online` | retained `true` / LWT `false` |
+| Heartbeat | — | `smartfarm/device/status` | device JSON every 10 seconds |
+| Sensor | — | `smartfarm/sensor/dht11` | temperature/humidity JSON |
 
-Relay IDs: `pump`, `zone1`, `lighthome`, `lightsala`.
+Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. A relay status is retained by the device so a newly connected dashboard can render the current state.
 
-## Mode
-- Command: `smartfarm/mode/set`
-- Status: `smartfarm/mode/status`
-- Payload: `MANUAL` or `AUTO`
-- A manual relay command received by firmware exits AUTO first, so firmware remains authoritative.
+## Schedule payload
 
-## Four independent schedules per relay
-- Command: `smartfarm/schedule/{relay}/set`
-- Payload: `{ "slots": [ {"enabled":true,"on":"HH:MM","off":"HH:MM"}, ... ] }`
-- Maximum: 4 slots per relay.
-- Each relay owns its own four slots; changing one relay never changes another.
-- `DELETE` clears all four slots for that relay.
-- Status: `smartfarm/schedule/{relay}/status`
-- Status payload: `{ "slots": [ ...up to 4 slots... ] }`
-- Schedules are stored in ESP8266 LittleFS and continue locally in AUTO when MQTT is temporarily unavailable.
+```json
+{
+  "slots": [
+    {"enabled": true, "on": "06:00", "off": "06:20"},
+    {"enabled": false, "on": "00:00", "off": "00:00"}
+  ]
+}
+```
 
-## ESP status
-- Online/LWT: `smartfarm/status/online`
-- Payload: retained `true` while connected; broker LWT publishes retained `false` after an unexpected disconnect.
-- Runtime heartbeat: `smartfarm/device/status` every 10 seconds while MQTT is connected.
-- Heartbeat includes firmware version, free heap, RSSI, mode, pump safety lock, RTC validity and time when available.
-- Dashboard considers the device offline after 25 seconds without a heartbeat/presence event.
-- Browser MQTT disconnect does not by itself declare the ESP offline; ESP presence is determined from device messages.
+Each relay has at most four independent slots. The firmware rejects equal start and stop times, persists accepted slots in LittleFS, and applies them only in AUTO mode. A `DELETE` payload clears all four slots for the selected relay.
 
-## Sensor
-Current active sensor is DHT11.
-- Topic: `smartfarm/sensor/dht11`
-- Payload JSON: `{ "temperature": number, "humidity": number }`
-- No Soil Sensor topic exists; A0 is reserved.
+## Mode and safety behavior
 
-## Time
-- DS3231 is supported and used as the preferred local schedule clock when present and valid.
-- I2C: SDA D2/GPIO4, SCL D1/GPIO5.
-- If DS3231 is unavailable or invalid, the firmware falls back to NTP.
-- NTP is used to synchronize DS3231 when Wi-Fi is available; periodic sync interval is 6 hours.
+A direct relay command received while AUTO is active first changes firmware mode to MANUAL. A command that explicitly changes mode from AUTO to MANUAL turns every relay OFF before publishing the fresh mode and relay statuses. In AUTO, a pump that reaches its 30-minute continuous runtime limit remains safety-latched OFF until the current schedule window ends. In MANUAL, a running pump is forced OFF after 60 seconds without MQTT.
 
-## Pump safety
-- Maximum continuous pump runtime: 30 minutes.
-- In AUTO, reaching the limit latches the pump OFF until the active schedule window ends.
-- In MANUAL, reaching the limit latches the pump OFF until a new explicit ON command.
-- In MANUAL, if MQTT remains disconnected for 60 seconds while the pump is running, the pump is forced OFF.
-- ESP8266 boots with all four relays OFF.
+The firmware publishes an online heartbeat including version, free heap, RSSI, mode, pump safety lock and RTC validity. The dashboard treats the device as offline after 25 seconds without a heartbeat or presence update. Browser MQTT connectivity alone does not determine ESP8266 online status.
 
-## Browser MQTT credentials
-- Username/password are not committed to source control.
-- V6.2 remembers credentials in the browser's local storage when the user selects the remember option; otherwise they remain session-only.
-- Invalid broker credentials clear the saved browser credentials and reopen the setup dialog.
-- Commands issued during a short MQTT reconnect window are queued for up to 30 seconds and then discarded.
-- A static GitHub Pages client cannot keep a shared MQTT credential secret from the browser; HiveMQ ACLs should be configured for broker-level authorization.
+## Credentials and boundaries
 
-## Security
-- Firebase Authentication provides user/admin roles for the web UI and Firebase rules protect role data.
-- User: Dashboard, Relay and schedules. Admin: all user capabilities plus MQTT settings, role management and OTA page.
-- Firmware currently uses TLS transport with certificate verification disabled (`setInsecure()`); certificate validation remains a firmware hardening option.
+The dashboard source contains no MQTT username or password. An operator enters credentials in the browser; they are stored in session storage by default, or in local storage only after selecting “remember this device.” Commands issued in a short reconnect window are queued for up to 30 seconds.
+
+> A static web client cannot protect a shared broker credential from a person who can use that credential in a browser. Configure HiveMQ ACLs and rotate any password that was committed in a prior repository revision.
+
+The active hardware time map is DHT11 on D2/GPIO4 and DS3231 I²C on D3/GPIO0 plus D4/GPIO2. The firmware uses TLS transport with `setInsecure()` at present, so certificate validation remains a future hardening task.

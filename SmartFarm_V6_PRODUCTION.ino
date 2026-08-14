@@ -17,7 +17,7 @@
 #include <RTClib.h>
 #include <DHT.h>
 
-#define SMARTFARM_VERSION "V6.0.1-PRODUCTION-HARDENED"
+#define SMARTFARM_VERSION "V7.0.0-PRODUCTION-HARDENED"
 #define MQTT_SERVER "650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud"
 #define MQTT_PORT 8883
 #define MQTT_BASE "smartfarm"
@@ -106,7 +106,7 @@ void applyAutoState(uint16_t now){for(uint8_t i=0;i<RELAY_COUNT;i++){bool desire
 void openMqttSetupPortal(){if(mqttPortalOpened)return;mqttPortalOpened=true;Serial.println(F("MQTT CONFIG: opening SmartFarm_Setup portal"));WiFiManager wm;wm.setConfigPortalTimeout(180);pUser.setValue(mqttUser,sizeof(mqttUser));pPass.setValue(mqttPass,sizeof(mqttPass));pOta.setValue(otaPass,sizeof(otaPass));pName.setValue(deviceName,sizeof(deviceName));wm.addParameter(&pUser);wm.addParameter(&pPass);wm.addParameter(&pOta);wm.addParameter(&pName);if(wm.startConfigPortal("SmartFarm_Setup")){strlcpy(mqttUser,pUser.getValue(),sizeof(mqttUser));strlcpy(mqttPass,pPass.getValue(),sizeof(mqttPass));strlcpy(otaPass,pOta.getValue(),sizeof(otaPass));strlcpy(deviceName,pName.getValue(),sizeof(deviceName));saveSecrets();Serial.println(F("MQTT CONFIG: credentials saved"));}else Serial.println(F("MQTT CONFIG: portal timeout/failed"));mqttAuthFailures=0;mqttConfigReported=false;mqttPortalOpened=false;}
 
 void mqttCallback(char*topic,byte*payload,unsigned int len){String t(topic),msg;msg.reserve(len+1);for(unsigned int i=0;i<len;i++)msg+=(char)payload[i];msg.trim();String rp=String(MQTT_BASE)+"/relay/";if(t.startsWith(rp)&&t.endsWith("/set")){String n=t.substring(rp.length(),t.length()-4);int i=relayIndex(n);if(i<0)return;if(mode==AUTO){mode=MANUAL;pumpSafetyLatched=false;saveConfig();mqtt.publish(MQTT_BASE "/mode/status","MANUAL",true);}if(msg.equalsIgnoreCase("ON"))relaySet((uint8_t)i,true);else if(msg.equalsIgnoreCase("OFF"))relaySet((uint8_t)i,false);else return;publishRelayStatus((uint8_t)i);return;}
-  if(t==MQTT_BASE "/mode/set"){if(msg.equalsIgnoreCase("AUTO"))mode=AUTO;else if(msg.equalsIgnoreCase("MANUAL"))mode=MANUAL;else return;if(mode==MANUAL)pumpSafetyLatched=false;else applyAutoState(currentMinutes());saveConfig();publishStatus();return;}
+  if(t==MQTT_BASE "/mode/set"){if(msg.equalsIgnoreCase("AUTO"))mode=AUTO;else if(msg.equalsIgnoreCase("MANUAL"))mode=MANUAL;else return;if(mode==MANUAL){pumpSafetyLatched=false;for(uint8_t i=0;i<RELAY_COUNT;i++)relaySetRaw(i,false);}else applyAutoState(currentMinutes());saveConfig();publishStatus();return;}
   String sp=String(MQTT_BASE)+"/schedule/";if(t.startsWith(sp)&&t.endsWith("/set")){String n=t.substring(sp.length(),t.length()-4);int r=relayIndex(n);if(r<0)return;StaticJsonDocument<1024>d;if(msg.equalsIgnoreCase("DELETE")){for(uint8_t s=0;s<SLOT_COUNT;s++)schedules[r][s]={false,0,0,0,0};}else{if(deserializeJson(d,msg))return;JsonArray slots=d["slots"].as<JsonArray>();if(slots.isNull())return;for(uint8_t s=0;s<SLOT_COUNT;s++){schedules[r][s]={false,0,0,0,0};if(s>=slots.size())continue;JsonObject o=slots[s].as<JsonObject>();uint8_t oh,om,fh,fm;if(!parseHM(o["on"]|"",oh,om)||!parseHM(o["off"]|"",fh,fm)||(oh==fh&&om==fm))continue;schedules[r][s]={bool(o["enabled"]|false),oh,om,fh,fm};}}saveConfig();if(mode==AUTO)applyAutoState(currentMinutes());publishScheduleStatus((uint8_t)r);publishRelayStatus((uint8_t)r);return;}
 }
 

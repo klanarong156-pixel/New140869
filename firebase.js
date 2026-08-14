@@ -29,12 +29,16 @@ const FirebaseAuth = {
   async refresh(){if(!this.refreshToken)return false;const res=await fetch(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',refresh_token:this.refreshToken})});const data=await res.json().catch(()=>({}));if(!res.ok){this.clear();return false;}localStorage.setItem(this.tokenKey,data.id_token||'');localStorage.setItem(this.refreshKey,data.refresh_token||this.refreshToken);if(data.user_id)localStorage.setItem(this.userKey,JSON.stringify({localId:data.user_id,email:this.user?.email||''}));return true;}
 };
 
+window.FirebaseAuth = FirebaseAuth;
+
 const FirebaseDB = {
   basePath(path=''){const uid=FirebaseAuth.user?.localId;if(!uid)throw new Error('กรุณาเข้าสู่ระบบ Firebase');const clean=String(path).replace(/^\/+|\/+$/g,'');return `users/${encodeURIComponent(uid)}/${clean}`.replace(/\/$/,'');},
   url(path=''){const clean=this.basePath(path);const auth=FirebaseAuth.token?`?auth=${encodeURIComponent(FirebaseAuth.token)}`:'';return FIREBASE_CONFIG.databaseURL.replace(/\/+$/,'')+'/'+clean+'.json'+auth;},
   async request(path,options={},retry=true){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),FIREBASE_CONFIG.timeoutMs);try{const res=await fetch(this.url(path),{cache:'no-store',signal:controller.signal,headers:{'Content-Type':'application/json',...(options.headers||{})},...options});if(res.status===401&&retry&&await FirebaseAuth.refresh())return this.request(path,options,false);if(!res.ok){let detail='';try{detail=await res.text()}catch(_){}throw new Error('HTTP '+res.status+(detail?' • '+detail.slice(0,160):''));}return res.status===204?null:res.json();}catch(err){if(err?.name==='AbortError')throw new Error('Firebase connection timeout');throw err;}finally{clearTimeout(timer);}},
   get(path){return this.request(path);},put(path,data){return this.request(path,{method:'PUT',body:JSON.stringify(data)});},patch(path,data){return this.request(path,{method:'PATCH',body:JSON.stringify(data)});},post(path,data){return this.request(path,{method:'POST',body:JSON.stringify(data)});},delete(path){return this.request(path,{method:'DELETE'});},serverTimestamp(){return {'.sv':'timestamp'};}
 };
+
+window.FirebaseDB = FirebaseDB;
 
 // Root-level Firebase access is intentionally separate from FirebaseDB.
 // It is required for /roles, whose security rules live at the database root.

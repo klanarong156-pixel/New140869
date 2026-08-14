@@ -1,29 +1,31 @@
-สวนลุงนะ Smart Farm V6.0.1 Production Hardened
+สวนลุงนะ Smart Farm V7.0
 
 Architecture
-- Dashboard: static web app on GitHub Pages.
-- ESP8266: sensor / relay / MQTT / OTA controller only.
+- Dashboard: static Progressive Web App for GitHub Pages.
+- ESP8266: local sensor, relay, MQTT, OTA and schedule controller.
 - MQTT: real-time transport between Dashboard and ESP8266.
-- Firebase Authentication + Realtime Database: persistent dashboard/account data and user/admin roles.
+- Firebase Authentication + Realtime Database: private profile, finance data and user/admin roles.
 - ESP8266 LittleFS: local schedules, MQTT credentials and OTA password.
 
-Hardware
-- NodeMCU 1.0 (ESP-12E / ESP8266)
-- DHT11: D0 / GPIO16
-- DS3231: SDA D2 / GPIO4, SCL D1 / GPIO5
-- Pump relay: D5 / GPIO14
-- Zone 1 relay: D6 / GPIO12
-- Home light relay: D7 / GPIO13
-- Sala light relay: D8 / GPIO15
-- A0 reserved; no soil sensor installed
+Hardware pin map — source of truth: SmartFarm_V6_PRODUCTION.ino
+- DHT11 data: D2 / GPIO4.
+- DS3231 SDA: D3 / GPIO0.
+- DS3231 SCL: D4 / GPIO2.
+- Pump relay: D5 / GPIO14.
+- Zone 1 relay: D6 / GPIO12.
+- Home light relay: D7 / GPIO13.
+- Sala light relay: D8 / GPIO15.
+- A0 is reserved; no soil sensor is installed.
 
 Automation and safety
-- MANUAL and AUTO modes.
-- Four independent schedule slots per relay.
-- Schedules execute locally from LittleFS in AUTO even if MQTT is temporarily unavailable.
-- Pump maximum continuous runtime: 30 minutes.
+- MANUAL and AUTO modes are available.
+- Four independent schedule slots are stored locally for each relay.
+- Schedules execute locally in AUTO even if MQTT is temporarily unavailable.
+- Switching from AUTO to MANUAL turns all relays OFF first; the operator can then issue individual MANUAL commands.
+- Pump maximum continuous runtime is 30 minutes.
 - In MANUAL, a running pump is forced OFF after 60 seconds without MQTT.
 - All relays initialize OFF at boot.
+- Dashboard Rain Protection blocks selecting AUTO when Open-Meteo reports rain risk. This is a dashboard-level safeguard; the ESP8266 cannot evaluate web weather data while offline, so field hardware safety limits remain essential.
 
 Time
 - DS3231 is the preferred local clock when present and valid.
@@ -38,19 +40,14 @@ MQTT topics
 - smartfarm/sensor/dht11
 
 Security
-- MQTT browser credentials are session-only and are not committed.
+- MQTT browser credentials are intentionally blank in config.js and must be entered by the operator. They are saved only in session storage, or optional local storage when “remember this device” is selected.
 - ESP MQTT/OTA credentials are stored locally in LittleFS and are not committed.
-- Firebase rules protect users/finance and root roles.
+- Firebase rules protect user-scoped profile/finance data and root roles.
 - HiveMQ ACLs should be configured for broker-level authorization.
-- Firmware currently uses TLS with certificate verification disabled via setInsecure(); certificate validation is a remaining hardening option.
+- Firmware currently uses TLS transport with certificate verification disabled through setInsecure(); pinning or a trust-anchor configuration is a recommended production hardening follow-up.
 
-Build
-- Arduino IDE target: NodeMCU 1.0 (ESP-12E Module).
-- GitHub Actions target: esp8266:esp8266:nodemcuv2.
-- CI artifact: SmartFarm_V6_PRODUCTION.bin.
-- Latest verified build passed on 2026-08-11 for commit de23cff80d78d88f10a1d77606ca45e1f0aa3571.
-- Build resource usage was 41% global RAM, 94% IRAM and 48% flash; IRAM headroom is limited.
-
-Important
-- A successful CI build proves compilation only; physical Wi-Fi, MQTT, DHT11, DS3231 and relay/pump behavior must still be tested on the real NodeMCU.
-- Serial Monitor should be 115200 baud. V6.0.1 prints reset diagnostics at boot to diagnose reboot loops.
+Build and validation
+- Arduino IDE target: NodeMCU 1.0 (ESP-12E Module), esp8266:esp8266:nodemcuv2.
+- Compile the firmware after every change and upload the resulting binary only after a successful build.
+- A successful build proves compilation only; physical Wi-Fi, MQTT, DHT11, DS3231 and relay/pump behavior must be tested on the real NodeMCU.
+- Use Serial Monitor at 115200 baud. The firmware prints reset diagnostics at boot.

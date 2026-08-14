@@ -1,1 +1,90 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#071a16"><meta name="description" content="สวนลุงนะ Smart Farm V6.2"><title>สวนลุงนะ • Smart Farm V6.2</title><link rel="stylesheet" href="style.css?v=65"><link rel="stylesheet" href="weather.css?v=1"></head><body class="app-shell"><main id="app"><header class="hero"><div class="hero-top"><div class="brand"><div class="brand-mark"><img src="logo.png?v=65" alt="โลโก้สวนลุงนะ"></div><div><p class="eyebrow">SMART FARM V6.2</p><h1>สวนลุงนะ</h1><p class="subtitle">ศูนย์ควบคุมฟาร์ม 24/7</p></div></div><div class="hero-actions"><span id="mqttStatus" class="status-pill offline"><i></i> MQTT กำลังเชื่อมต่อ</span><span id="deviceStatus" class="status-pill offline"><i></i> ESP8266 ออฟไลน์</span></div></div><div class="hero-bottom"><div><span class="muted">สถานะบอร์ด</span><strong id="heroEsp">ออฟไลน์</strong></div><div><span class="muted">โหมด</span><strong id="heroMode">MANUAL</strong></div><div><span class="muted">เวลา</span><strong id="clock">--:--:--</strong></div></div></header><section class="section-head"><div><p class="eyebrow">LIVE STATUS</p><h2>สถานะระบบ</h2></div><span class="live-dot"><i></i> LIVE</span></section><section class="cards"><article class="metric-card temp"><div class="metric-icon">🌡️</div><div><b>อุณหภูมิ</b><strong id="temperature">-- °C</strong><span>DHT11 • D2</span></div></article><article class="metric-card humidity"><div class="metric-icon">💧</div><div><b>ความชื้นอากาศ</b><strong id="humidity">-- %</strong><span>DHT11 • D2</span></div></article><article class="metric-card mode"><div class="metric-icon">⚙️</div><div><b>โหมดระบบ</b><strong id="modeCard">MANUAL</strong><span>MANUAL / AUTO</span></div></article><article class="metric-card"><div class="metric-icon">📡</div><div><b>การเชื่อมต่อ</b><strong id="deviceStatusCard">ออฟไลน์</strong><span>ESP8266</span></div></article></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">RELAY CONTROL</p><h2>ควบคุมอุปกรณ์</h2></div><span class="hint">MQTT Direct • 4 Relay</span></div><div class="device-grid"><label class="device-card"><span class="device-symbol">💦</span><span class="device-copy"><b>ปั๊มน้ำ</b><small>PUMP • D5 • MAX 30 MIN</small></span><input id="pumpToggle" data-relay="pump" type="checkbox"><span class="switch"></span></label><label class="device-card"><span class="device-symbol">🌱</span><span class="device-copy"><b>โซน 1</b><small>ZONE 1 • D6</small></span><input id="zone1Toggle" data-relay="zone1" type="checkbox"><span class="switch"></span></label><label class="device-card"><span class="device-symbol">🏠</span><span class="device-copy"><b>ไฟบ้าน</b><small>HOME LIGHT • D7</small></span><input id="lighthomeToggle" data-relay="lighthome" type="checkbox"><span class="switch"></span></label><label class="device-card"><span class="device-symbol">🏡</span><span class="device-copy"><b>ไฟศาลา</b><small>SALA LIGHT • D8</small></span><input id="lightsalaToggle" data-relay="lightsala" type="checkbox"><span class="switch"></span></label></div><div class="mode-controls"><div><span class="muted">โหมดควบคุม</span><strong id="modeCard2">MANUAL</strong></div><div class="mode-buttons"><button class="mode-btn manual" id="manualBtn">MANUAL</button><button class="mode-btn auto" id="autoBtn" disabled title="กำลังรอข้อมูล Open-Meteo">AUTO</button></div></div></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">CONNECTION</p><h2>สถานะการเชื่อมต่อ</h2></div></div><div id="connectionBox" class="status-box warning">กำลังเชื่อมต่อ HiveMQ Cloud…</div><p class="summary">Dashboard ใช้ MQTT ผ่าน WSS 8884 โดยตรง • ESP8266 ใช้ MQTT TLS 8883</p></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">HARDWARE</p><h2>ฮาร์ดแวร์ V6.2 • Pin Map</h2></div></div><div class="hardware-grid"><span>🌡️ DHT11 DATA <b>D2</b></span><span>🕒 DS3231 SDA <b>D3</b></span><span>🕒 DS3231 SCL <b>D4</b></span><span>💦 Pump Relay <b>D5</b></span><span>🌱 Zone 1 Relay <b>D6</b></span><span>🏠 Home Light Relay <b>D7</b></span><span>🏡 Sala Light Relay <b>D8</b></span><span>🌱 Soil Sensor <b>A0</b></span></div><p class="summary">Pin Map นี้ล็อกให้ตรงกับ SmartFarm_V6_PRODUCTION.ino: DHT11=D2 • DS3231=D3/D4 • Relay=D5-D8 • Soil=A0</p></section><footer>สวนลุงนะ Smart Farm • V6.2</footer></main><nav class="bottom-nav"><a class="active" href="index.html"><span>⌂</span><small>หน้าหลัก</small></a><a href="schedule.html"><span>⏰</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>💰</span><small>การเงิน</small></a></nav><script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script><script src="config.js?v=64"></script><script src="weather.js?v=1"></script><script src="app-v62.js?v=3"></script><script src="auto-weather-guard.js?v=1"></script><script src="page-nav.js?v=3"></script></body></html>
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07140f">
+  <meta name="description" content="แดชบอร์ดควบคุมสวนลุงนะ Smart Farm">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="app.css?v=7">
+  <title>สวนลุงนะ · Smart Farm</title>
+</head>
+<body class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="หน้าแดชบอร์ด Smart Farm">
+      <span class="brand-symbol" aria-hidden="true">✦</span>
+      <span class="brand-copy"><strong>สวนลุงนะ</strong><span>SMART FARM · V7.0</span></span>
+    </a>
+    <nav class="desktop-nav" aria-label="เมนูหลัก">
+      <a class="active" href="index.html">แดชบอร์ด</a><a href="schedule.html">ตั้งเวลา</a><a href="finance.html">การเงิน</a><a href="account.html">บัญชี</a><a href="settings.html">ตั้งค่า</a>
+    </nav>
+    <div class="topbar-actions"><span class="status-pill offline" data-mqtt-status><i></i>MQTT ยังไม่เชื่อมต่อ</span></div>
+  </header>
+
+  <main class="app-main">
+    <section class="hero" aria-labelledby="dashboard-title">
+      <div class="hero-copy">
+        <p class="kicker">FARM OPERATING SYSTEM</p>
+        <h1 id="dashboard-title">ฟาร์มที่รู้จังหวะของคุณ</h1>
+        <p class="subtitle">ติดตามสภาพแวดล้อม ควบคุมอุปกรณ์ และวางแผนการให้น้ำอย่างมั่นใจจากหน้าจอเดียว</p>
+        <div class="hero-meta">
+          <span class="status-pill offline" data-device-status><i></i>ESP8266 ออฟไลน์</span>
+          <span class="tag">โหมด <b data-mode-text>MANUAL</b></span>
+          <span class="tag">อุปกรณ์ 4 จุด</span>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true"><div class="hero-mark">🌱</div></div>
+    </section>
+
+    <section class="section" aria-labelledby="live-title">
+      <div class="section-head"><div><p class="kicker">LIVE STATUS</p><h2 id="live-title">ภาพรวมฟาร์ม</h2></div><span class="helper">ข้อมูลจากอุปกรณ์แบบเรียลไทม์</span></div>
+      <div class="grid four">
+        <article class="card metric-card interactive"><div class="metric-top"><span>อุณหภูมิ</span><span class="metric-icon">🌡️</span></div><div><strong data-sensor="temperature">-- °C</strong><small>DHT11 · D2 / GPIO4</small></div></article>
+        <article class="card metric-card interactive"><div class="metric-top"><span>ความชื้นอากาศ</span><span class="metric-icon">💧</span></div><div><strong data-sensor="humidity">-- %</strong><small>DHT11 · D2 / GPIO4</small></div></article>
+        <article class="card metric-card interactive"><div class="metric-top"><span>สถานะบอร์ด</span><span class="metric-icon">📡</span></div><div><strong data-device-online-text>ออฟไลน์</strong><small id="deviceRssi">รอสัญญาณ Wi‑Fi</small></div></article>
+        <article class="card metric-card interactive"><div class="metric-top"><span>โหมดระบบ</span><span class="metric-icon">⚙️</span></div><div><strong data-mode-text>MANUAL</strong><small id="deviceFirmware">รอข้อมูลเฟิร์มแวร์</small></div></article>
+      </div>
+    </section>
+
+    <section id="weatherBox" class="section card pad" aria-labelledby="weather-title">
+      <div class="section-head"><div><p class="kicker">OPEN‑METEO · RAIN PROTECTION</p><h2 id="weather-title">อากาศที่ช่วยตัดสินใจ</h2><p id="weatherLocation" class="helper">กำลังเตรียมข้อมูลตำแหน่ง…</p></div><span class="tag">ไม่ใช้ API Key</span></div>
+      <div class="weather-grid">
+        <article class="card metric-card"><div class="metric-top"><span>อุณหภูมิ</span><span class="metric-icon">🌡️</span></div><strong id="weatherTemp">-- °C</strong></article>
+        <article class="card metric-card"><div class="metric-top"><span>ความชื้น</span><span class="metric-icon">💧</span></div><strong id="weatherHumidity">-- %</strong></article>
+        <article class="card metric-card"><div class="metric-top"><span>โอกาสฝน 6 ชม.</span><span class="metric-icon">🌧️</span></div><strong id="weatherRainProb">--</strong></article>
+        <article class="card metric-card"><div class="metric-top"><span>ลม</span><span class="metric-icon">〰</span></div><strong id="weatherWind">-- km/h</strong></article>
+      </div>
+      <div id="rainProtectionBox" class="rain-protection"><span aria-hidden="true">☂</span><div><strong id="rainProtectionStatus">AUTO ถูกงดชั่วคราว</strong><span id="rainProtectionReason">รอข้อมูลสภาพอากาศ</span></div></div>
+      <p id="weatherCondition" class="helper">กำลังโหลดสภาพอากาศ…</p>
+      <div class="section-head" style="margin-top:22px"><h3>พยากรณ์ 7 วัน</h3><span id="weatherUpdated" class="helper"></span></div>
+      <div id="forecast7" class="forecast-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="section" id="control" aria-labelledby="control-title">
+      <div class="section-head"><div><p class="kicker">RELAY CONTROL</p><h2 id="control-title">ควบคุมอุปกรณ์</h2></div><span class="helper">คำสั่งส่งตรงผ่าน MQTT</span></div>
+      <div class="grid four">
+        <article class="card control-card" data-relay-card="pump"><div class="control-top"><div class="control-name"><span class="icon">💦</span><span><strong>ปั๊มน้ำ</strong><small>PUMP · D5 · LIMIT 30 MIN</small></span></div><label class="switch"><input data-relay-toggle="pump" type="checkbox" aria-label="เปิดหรือปิดปั๊มน้ำ"><span></span></label></div><p class="control-state"><b data-relay-state="pump">ปิดอยู่</b> · มีระบบตัดความปลอดภัย</p></article>
+        <article class="card control-card" data-relay-card="zone1"><div class="control-top"><div class="control-name"><span class="icon">🌿</span><span><strong>โซน 1</strong><small>IRRIGATION · D6</small></span></div><label class="switch"><input data-relay-toggle="zone1" type="checkbox" aria-label="เปิดหรือปิดโซน 1"><span></span></label></div><p class="control-state"><b data-relay-state="zone1">ปิดอยู่</b> · ระบบให้น้ำ</p></article>
+        <article class="card control-card" data-relay-card="lighthome"><div class="control-top"><div class="control-name"><span class="icon">🏠</span><span><strong>ไฟบ้าน</strong><small>HOME LIGHT · D7</small></span></div><label class="switch"><input data-relay-toggle="lighthome" type="checkbox" aria-label="เปิดหรือปิดไฟบ้าน"><span></span></label></div><p class="control-state"><b data-relay-state="lighthome">ปิดอยู่</b> · แสงสว่างพื้นที่บ้าน</p></article>
+        <article class="card control-card" data-relay-card="lightsala"><div class="control-top"><div class="control-name"><span class="icon">🏡</span><span><strong>ไฟศาลา</strong><small>SALA LIGHT · D8</small></span></div><label class="switch"><input data-relay-toggle="lightsala" type="checkbox" aria-label="เปิดหรือปิดไฟศาลา"><span></span></label></div><p class="control-state"><b data-relay-state="lightsala">ปิดอยู่</b> · แสงสว่างพื้นที่ศาลา</p></article>
+      </div>
+    </section>
+
+    <section class="section grid two">
+      <article class="card pad"><p class="kicker">OPERATION MODE</p><h2>เลือกโหมดการทำงาน</h2><p class="helper">AUTO จะเปิดใช้งานได้เมื่อ Rain Protection ประเมินว่าไม่มีความเสี่ยงฝน</p><div class="mode-switch" style="margin-top:16px"><button class="btn secondary active" type="button" data-mode="MANUAL">✋ MANUAL</button><button class="btn secondary" type="button" data-mode="AUTO">◌ AUTO</button></div><p class="notice warning"><span>!</span><span>เมื่อใช้ AUTO อุปกรณ์จะอ้างอิงตารางใน ESP8266 และยังทำงานได้เมื่ออินเทอร์เน็ตหลุด</span></p></article>
+      <article class="card pad"><div class="connection-card"><span class="connection-icon">◌</span><div><p class="kicker">CONNECTION</p><h2>การเชื่อมต่อ MQTT</h2><p id="mqttStatusText">ยังไม่ได้ตั้งค่าบัญชี MQTT สำหรับเบราว์เซอร์นี้</p></div></div><div class="btn-row" style="margin-top:18px"><button class="btn primary" type="button" data-mqtt-connect>เชื่อมต่อ MQTT</button><button class="btn secondary" type="button" data-mqtt-setup>ตั้งค่าบัญชี</button></div></article>
+    </section>
+
+    <section class="section card pad" aria-labelledby="hardware-title"><div class="section-head"><div><p class="kicker">HARDWARE MAP</p><h2 id="hardware-title">การเชื่อมต่อฮาร์ดแวร์</h2></div><span class="tag">อ้างอิงเฟิร์มแวร์ V7.0</span></div><div class="grid four"><div class="notice"><span>🌡️</span><span><strong>DHT11</strong>D2 / GPIO4</span></div><div class="notice"><span>🕒</span><span><strong>DS3231 SDA / SCL</strong>D3 / GPIO0 · D4 / GPIO2</span></div><div class="notice"><span>💦</span><span><strong>Relay</strong>D5–D8</span></div><div class="notice"><span>🌱</span><span><strong>Soil sensor</strong>A0 สำรองไว้</span></div></div></section>
+    <footer>สวนลุงนะ Smart Farm · ออกแบบเพื่อการตัดสินใจที่ชัดเจนในทุกวัน</footer>
+  </main>
+
+  <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
+
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="config.js?v=7"></script><script src="mqtt-handler.js?v=7"></script><script src="app.js?v=7"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+</body>
+</html>

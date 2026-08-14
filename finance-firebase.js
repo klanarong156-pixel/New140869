@@ -1,41 +1,60 @@
+(function () {
+  'use strict';
 
-// SmartFarm Finance Firebase Module - Fixed to use FirebaseDB REST wrapper
-function generateFinanceId(){return 'FIN-'+Date.now()+'-'+Math.floor(Math.random()*1000);}
+  const TYPES = new Set(['income', 'expense', 'pending']);
+  let saveLock = false;
 
-let financeSaveLock = false;
+  function generateFinanceId() {
+    return `FIN-${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`;
+  }
 
-async function saveFinanceItem(item){
-  if (financeSaveLock) throw new Error("กำลังบันทึกข้อมูล...");
-  financeSaveLock = true;
-  try {
-    const financeId = item.id || generateFinanceId();
-    const data = {
-      ...item,
-      id: financeId,
+  function normalize(item) {
+    const type = String(item?.type || '');
+    const label = String(item?.item || '').trim();
+    const amount = Number(item?.amount);
+    if (!TYPES.has(type)) throw new Error('ประเภทรายการไม่ถูกต้อง');
+    if (!label) throw new Error('กรุณาระบุชื่อรายการ');
+    if (!Number.isFinite(amount) || amount < 0) throw new Error('จำนวนเงินต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป');
+    return {
+      id: item.id || generateFinanceId(),
+      type,
+      item: label.slice(0, 140),
+      amount,
       createdAt: item.createdAt || new Date().toISOString()
     };
-    // ใช้ FirebaseDB.put เพื่อบันทึกข้อมูลลงใน users/UID/finance/ID
-    await FirebaseDB.put(`finance/${financeId}`, data);
-    return data;
-  } finally {
-    financeSaveLock = false;
   }
-}
 
-async function loadFinanceItems(callback){
-  try {
-    // ดึงข้อมูลจาก users/UID/finance
-    const data = await FirebaseDB.get('finance');
-    const items = data ? Object.keys(data).map(key => ({id: key, ...data[key]})) : [];
-    // เรียงลำดับตามวันที่สร้าง (ใหม่ไปเก่า)
-    items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    callback(items);
-  } catch(e) {
-    console.error("Load finance failed:", e);
-    callback([]);
+  async function saveFinanceItem(item) {
+    if (saveLock) throw new Error('กำลังบันทึกข้อมูล กรุณารอสักครู่');
+    saveLock = true;
+    try {
+      const data = normalize(item);
+      await FirebaseDB.put(`finance/${data.id}`, data);
+      return data;
+    } finally {
+      saveLock = false;
+    }
   }
-}
 
-async function deleteFinanceItem(id){
-  return FirebaseDB.delete(`finance/${id}`);
-}
+  async function loadFinanceItems(callback) {
+    try {
+      const data = await FirebaseDB.get('finance');
+      const items = data ? Object.entries(data).map(([id, value]) => ({ id, ...value })) : [];
+      items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      if (typeof callback === 'function') callback(items);
+      return items;
+    } catch (error) {
+      if (typeof callback === 'function') callback([]);
+      throw error;
+    }
+  }
+
+  async function deleteFinanceItem(id) {
+    if (!id) throw new Error('ไม่พบรายการที่ต้องการลบ');
+    await FirebaseDB.delete(`finance/${encodeURIComponent(id)}`);
+  }
+
+  window.saveFinanceItem = saveFinanceItem;
+  window.loadFinanceItems = loadFinanceItems;
+  window.deleteFinanceItem = deleteFinanceItem;
+})();
