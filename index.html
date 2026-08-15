@@ -79,6 +79,25 @@
       <article class="card pad"><div class="connection-card"><span class="connection-icon">◌</span><div><p class="kicker">CONNECTION</p><h2>การเชื่อมต่อ MQTT</h2><p id="mqttStatusText">ยังไม่ได้ตั้งค่าบัญชี MQTT สำหรับเบราว์เซอร์นี้</p></div></div><div class="btn-row" style="margin-top:18px"><button class="btn primary" type="button" data-mqtt-connect>เชื่อมต่อ MQTT</button><button class="btn secondary" type="button" data-mqtt-setup>ตั้งค่าบัญชี</button></div></article>
     </section>
 
+    <section class="section grid two" aria-labelledby="maintenance-title">
+      <article class="card pad ota-card">
+        <div class="section-head"><div><p class="kicker">FIRMWARE OTA</p><h2 id="maintenance-title">อัปเดตเฟิร์มแวร์</h2><p class="helper">อัปโหลดไปยัง ESP8266 จากแดชบอร์ดนี้โดยตรง</p></div><span class="tag">HTTP OTA</span></div>
+        <form id="otaDashboardForm" class="ota-form">
+          <label>URL ของ ESP8266<input id="otaDeviceUrl" type="url" inputmode="url" placeholder="http://192.168.1.50" required></label>
+          <label>รหัสผ่าน OTA<input id="otaPassword" type="password" autocomplete="current-password" placeholder="รหัสผ่านของ ota_pass" required></label>
+          <label>ไฟล์เฟิร์มแวร์ .bin<input id="otaFirmwareFile" type="file" accept=".bin,application/octet-stream" required></label>
+          <button class="btn primary" type="submit">เริ่มอัปเดตเฟิร์มแวร์</button>
+        </form>
+        <progress id="otaDashboardProgress" class="ota-progress" value="0" max="100"></progress>
+        <p id="otaDashboardStatus" class="notice" role="status"><span>i</span><span>เลือกไฟล์ .bin เพื่อเริ่มต้น</span></p>
+      </article>
+      <article class="card pad">
+        <div class="section-head"><div><p class="kicker">TELEGRAM ALERTS</p><h2>การแจ้งเตือน</h2><p class="helper">ผลการ OTA จะถูกส่งไปยัง Telegram ที่ตั้งค่าไว้ใน ESP8266</p></div><span class="metric-icon">✈</span></div>
+        <div class="notice success"><span>✓</span><span><strong>พร้อมใช้งาน</strong> เมื่อกรอก bot token และ chat ID ใน WiFiManager</span></div>
+        <p class="helper" style="margin-top:14px">แดชบอร์ดนี้ไม่เก็บ Telegram token แต่ส่งคำสั่งอัปเดตไปยังอุปกรณ์โดยตรง</p>
+      </article>
+    </section>
+
     <section class="section card pad" aria-labelledby="hardware-title"><div class="section-head"><div><p class="kicker">HARDWARE MAP</p><h2 id="hardware-title">การเชื่อมต่อฮาร์ดแวร์</h2></div><span class="tag">อ้างอิงเฟิร์มแวร์ V7.0</span></div><div class="grid four"><div class="notice"><span>🌡️</span><span><strong>DHT11</strong>D2 / GPIO4</span></div><div class="notice"><span>🕒</span><span><strong>DS3231 SDA / SCL</strong>D3 / GPIO0 · D4 / GPIO2</span></div><div class="notice"><span>💦</span><span><strong>Relay</strong>D5–D8</span></div><div class="notice"><span>🌱</span><span><strong>Soil sensor</strong>A0 สำรองไว้</span></div></div></section>
     <footer>สวนลุงนะ Smart Farm · ออกแบบเพื่อการตัดสินใจที่ชัดเจนในทุกวัน</footer>
   </main>
@@ -86,7 +105,7 @@
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
   <script src="firebase.js?v=8"></script><script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-  <script src="config.js?v=7"></script><script src="mqtt-handler.js?v=7"></script><script src="app.js?v=8"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-dashboard.js?v=1"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="config.js?v=7"></script><script src="mqtt-handler.js?v=7"></script><script src="app.js?v=8"></script><script src="dashboard-ota.js?v=1"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-dashboard.js?v=1"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

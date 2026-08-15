@@ -211,6 +211,16 @@ tbody tr:last-child td { border-bottom:0; }
 
 footer { margin:30px 0 8px; text-align:center; color:#779183; font-size:12px; }
 
+/* Firmware OTA dashboard card */
+.ota-card { background:linear-gradient(145deg,rgba(33,150,83,.13),rgba(10,24,18,.72)); border-color:rgba(73,191,119,.32); }
+.ota-form { display:grid; gap:12px; margin-top:16px; }
+.ota-form label { display:grid; gap:6px; color:var(--muted); font-size:.82rem; }
+.ota-form input { width:100%; box-sizing:border-box; }
+.ota-form input[type=file] { padding:8px; }
+.ota-form .btn { margin-top:4px; }
+.ota-progress { display:block; width:100%; height:9px; margin-top:16px; accent-color:var(--primary); }
+.ota-card .notice { margin-top:12px; }
+
 @media (max-width: 900px) {
   .desktop-nav { display:none; }
   .hero { grid-template-columns:1fr; min-height:0; }
