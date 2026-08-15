@@ -105,8 +105,8 @@ bool pumpSafetyLatched=false;
 bool validHM(uint8_t h,uint8_t m){return h<24&&m<60;}
 bool parseHM(const char*s,uint8_t&h,uint8_t&m){int a,b;if(!s||sscanf(s,"%d:%d",&a,&b)!=2||a<0||a>23||b<0||b>59)return false;h=(uint8_t)a;m=(uint8_t)b;return true;}
 int relayIndex(const String&n){for(int i=0;i<RELAY_COUNT;i++)if(n==relayNames[i])return i;return -1;}
-bool slotIsOn(const ScheduleSlot&s,uint16_t now){if(!s.enabled||!validHM(s.onH,s.onM)||!validHM(s.offH,s.offM))return false;uint16_t on=s.onH*60U+s.onM,off=s.offH*60U+s.offM;if(on==off)return false;return on<off?(now>=on&&now<off):(now>=on||now<off);}
-bool relayScheduleDesired(uint8_t r,uint16_t now){if(r>=RELAY_COUNT)return false;for(uint8_t s=0;s<SLOT_COUNT;s++)if(slotIsOn(schedules[r][s],now))return true;return false;}
+bool slotIsOn(bool enabled,uint8_t onH,uint8_t onM,uint8_t offH,uint8_t offM,uint16_t now){if(!enabled||!validHM(onH,onM)||!validHM(offH,offM))return false;uint16_t on=onH*60U+onM,off=offH*60U+offM;if(on==off)return false;return on<off?(now>=on&&now<off):(now>=on||now<off);}
+bool relayScheduleDesired(uint8_t r,uint16_t now){if(r>=RELAY_COUNT)return false;for(uint8_t s=0;s<SLOT_COUNT;s++){ScheduleSlot&slot=schedules[r][s];if(slotIsOn(slot.enabled,slot.onH,slot.onM,slot.offH,slot.offM,now))return true;}return false;}
 bool relayOn(uint8_t i){return i<RELAY_COUNT&&digitalRead(relayPins[i])==RELAY_ON;}
 
 void relaySetRaw(uint8_t i,bool on){if(i>=RELAY_COUNT)return;bool wasOn=relayOn(i);digitalWrite(relayPins[i],on?RELAY_ON:RELAY_OFF);if(i==0){if(on&&!pumpStartedAt)pumpStartedAt=millis();if(!on){pumpStartedAt=0;pumpMqttLostAt=0;}}if(wasOn!=on)telegramNotify(String("รีเลย์ ")+relayNames[i]+(on?" เปิด":" ปิด"));}
@@ -194,7 +194,7 @@ void otaHttpUpload(){
   HTTPUpload& upload=otaServer.upload();
   if(upload.status==UPLOAD_FILE_START){
     Serial.printf("OTA HTTP: START %s\n",upload.filename.c_str());telegramNotify(String("เริ่มอัปเดตเฟิร์มแวร์ผ่าน HTTP OTA โดยไฟล์ ")+upload.filename);
-    if(!Update.begin(UPDATE_SIZE_UNKNOWN))Update.printError(Serial);
+    if(!Update.begin())Update.printError(Serial);
   }else if(upload.status==UPLOAD_FILE_WRITE){
     if(Update.write(upload.buf,upload.currentSize)!=upload.currentSize)Update.printError(Serial);
   }else if(upload.status==UPLOAD_FILE_END){
