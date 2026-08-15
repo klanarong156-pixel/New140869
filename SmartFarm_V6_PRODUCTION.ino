@@ -194,7 +194,7 @@ void otaHttpUpload(){
   HTTPUpload& upload=otaServer.upload();
   if(upload.status==UPLOAD_FILE_START){
     Serial.printf("OTA HTTP: START %s\n",upload.filename.c_str());telegramNotify(String("เริ่มอัปเดตเฟิร์มแวร์ผ่าน HTTP OTA โดยไฟล์ ")+upload.filename);
-    if(!Update.begin(UPDATE_SIZE_UNKNOWN))Update.printError(Serial);
+    if(!Update.begin(upload.contentLength))Update.printError(Serial);
   }else if(upload.status==UPLOAD_FILE_WRITE){
     if(Update.write(upload.buf,upload.currentSize)!=upload.currentSize)Update.printError(Serial);
   }else if(upload.status==UPLOAD_FILE_END){
