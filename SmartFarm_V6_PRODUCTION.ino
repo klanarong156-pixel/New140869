@@ -62,6 +62,7 @@ bool mqttPortalOpened=false;
 bool mqttConfigReported=false;
 bool otaHttpRestartPending=false;
 uint32_t otaHttpRestartAt=0;
+bool wifiStateKnown=false, lastWifiConnected=false;
 
 char mqttUser[64]="";
 char mqttPass[96]="";
@@ -92,6 +93,19 @@ void telegramNotify(const String&message){
   int code=http.POST(body);
   if(code<200||code>=300)Serial.printf("Telegram: send failed HTTP %d\n",code);
   http.end();
+}
+
+void reportWifiState(){
+  bool connected=WiFi.status()==WL_CONNECTED;
+  if(!wifiStateKnown){wifiStateKnown=true;lastWifiConnected=connected;return;}
+  if(connected==lastWifiConnected)return;
+  lastWifiConnected=connected;
+  if(connected){
+    Serial.print(F("WiFi: reconnected, IP: "));Serial.println(WiFi.localIP());
+    telegramNotify(String("WiFi กลับมาเชื่อมต่อสำเร็จ IP=")+WiFi.localIP().toString());
+  }else{
+    Serial.println(F("WiFi: disconnected"));
+  }
 }
 
 struct ScheduleSlot{bool enabled;uint8_t onH,onM,offH,offM;};
@@ -255,4 +269,4 @@ void runSchedules(){if(mode!=AUTO||(uint32_t)(millis()-lastSchedule)<SCHEDULE_IN
 
 void publishHeartbeat(){if(!mqtt.connected())return;StaticJsonDocument<384>d;d["online"]=true;d["firmware"]=SMARTFARM_VERSION;d["heap"]=ESP.getFreeHeap();d["rssi"]=WiFi.RSSI();d["mode"]=mode==AUTO?"AUTO":"MANUAL";d["pumpSafeLock"]=pumpSafetyLatched;d["rtc"]=rtcAvailable&&rtcTimeValid;String iso=rtcIso();if(iso.length())d["time"]=iso;char out[384];serializeJson(d,out,sizeof(out));mqtt.publish(MQTT_BASE "/device/status",out,false);}
 
-void loop(){ESP.wdtFeed();if(WiFi.status()==WL_CONNECTED){connectMqtt();if(mqtt.connected())mqtt.loop();ntp.update();syncRTCFromNTP(false);}else{if(relayOn(0)&&mode==MANUAL&&!pumpMqttLostAt)pumpMqttLostAt=millis();}otaServer.handleClient();ArduinoOTA.handle();if(otaHttpRestartPending&&(int32_t)(millis()-otaHttpRestartAt)>=0)ESP.restart();runSafety();runSchedules();if((uint32_t)(millis()-lastSensor)>=SENSOR_INTERVAL_MS){lastSensor=millis();float h=dht.readHumidity(),c=dht.readTemperature();if(mqtt.connected()&&!isnan(h)&&!isnan(c)){StaticJsonDocument<160>d;d["temperature"]=c;d["humidity"]=h;char out[160];serializeJson(d,out,sizeof(out));mqtt.publish(MQTT_BASE "/sensor/dht11",out,false);}}if((uint32_t)(millis()-lastHeartbeat)>=HEARTBEAT_INTERVAL_MS){lastHeartbeat=millis();publishHeartbeat();}yield();}
+void loop(){ESP.wdtFeed();reportWifiState();if(WiFi.status()==WL_CONNECTED){connectMqtt();if(mqtt.connected())mqtt.loop();ntp.update();syncRTCFromNTP(false);}else{if(relayOn(0)&&mode==MANUAL&&!pumpMqttLostAt)pumpMqttLostAt=millis();}otaServer.handleClient();ArduinoOTA.handle();if(otaHttpRestartPending&&(int32_t)(millis()-otaHttpRestartAt)>=0)ESP.restart();runSafety();runSchedules();if((uint32_t)(millis()-lastSensor)>=SENSOR_INTERVAL_MS){lastSensor=millis();float h=dht.readHumidity(),c=dht.readTemperature();if(mqtt.connected()&&!isnan(h)&&!isnan(c)){StaticJsonDocument<160>d;d["temperature"]=c;d["humidity"]=h;char out[160];serializeJson(d,out,sizeof(out));mqtt.publish(MQTT_BASE "/sensor/dht11",out,false);}}if((uint32_t)(millis()-lastHeartbeat)>=HEARTBEAT_INTERVAL_MS){lastHeartbeat=millis();publishHeartbeat();}yield();}
