@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartfarm-v7-app-1';
+const CACHE_NAME = 'smartfarm-v7-app-2';
 const APP_SHELL = [
   './', './index.html', './404.html', './auth.html', './schedule.html', './finance.html', './account.html', './settings.html', './admin.html', './ota.html',
   './manifest.json', './app.css', './app.js', './dashboard-ota.js', './config.js', './mqtt-handler.js', './weather.js', './auto-weather-guard.js', './schedule.js', './firebase.js', './access.js', './auth-page.js', './finance-core.js', './finance-firebase.js', './finance.js', './account.js', './admin.js',
@@ -18,7 +18,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request, { cache: 'no-store' }).catch(() => caches.match('./index.html')));
+    event.respondWith(fetch(request, { cache: 'no-store' }).catch(() => caches.match(request).then(cached => cached || caches.match('./index.html'))));
     return;
   }
   if (/\.(?:js|css|html|json)$/i.test(url.pathname)) {
