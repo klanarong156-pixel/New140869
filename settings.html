@@ -7,11 +7,30 @@
     <div class="page-heading"><div><p class="kicker">SYSTEM SETTINGS</p><h1>ตั้งค่าระบบ</h1><p class="subtitle">จัดการการเชื่อมต่อ ตรวจสอบอุปกรณ์ และดูข้อมูลการเดินสายที่ใช้งานจริง</p></div><span class="status-pill offline" data-device-status><i></i>ESP8266 ออฟไลน์</span></div>
     <section class="grid two"><article class="card pad"><p class="kicker">MQTT CONNECTION</p><h2>บัญชีเชื่อมต่ออุปกรณ์</h2><p id="mqttStatusText" class="helper">ตั้งค่า username และ password ในเบราว์เซอร์เครื่องนี้ก่อนเริ่มควบคุมอุปกรณ์</p><div class="notice warning"><span>!</span><span><strong>ปกป้องข้อมูลลับ</strong>รหัสผ่าน MQTT ไม่ถูกเก็บในไฟล์โค้ดและไม่ถูกอัปโหลดไปยัง GitHub</span></div><div class="btn-row" style="margin-top:18px"><button class="btn primary" type="button" data-mqtt-connect>เชื่อมต่อ MQTT</button><button class="btn secondary" type="button" data-mqtt-setup>ตั้งค่า / เปลี่ยนบัญชี</button><button class="btn danger" type="button" data-mqtt-clear>ล้างบัญชีจากเบราว์เซอร์</button></div></article>
       <article class="card pad"><p class="kicker">DEVICE HEALTH</p><h2>สถานะ ESP8266</h2><div class="grid two" style="margin-top:15px"><div class="notice"><span>◌</span><span><strong>การเชื่อมต่อ</strong><span data-device-online-text>ออฟไลน์</span></span></div><div class="notice"><span>⌁</span><span><strong>Wi‑Fi RSSI</strong><span id="deviceRssi">รอข้อมูล</span></span></div><div class="notice"><span>✦</span><span><strong>เฟิร์มแวร์</strong><span id="deviceFirmware">รอข้อมูล</span></span></div><div class="notice"><span>◷</span><span><strong>โหมดปัจจุบัน</strong><span data-mode-text>MANUAL</span></span></div></div><p class="helper">สถานะจะอัปเดตเมื่ออุปกรณ์ส่ง heartbeat ทุก 10 วินาที</p></article></section>
+    <section class="section grid two" aria-labelledby="maintenance-title">
+      <article class="card pad ota-card">
+        <div class="section-head"><div><p class="kicker">FIRMWARE OTA</p><h2 id="maintenance-title">อัปเดตเฟิร์มแวร์</h2><p class="helper">อัปโหลดไปยัง ESP8266 จากหน้าตั้งค่านี้โดยตรง</p></div><span class="tag">HTTP OTA</span></div>
+        <form id="otaDashboardForm" class="ota-form">
+          <label>URL ของ ESP8266<input id="otaDeviceUrl" type="url" inputmode="url" placeholder="http://192.168.1.50" required></label>
+          <label>รหัสผ่าน OTA<input id="otaPassword" type="password" autocomplete="current-password" placeholder="รหัสผ่านของ ota_pass" required></label>
+          <label>ไฟล์เฟิร์มแวร์ .bin<input id="otaFirmwareFile" type="file" accept=".bin,application/octet-stream" required></label>
+          <button class="btn primary" type="submit">เริ่มอัปเดตเฟิร์มแวร์</button>
+        </form>
+        <progress id="otaDashboardProgress" class="ota-progress" value="0" max="100"></progress>
+        <p id="otaDashboardStatus" class="notice" role="status"><span>i</span><span>เลือกไฟล์ .bin เพื่อเริ่มต้น</span></p>
+      </article>
+      <article class="card pad">
+        <div class="section-head"><div><p class="kicker">TELEGRAM ALERTS</p><h2>การแจ้งเตือน</h2><p class="helper">ผลการ OTA จะถูกส่งไปยัง Telegram ที่ตั้งค่าไว้ใน ESP8266</p></div><span class="metric-icon">✈</span></div>
+        <div class="notice success"><span>✓</span><span><strong>พร้อมใช้งาน</strong> เมื่อกรอก bot token และ chat ID ใน WiFiManager</span></div>
+        <p class="helper" style="margin-top:14px">แดชบอร์ดนี้ไม่เก็บ Telegram token แต่ส่งคำสั่งอัปเดตไปยังอุปกรณ์โดยตรง</p>
+      </article>
+    </section>
+
     <section class="section card pad"><div class="section-head"><div><p class="kicker">HARDWARE REFERENCE</p><h2>Pin map ที่ใช้กับเฟิร์มแวร์</h2></div><span class="tag">NodeMCU ESP8266</span></div><div class="table-wrap"><table><thead><tr><th>อุปกรณ์</th><th>NodeMCU</th><th>GPIO</th><th>หมายเหตุ</th></tr></thead><tbody><tr><td>DHT11 data</td><td>D2</td><td>GPIO4</td><td>เซนเซอร์อุณหภูมิและความชื้น</td></tr><tr><td>DS3231 SDA</td><td>D3</td><td>GPIO0</td><td>RTC I²C</td></tr><tr><td>DS3231 SCL</td><td>D4</td><td>GPIO2</td><td>RTC I²C</td></tr><tr><td>ปั๊มน้ำ / โซน 1</td><td>D5 / D6</td><td>GPIO14 / GPIO12</td><td>รีเลย์น้ำ</td></tr><tr><td>ไฟบ้าน / ไฟศาลา</td><td>D7 / D8</td><td>GPIO13 / GPIO15</td><td>รีเลย์ไฟ</td></tr><tr><td>Soil sensor</td><td>A0</td><td>ADC0</td><td>สำรองไว้ ยังไม่มีเซนเซอร์</td></tr></tbody></table></div></section>
     <section class="section card pad"><p class="kicker">OPERATING NOTES</p><h2>ข้อควรรู้ก่อนใช้งาน</h2><div class="grid three" style="margin-top:15px"><div class="notice"><span>⏱</span><span><strong>ปั๊มมี safety timeout</strong>ตัดเมื่อทำงานต่อเนื่องครบ 30 นาที</span></div><div class="notice"><span>☂</span><span><strong>Rain Protection</strong>หน้าแดชบอร์ดจะงดการเลือก AUTO หากตรวจพบความเสี่ยงฝน</span></div><div class="notice"><span>⌁</span><span><strong>ตารางอยู่บนอุปกรณ์</strong>ระบบตั้งเวลายังทำงานได้แม้ dashboard หรือ MQTT หลุดชั่วคราว</span></div></div></section>
     <footer>สวนลุงนะ Smart Farm · ดูแลระบบอย่างมั่นใจ</footer>
   </main>
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a class="active" href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
-  <script src="firebase.js?v=8"></script><script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script><script src="config.js?v=7"></script><script src="mqtt-handler.js?v=7"></script><script src="app.js?v=7"></script><script src="access.js?v=8"></script>
+  <script src="firebase.js?v=8"></script><script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script><script src="config.js?v=7"></script><script src="mqtt-handler.js?v=7"></script><script src="app.js?v=7"></script><script src="dashboard-ota.js?v=1"></script><script src="access.js?v=8"></script>
 </body>
 </html>
