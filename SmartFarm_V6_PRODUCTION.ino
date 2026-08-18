@@ -37,7 +37,9 @@
 #define SOIL_PIN A0
 #define RELAY_ON LOW
 #define RELAY_OFF HIGH
+#define WIFI_RESET_BUTTON D1
 
+const uint32_t WIFI_RESET_HOLD_MS = 5000UL;
 const uint32_t PUMP_MAX_RUNTIME_MS = 30UL * 60UL * 1000UL;
 const uint32_t PUMP_MQTT_LOSS_OFF_MS = 60UL * 1000UL;
 const uint32_t MQTT_RECONNECT_MS = 5000UL;
@@ -67,6 +69,8 @@ bool otaHttpRestartPending = false;
 unsigned long otaHttpRestartAt = 0;
 bool otaUploadFailed = false;
 bool wifiStateKnown = false, lastWifiConnected = false;
+bool wifiResetPressed = false;
+uint32_t wifiResetStartedAt = 0;
 
 char mqttUser[64] = "";
 char mqttPass[96] = "";
@@ -1011,6 +1015,35 @@ void setupOtaHttpServer() {
   Serial.println(F("/"));
 }
 
+void handleWifiResetButton() {
+  const bool pressed = digitalRead(WIFI_RESET_BUTTON) == LOW;
+
+  if (pressed && !wifiResetPressed) {
+    wifiResetPressed = true;
+    wifiResetStartedAt = millis();
+    Serial.println(F("WiFi reset button pressed; hold for 5 seconds"));
+  }
+
+  if (!pressed) {
+    if (wifiResetPressed)
+      Serial.println(F("WiFi reset cancelled"));
+    wifiResetPressed = false;
+    wifiResetStartedAt = 0;
+    return;
+  }
+
+  if ((uint32_t)(millis() - wifiResetStartedAt) < WIFI_RESET_HOLD_MS)
+    return;
+
+  Serial.println(F("WiFi reset confirmed; clearing saved WiFi settings"));
+  mqtt.disconnect();
+  WiFiManager wm;
+  wm.resetSettings();
+  WiFi.disconnect(true);
+  delay(500);
+  ESP.restart();
+}
+
 void setupWifi() {
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
@@ -1064,6 +1097,7 @@ void setup() {
   Serial.println(ESP.getResetInfo());
   Serial.print(F("Free heap at boot: "));
   Serial.println(ESP.getFreeHeap());
+  pinMode(WIFI_RESET_BUTTON, INPUT_PULLUP);
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     pinMode(relayPins[i], OUTPUT);
     digitalWrite(relayPins[i], RELAY_OFF);
@@ -1172,6 +1206,7 @@ void publishHeartbeat() {
 
 void loop() {
   ESP.wdtFeed();
+  handleWifiResetButton();
   reportWifiState();
   if (WiFi.status() == WL_CONNECTED) {
     connectMqtt();
