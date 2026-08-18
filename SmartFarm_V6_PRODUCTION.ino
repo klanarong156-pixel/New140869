@@ -111,19 +111,48 @@ void telegramNotify(const String &message) {
   if (WiFi.status() != WL_CONNECTED || !telegramBotToken[0] ||
       !telegramChatId[0])
     return;
+
   telegramTls.setInsecure();
-  HTTPClient http;
+  telegramTls.setTimeout(15000);
   String url = String("https://api.telegram.org/bot") + telegramBotToken +
                "/sendMessage";
-  if (!http.begin(telegramTls, url))
-    return;
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   String body = String("chat_id=") + urlEncode(telegramChatId) + "&text=" +
                 urlEncode(String("[SmartFarm ") + deviceName + "]\n" + message);
-  int code = http.POST(body);
-  if (code < 200 || code >= 300)
-    Serial.printf("Telegram: send failed HTTP %d\n", code);
-  http.end();
+
+  for (uint8_t attempt = 1; attempt <= 2; ++attempt) {
+    HTTPClient http;
+    http.setTimeout(15000);
+    http.setReuse(false);
+    http.useHTTP10(true);
+    if (!http.begin(telegramTls, url)) {
+      Serial.printf("Telegram: HTTPS begin failed attempt %u, heap=%u\n",
+                    attempt, ESP.getFreeHeap());
+      delay(250);
+      continue;
+    }
+
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    int code = http.POST(body);
+    String response = http.getString();
+    if (code >= 200 && code < 300) {
+      Serial.printf("Telegram: sent OK HTTP %d\n", code);
+      http.end();
+      return;
+    }
+
+    Serial.printf("Telegram: send failed HTTP %d (%s), attempt %u, heap=%u\n",
+                  code, HTTPClient::errorToString(code).c_str(), attempt,
+                  ESP.getFreeHeap());
+    if (response.length()) {
+      response.replace("\\r", "");
+      response.replace("\\n", " ");
+      if (response.length() > 180)
+        response.remove(180);
+      Serial.printf("Telegram response: %s\n", response.c_str());
+    }
+    http.end();
+    delay(250);
+  }
 }
 
 void reportWifiState() {
