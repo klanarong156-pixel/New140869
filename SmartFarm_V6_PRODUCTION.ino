@@ -632,6 +632,29 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   }
 }
 
+const char *mqttStateName(int8_t state) {
+  switch (state) {
+  case MQTT_CONNECTED:
+    return "CONNECTED";
+  case MQTT_CONNECT_BAD_PROTOCOL:
+    return "BAD_PROTOCOL";
+  case MQTT_CONNECT_BAD_CLIENT_ID:
+    return "BAD_CLIENT_ID";
+  case MQTT_CONNECT_UNAVAILABLE:
+    return "SERVER_UNAVAILABLE";
+  case MQTT_CONNECT_BAD_CREDENTIALS:
+    return "BAD_CREDENTIALS";
+  case MQTT_CONNECT_UNAUTHORIZED:
+    return "UNAUTHORIZED";
+  case MQTT_CONNECT_FAILED:
+    return "CONNECT_FAILED";
+  case MQTT_CONNECTION_TIMEOUT:
+    return "TIMEOUT";
+  default:
+    return "UNKNOWN";
+  }
+}
+
 void connectMqtt() {
   if (WiFi.status() != WL_CONNECTED) {
     return;
@@ -656,9 +679,10 @@ void connectMqtt() {
   Serial.print(MQTT_SERVER);
   Serial.print(F(":"));
   Serial.println(MQTT_PORT);
-  int8_t rc = mqtt.connect(cid.c_str(), mqttUser, mqttPass,
-                           MQTT_BASE "/status/online", 0, true, "false");
-  if (rc) {
+  bool connected = mqtt.connect(cid.c_str(), mqttUser, mqttPass,
+                                MQTT_BASE "/status/online", 0, true, "false");
+  int8_t state = mqtt.state();
+  if (connected) {
     mqttAuthFailures = 0;
     mqtt.publish(MQTT_BASE "/status/online", "true", true);
     bool s1 = mqtt.subscribe(MQTT_BASE "/relay/+/set");
@@ -676,8 +700,9 @@ void connectMqtt() {
                   s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
-    Serial.printf("MQTT: Connect FAILED rc=%d\n", rc);
-    switch (rc) {
+    Serial.printf("MQTT: Connect FAILED state=%d (%s)\n", state,
+                  mqttStateName(state));
+    switch (state) {
     case MQTT_CONNECTION_TIMEOUT:
       Serial.println(F("MQTT ERROR: connection timeout"));
       break;
@@ -697,7 +722,8 @@ void connectMqtt() {
       Serial.println(F("MQTT ERROR: unknown return code"));
       break;
     }
-    if (rc == MQTT_CONNECT_BAD_CREDENTIALS || rc == MQTT_CONNECT_UNAUTHORIZED) {
+    if (state == MQTT_CONNECT_BAD_CREDENTIALS ||
+        state == MQTT_CONNECT_UNAUTHORIZED) {
       mqttAuthFailures++;
       telegramNotify(
           String("MQTT เชื่อมต่อไม่สำเร็จ: credentials/authorization ผิด (ครั้งที่ ") +
@@ -880,8 +906,9 @@ void setup() {
   tls.setInsecure();
   mqtt.setServer(MQTT_SERVER, MQTT_PORT);
   mqtt.setCallback(mqttCallback);
-  mqtt.setBufferSize(1536);
+  mqtt.setSocketTimeout(20);
   mqtt.setKeepAlive(30);
+  mqtt.setBufferSize(1536);
   syncRTCFromNTP(true);
   if (mode == AUTO)
     applyAutoState(currentMinutes());
