@@ -824,6 +824,7 @@ void connectMqtt() {
     mqttAuthFailures = 0;
     mqtt.publish(MQTT_BASE "/status/online", "true", true);
     bool s1 = mqtt.subscribe(MQTT_BASE "/relay/+/set");
+    bool sTimer = mqtt.subscribe(MQTT_BASE "/relay/+/timer/set");
     bool s2 = mqtt.subscribe(MQTT_BASE "/mode/set");
     bool s3 = mqtt.subscribe(MQTT_BASE "/schedule/+/set");
     bool s4 = mqtt.subscribe(MQTT_BASE "/config/telegram/set");
@@ -833,9 +834,9 @@ void connectMqtt() {
     pumpMqttLostAt = 0;
     Serial.println(F("MQTT: Connected"));
     telegramNotify(F("เชื่อมต่อ MQTT สำเร็จ"));
-    Serial.printf("MQTT: Subscribe relay=%s mode=%s schedule=%s telegram=%s/%s\n",
-                  s1 ? "OK" : "FAIL", s2 ? "OK" : "FAIL", s3 ? "OK" : "FAIL",
-                  s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL");
+    Serial.printf("MQTT: Subscribe relay=%s timer=%s mode=%s schedule=%s telegram=%s/%s\n",
+                  s1 ? "OK" : "FAIL", sTimer ? "OK" : "FAIL", s2 ? "OK" : "FAIL",
+                  s3 ? "OK" : "FAIL", s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
     Serial.printf("MQTT: Connect FAILED state=%d (%s), heap=%u\n", state,
