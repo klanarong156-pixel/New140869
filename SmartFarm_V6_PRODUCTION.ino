@@ -882,9 +882,10 @@ void connectMqtt() {
 
 bool otaHttpAuthorized() {
   if (!otaPass[0]) {
-    Serial.println(F("OTA HTTP WARNING: ota_pass is empty; upload endpoint is "
-                     "unauthenticated"));
-    return true;
+    Serial.println(F("OTA HTTP: DISABLED - OTA password is not configured"));
+    otaServer.send(503, "text/plain; charset=utf-8",
+                   "OTA disabled: configure ota_pass first.");
+    return false;
   }
   if (!otaServer.authenticate("admin", otaPass)) {
     otaServer.requestAuthentication(BASIC_AUTH, "SmartFarm OTA");
@@ -1060,8 +1061,6 @@ void setup() {
   if (mode == AUTO)
     applyAutoState(currentMinutes());
   ArduinoOTA.setHostname(deviceName);
-  if (otaPass[0])
-    ArduinoOTA.setPassword(otaPass);
   ArduinoOTA.onStart([]() {
     Serial.println(F("OTA: START"));
     telegramNotify(F("เริ่มอัปเดตเฟิร์มแวร์ผ่าน ArduinoOTA"));
@@ -1074,8 +1073,13 @@ void setup() {
     Serial.printf("OTA: ERROR %u\n", e);
     telegramNotify(String("ArduinoOTA ล้มเหลว รหัสข้อผิดพลาด ") + e);
   });
-  ArduinoOTA.begin();
-  Serial.println(F("OTA: READY"));
+  if (otaPass[0]) {
+    ArduinoOTA.setPassword(otaPass);
+    ArduinoOTA.begin();
+    Serial.println(F("OTA: READY (password protected)"));
+  } else {
+    Serial.println(F("OTA: DISABLED - configure ota_pass in SmartFarm_Setup"));
+  }
   setupOtaHttpServer();
   Serial.print(F("MQTT server: "));
   Serial.print(MQTT_SERVER);
