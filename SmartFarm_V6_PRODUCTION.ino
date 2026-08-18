@@ -64,7 +64,8 @@ uint8_t mqttAuthFailures = 0;
 bool mqttPortalOpened = false;
 bool mqttConfigReported = false;
 bool otaHttpRestartPending = false;
-uint32_t otaHttpRestartAt = 0;
+unsigned long otaHttpRestartAt = 0;
+bool otaUploadFailed = false;
 bool wifiStateKnown = false, lastWifiConnected = false;
 
 char mqttUser[64] = "";
@@ -880,7 +881,14 @@ void connectMqtt() {
   }
 }
 
+void otaHttpCors() {
+  otaServer.sendHeader("Access-Control-Allow-Origin", "*");
+  otaServer.sendHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  otaServer.sendHeader("Access-Control-Allow-Headers", "Authorization,Content-Type");
+}
+
 bool otaHttpAuthorized() {
+  otaHttpCors();
   if (!otaPass[0]) {
     Serial.println(F("OTA HTTP: DISABLED - OTA password is not configured"));
     otaServer.send(503, "text/plain; charset=utf-8",
@@ -899,16 +907,22 @@ void otaHttpUpload() {
     return;
   HTTPUpload &upload = otaServer.upload();
   if (upload.status == UPLOAD_FILE_START) {
+    otaUploadFailed = false;
     Serial.printf("OTA HTTP: START %s\n", upload.filename.c_str());
     telegramNotify(String("เริ่มอัปเดตเฟิร์มแวร์ผ่าน HTTP OTA โดยไฟล์ ") +
                    upload.filename);
-    if (!Update.begin(upload.contentLength))
+    if (!Update.begin(upload.contentLength)) {
+      otaUploadFailed = true;
       Update.printError(Serial);
+    }
   } else if (upload.status == UPLOAD_FILE_WRITE) {
-    if (Update.write(upload.buf, upload.currentSize) != upload.currentSize)
+    if (!otaUploadFailed &&
+        Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+      otaUploadFailed = true;
       Update.printError(Serial);
+    }
   } else if (upload.status == UPLOAD_FILE_END) {
-    if (Update.end(true)) {
+    if (!otaUploadFailed && Update.end(true)) {
       Serial.printf("OTA HTTP: END (%u bytes)\n", upload.totalSize);
       telegramNotify(String("อัปเดตเฟิร์มแวร์ผ่าน HTTP OTA สำเร็จ ขนาด ") +
                      upload.totalSize + " bytes; อุปกรณ์กำลังรีสตาร์ต");
@@ -952,9 +966,10 @@ void setupOtaHttpServer() {
         if (!otaHttpAuthorized())
           return;
         bool ok = !Update.hasError();
+        otaHttpCors();
         otaServer.send(ok ? 200 : 500, "text/plain; charset=utf-8",
                        ok ? "Update complete. Device is restarting."
-                          : "Update failed.");
+                          : "Update failed: firmware write error.");
         if (ok) {
           otaHttpRestartPending = true;
           otaHttpRestartAt = millis() + 1000UL;
@@ -973,8 +988,22 @@ void setupOtaHttpServer() {
     serializeJson(d, out);
     otaServer.send(200, "application/json", out);
   });
-  otaServer.onNotFound(
-      []() { otaServer.send(404, "text/plain", "Not found"); });
+  otaServer.on("/", HTTP_OPTIONS, []() {
+    otaHttpCors();
+    otaServer.send(204);
+  });
+  otaServer.on("/update", HTTP_OPTIONS, []() {
+    otaHttpCors();
+    otaServer.send(204);
+  });
+  otaServer.on("/api/status", HTTP_OPTIONS, []() {
+    otaHttpCors();
+    otaServer.send(204);
+  });
+  otaServer.onNotFound([]() {
+    otaHttpCors();
+    otaServer.send(404, "text/plain", "Not found");
+  });
   otaServer.begin();
   Serial.print(F("OTA HTTP READY: http://"));
   Serial.print(WiFi.localIP());
