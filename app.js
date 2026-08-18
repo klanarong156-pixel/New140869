@@ -106,7 +106,8 @@
       handler.showSetup?.();
       return false;
     }
-    showToast(seconds > 0 ? `${relayLabel(relay)}: เริ่มนับถอยหลังแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาปิดอัตโนมัติแล้ว`, 'success');
+    if (seconds > 0) renderRelay(relay, true);
+    showToast(seconds > 0 ? `${relayLabel(relay)}: เปิดและเริ่มนับถอยหลังแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาปิดอัตโนมัติแล้ว`, 'success');
     return true;
   }
 
@@ -121,14 +122,25 @@
   function commandRelay(relay, on) {
     const handler = window.mqttHandler;
     if (!handler?.publish || !window.MQTT_CONFIG?.topics) return false;
-    const sent = handler.publish(MQTT_CONFIG.topics.relaySet(relay), on ? 'ON' : 'OFF');
+    if (on) {
+      const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
+      const minutes = Number(input?.value);
+      if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) {
+        showToast('กรุณาตั้งเวลา 1–1440 นาที ก่อนกดเปิดรีเลย์', 'warning');
+        return false;
+      }
+      const sent = commandRelayTimer(relay, minutes * 60);
+      if (sent) renderRelay(relay, true);
+      return sent;
+    }
+    const sent = handler.publish(MQTT_CONFIG.topics.relaySet(relay), 'OFF');
     if (!sent) {
       showToast('ต้องตั้งค่าบัญชี MQTT ก่อนส่งคำสั่ง', 'warning');
       handler.showSetup();
       return false;
     }
-    renderRelay(relay, on);
-    showToast(`${relayLabel(relay)}: ส่งคำสั่ง${on ? 'เปิด' : 'ปิด'}แล้ว`, 'success');
+    renderRelay(relay, false);
+    showToast(`${relayLabel(relay)}: ส่งคำสั่งปิดแล้ว`, 'success');
     return true;
   }
 
