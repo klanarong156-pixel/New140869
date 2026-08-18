@@ -4,6 +4,15 @@
   const $ = id => document.getElementById(id);
   const $$ = selector => Array.from(document.querySelectorAll(selector));
   const relayLabel = relay => window.RELAY_NAMES?.[relay] || relay;
+  const relayTimers = Object.create(null);
+
+  function formatCountdown(seconds) {
+    const total = Math.max(0, Math.floor(Number(seconds) || 0));
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const rest = total % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
+  }
 
   function setText(target, value) {
     const element = typeof target === 'string' ? $(target) : target;
@@ -61,13 +70,30 @@
   }
 
   function renderRelayTimer(relay, active, remaining) {
-    const seconds = Math.max(0, Number(remaining) || 0);
-    const minutes = Math.floor(seconds / 60);
-    const rest = seconds % 60;
-    const text = active && seconds > 0
-      ? `ปิดอัตโนมัติใน ${minutes}:${String(rest).padStart(2, '0')} นาที`
-      : 'ยังไม่ได้ตั้งเวลา';
-    $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = text; });
+    const seconds = Math.max(0, Math.floor(Number(remaining) || 0));
+    if (relayTimers[relay]?.interval) window.clearInterval(relayTimers[relay].interval);
+    if (!active || seconds <= 0) {
+      delete relayTimers[relay];
+      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ยังไม่ได้ตั้งเวลา'; });
+      return;
+    }
+    const state = { remaining: seconds, interval: null };
+    const paint = () => {
+      const text = state.remaining > 0
+        ? `ปิดอัตโนมัติใน ${formatCountdown(state.remaining)}`
+        : 'หมดเวลาแล้ว กำลังปิดรีเลย์';
+      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = text; });
+    };
+    paint();
+    state.interval = window.setInterval(() => {
+      state.remaining -= 1;
+      if (state.remaining <= 0) {
+        window.clearInterval(state.interval);
+        state.remaining = 0;
+      }
+      paint();
+    }, 1000);
+    relayTimers[relay] = state;
   }
 
   function commandRelayTimer(relay, seconds) {
