@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Farm Real-time MQTT</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+    body { max-width: 1100px; margin: 0 auto; padding: 24px; background: #0f172a; color: #e2e8f0; }
+    h1 { margin-top: 0; }
+    .panel { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 18px; margin: 16px 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    label { display: grid; gap: 6px; font-size: 14px; color: #cbd5e1; }
+    input { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid #475569; border-radius: 8px; background: #0f172a; color: #f8fafc; }
+    button { border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer; font-weight: 700; }
+    #connect { background: #22c55e; color: #052e16; }
+    #disconnect { background: #f87171; color: #450a0a; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .status { font-weight: 700; }
+    .ok { color: #86efac; }
+    .bad { color: #fca5a5; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #334155; padding: 9px; text-align: left; vertical-align: top; }
+    code, pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+    pre { max-height: 360px; overflow: auto; background: #020617; padding: 12px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Smart Farm Real-time MQTT</h1>
+  <p>เครื่องมือนี้ใช้รับข้อมูลสถานะจาก MQTT broker โดยตรงแบบ Real-time และไม่ส่งคำสั่งควบคุมใด ๆ ไปยังอุปกรณ์</p>
+
+  <section class="panel">
+    <div class="grid">
+      <label>Secure WebSocket URL
+        <input id="url" value="wss://650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud:8884/mqtt" autocomplete="off">
+      </label>
+      <label>Username (Subscribe Only)
+        <input id="username" autocomplete="username">
+      </label>
+      <label>Password
+        <input id="password" type="password" autocomplete="current-password">
+      </label>
+    </div>
+    <p><span id="status" class="status bad">ยังไม่เชื่อมต่อ</span></p>
+    <button id="connect">Connect</button>
+    <button id="disconnect" disabled>Disconnect</button>
+  </section>
+
+  <section class="panel">
+    <h2>สถานะล่าสุด</h2>
+    <table>
+      <thead><tr><th>Topic</th><th>ค่า</th><th>เวลาที่ได้รับ</th></tr></thead>
+      <tbody id="latest"><tr><td colspan="3">ยังไม่มีข้อมูล</td></tr></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Event log</h2>
+    <pre id="log">กรอก credential ของบัญชี Subscribe Only แล้วกด Connect</pre>
+  </section>
+
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script>
+    (() => {
+      const READ_TOPICS = [
+        'smartfarm/relay/+/status',
+        'smartfarm/sensor/dht11',
+        'smartfarm/status/online',
+        'smartfarm/device/status',
+        'smartfarm/mode/status',
+        'smartfarm/schedule/+/status',
+        'smartfarm/config/telegram/status'
+      ];
+      const state = { client: null, latest: new Map() };
+      const $ = id => document.getElementById(id);
+
+      function writeLog(message, data) {
+        const line = `[${new Date().toLocaleTimeString()}] ${message}${data === undefined ? '' : ` ${JSON.stringify(data)}`}`;
+        const log = $('log');
+        log.textContent = `${line}\n${log.textContent}`.slice(0, 12000);
+      }
+
+      function renderLatest() {
+        const body = $('latest');
+        body.replaceChildren();
+        const entries = [...state.latest.entries()].sort(([a], [b]) => a.localeCompare(b));
+        if (!entries.length) {
+          const row = document.createElement('tr');
+          const cell = document.createElement('td');
+          cell.colSpan = 3;
+          cell.textContent = 'ยังไม่มีข้อมูล';
+          row.appendChild(cell);
+          body.appendChild(row);
+          return;
+        }
+        entries.forEach(([topic, item]) => {
+          const row = document.createElement('tr');
+          [topic, item.value, item.time].forEach((value, index) => {
+            const cell = document.createElement('td');
+            if (index < 2) {
+              const code = document.createElement('code');
+              code.textContent = value;
+              cell.appendChild(code);
+            } else {
+              cell.textContent = value;
+            }
+            row.appendChild(cell);
+          });
+          body.appendChild(row);
+        });
+      }
+
+      function setConnected(connected, text) {
+        $('status').textContent = text;
+        $('status').className = `status ${connected ? 'ok' : 'bad'}`;
+        $('connect').disabled = connected;
+        $('disconnect').disabled = !connected;
+      }
+
+      $('connect').addEventListener('click', () => {
+        if (state.client) state.client.end(true);
+        const url = $('url').value.trim();
+        const username = $('username').value.trim();
+        const password = $('password').value;
+        if (!url || !username || !password) {
+          writeLog('ต้องกรอก URL, username และ password ให้ครบ');
+          return;
+        }
+        const clientId = `SmartFarmExternal-${crypto.randomUUID()}`;
+        state.client = mqtt.connect(url, {
+          clientId, username, password, clean: true,
+          reconnectPeriod: 5000, connectTimeout: 30000, keepalive: 30
+        });
+        setConnected(false, 'กำลังเชื่อมต่อ...');
+        writeLog('กำลังเชื่อมต่อ', { url, clientId });
+        state.client.on('connect', () => {
+          state.client.subscribe(READ_TOPICS, { qos: 0 }, error => {
+            if (error) {
+              writeLog('สมัครรับข้อมูลไม่สำเร็จ', error.message);
+              return;
+            }
+            setConnected(true, 'เชื่อมต่อแล้ว — รับข้อมูล Real-time');
+            writeLog('สมัครรับ read-only topics สำเร็จ', READ_TOPICS);
+          });
+        });
+        state.client.on('message', (topic, payload) => {
+          const text = payload.toString();
+          state.latest.set(topic, { value: text, time: new Date().toLocaleString() });
+          renderLatest();
+          writeLog(topic, text);
+        });
+        state.client.on('reconnect', () => setConnected(false, 'กำลังเชื่อมต่อใหม่...'));
+        state.client.on('close', () => setConnected(false, 'ปิดการเชื่อมต่อ'));
+        state.client.on('error', error => writeLog('MQTT error', error.message));
+      });
+
+      $('disconnect').addEventListener('click', () => {
+        if (state.client) state.client.end(true);
+        state.client = null;
+        setConnected(false, 'ปิดการเชื่อมต่อ');
+        writeLog('ตัดการเชื่อมต่อแล้ว');
+      });
+    })();
+  </script>
+</body>
+</html>
