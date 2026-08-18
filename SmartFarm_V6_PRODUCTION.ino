@@ -46,6 +46,7 @@ const uint32_t HEARTBEAT_INTERVAL_MS = 10000UL;
 const uint32_t SCHEDULE_INTERVAL_MS = 1000UL;
 const uint32_t RTC_NTP_SYNC_INTERVAL_MS = 6UL * 60UL * 60UL * 1000UL;
 const uint8_t MQTT_AUTH_FAIL_LIMIT = 3;
+const uint32_t MQTT_DIAGNOSTIC_INTERVAL_MS = 30000UL;
 
 WiFiClientSecure tls;
 WiFiClientSecure telegramTls;
@@ -58,7 +59,7 @@ DHT dht(DHT_PIN, DHT11);
 
 bool fsReady = false, rtcAvailable = false, rtcTimeValid = false;
 uint32_t lastRtcSync = 0, lastMqttAttempt = 0, lastSensor = 0,
-         lastHeartbeat = 0, lastSchedule = 0;
+         lastHeartbeat = 0, lastSchedule = 0, lastMqttDiagnostic = 0;
 uint8_t mqttAuthFailures = 0;
 bool mqttPortalOpened = false;
 bool mqttConfigReported = false;
@@ -419,6 +420,56 @@ void syncRTCFromNTP(bool force = false) {
   }
 }
 
+void reportClockStatus() {
+  uint32_t epoch = ntp.getEpochTime();
+  Serial.print(F("NTP: epoch="));
+  Serial.print(epoch);
+  if (epoch >= 1704067200UL) {
+    Serial.println(F(" VALID"));
+    return;
+  }
+  Serial.println(F(" INVALID/UNSYNCED"));
+}
+
+void diagnoseMqttTransport() {
+  if ((uint32_t)(millis() - lastMqttDiagnostic) <
+      MQTT_DIAGNOSTIC_INTERVAL_MS)
+    return;
+  lastMqttDiagnostic = millis();
+
+  Serial.print(F("MQTT DIAG: WiFi RSSI="));
+  Serial.print(WiFi.RSSI());
+  Serial.print(F(" IP="));
+  Serial.println(WiFi.localIP());
+
+  IPAddress resolved;
+  if (!WiFi.hostByName(MQTT_SERVER, resolved)) {
+    Serial.println(F("MQTT DIAG: DNS resolution FAILED"));
+    return;
+  }
+  Serial.print(F("MQTT DIAG: DNS="));
+  Serial.println(resolved);
+
+  WiFiClientSecure probe;
+  probe.setInsecure();
+  probe.setTimeout(10);
+  uint32_t started = millis();
+  bool tcpTlsOk = probe.connect(MQTT_SERVER, MQTT_PORT);
+  uint32_t elapsed = millis() - started;
+  if (tcpTlsOk) {
+    Serial.printf("MQTT DIAG: TLS TCP 8883 OK (%lu ms)\n",
+                  (unsigned long)elapsed);
+    probe.stop();
+    return;
+  }
+
+  char error[128] = "";
+  int errorCode = probe.getLastSSLError(error, sizeof(error));
+  Serial.printf("MQTT DIAG: TLS TCP FAILED (%lu ms), ssl=%d (%s)\n",
+                (unsigned long)elapsed, errorCode, error);
+  probe.stop();
+}
+
 void publishRelayStatus(uint8_t i) {
   if (!mqtt.connected() || i >= RELAY_COUNT)
     return;
@@ -702,6 +753,8 @@ void connectMqtt() {
   } else {
     Serial.printf("MQTT: Connect FAILED state=%d (%s)\n", state,
                   mqttStateName(state));
+    if (state == MQTT_CONNECT_FAILED)
+      diagnoseMqttTransport();
     switch (state) {
     case MQTT_CONNECTION_TIMEOUT:
       Serial.println(F("MQTT ERROR: connection timeout"));
@@ -910,6 +963,7 @@ void setup() {
   mqtt.setKeepAlive(30);
   mqtt.setBufferSize(1536);
   syncRTCFromNTP(true);
+  reportClockStatus();
   if (mode == AUTO)
     applyAutoState(currentMinutes());
   ArduinoOTA.setHostname(deviceName);

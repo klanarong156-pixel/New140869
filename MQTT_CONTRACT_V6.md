@@ -10,8 +10,10 @@
 | Presence | — | `smartfarm/status/online` | retained `true` / LWT `false` |
 | Heartbeat | — | `smartfarm/device/status` | device JSON every 10 seconds |
 | Sensor | — | `smartfarm/sensor/dht11` | temperature/humidity JSON |
+| Telegram configuration | `smartfarm/config/telegram/set` | `smartfarm/config/telegram/status` | JSON `{ "botToken": "...", "chatId": "..." }`; status JSON reports `configured` |
+| Telegram test | `smartfarm/config/telegram/test` | — | any payload triggers a test message |
 
-Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. A relay status is retained by the device so a newly connected dashboard can render the current state.
+Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay and mode status messages are retained by the device so a newly connected dashboard can render the current state.
 
 ## Schedule payload
 
@@ -34,8 +36,8 @@ The firmware publishes an online heartbeat including version, free heap, RSSI, m
 
 ## Credentials and boundaries
 
-The dashboard source contains no MQTT username or password. An operator enters credentials in the browser; they are stored in session storage by default, or in local storage only after selecting “remember this device.” Commands issued in a short reconnect window are queued for up to 30 seconds.
+The dashboard source contains no MQTT username or password. An operator enters credentials in the browser; they are stored in session storage by default, or in local storage only after selecting “remember this device.” Commands issued in a short reconnect window are queued for up to 30 seconds. Telegram bot token and chat ID are sent from the dashboard to the ESP8266 over the authenticated MQTT command topic and are persisted in LittleFS; they are never placed in `config.js`.
 
 > A static web client cannot protect a shared broker credential from a person who can use that credential in a browser. Configure HiveMQ ACLs and rotate any password that was committed in a prior repository revision.
 
-The active hardware time map is DHT11 on D2/GPIO4 and DS3231 I²C on D3/GPIO0 plus D4/GPIO2. The firmware uses TLS transport with `setInsecure()` at present, so certificate validation remains a future hardening task.
+The active hardware time map is DHT11 on D2/GPIO4 and DS3231 I²C on D3/GPIO0 plus D4/GPIO2. Firmware MQTT uses HiveMQ Cloud TLS on port 8883; the current `setInsecure()` configuration encrypts the transport but skips server-certificate validation. At boot, the firmware reports NTP epoch validity. When PubSubClient returns `MQTT_CONNECT_FAILED` (`state=-2`), it additionally reports DNS resolution and a separate TLS/TCP probe so an operator can distinguish network/TLS failure from MQTT authentication failure.

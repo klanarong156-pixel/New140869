@@ -89,7 +89,7 @@
       showToast(window.SmartFarmWeather.state.reason || 'สภาพอากาศยังไม่อนุญาตให้ใช้ AUTO', 'warning');
       return false;
     }
-    const sent = window.mqttHandler?.publish?.(MQTT_CONFIG.topics.modeSet, normalized, { retain: true });
+    const sent = window.mqttHandler?.publish?.(MQTT_CONFIG.topics.modeSet, normalized, { retain: false });
     if (!sent) {
       showToast('ต้องตั้งค่าบัญชี MQTT ก่อนเลือกโหมด', 'warning');
       window.mqttHandler?.showSetup();

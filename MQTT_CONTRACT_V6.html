@@ -40,7 +40,7 @@
 
       <h1 id="newfarm-v62-mqtt-contract">NewFarm V6.2 MQTT Contract</h1>
 
-<p>This is the active MQTT contract for the V6.0.1 Production Hardened firmware and V6.2 web app.</p>
+<p>This is the active MQTT contract for the V7.0.0 Production Hardened firmware and V7 web app.</p>
 
 <h2 id="relay">Relay</h2>
 <ul>
@@ -72,6 +72,15 @@
   <li>Schedules are stored in ESP8266 LittleFS and continue locally in AUTO when MQTT is temporarily unavailable.</li>
 </ul>
 
+<h2 id="telegram">Telegram configuration</h2>
+<ul>
+  <li>Configuration command: <code class="language-plaintext highlighter-rouge">smartfarm/config/telegram/set</code></li>
+  <li>Payload JSON: <code class="language-plaintext highlighter-rouge">{ "botToken": "...", "chatId": "..." }</code></li>
+  <li>Status: <code class="language-plaintext highlighter-rouge">smartfarm/config/telegram/status</code> with JSON <code class="language-plaintext highlighter-rouge">{ "configured": true|false }</code></li>
+  <li>Test command: <code class="language-plaintext highlighter-rouge">smartfarm/config/telegram/test</code>; any payload requests a test notification.</li>
+  <li>The ESP8266 persists these values in LittleFS; the dashboard does not place them in <code class="language-plaintext highlighter-rouge">config.js</code>.</li>
+</ul>
+
 <h2 id="esp-status">ESP status</h2>
 <ul>
   <li>Online/LWT: <code class="language-plaintext highlighter-rouge">smartfarm/status/online</code></li>
@@ -93,7 +102,7 @@
 <h2 id="time">Time</h2>
 <ul>
   <li>DS3231 is supported and used as the preferred local schedule clock when present and valid.</li>
-  <li>I2C: SDA D2/GPIO4, SCL D1/GPIO5.</li>
+  <li>I2C: SDA D3/GPIO0, SCL D4/GPIO2.</li>
   <li>If DS3231 is unavailable or invalid, the firmware falls back to NTP.</li>
   <li>NTP is used to synchronize DS3231 when Wi-Fi is available; periodic sync interval is 6 hours.</li>
 </ul>
@@ -120,7 +129,8 @@
 <ul>
   <li>Firebase Authentication provides user/admin roles for the web UI and Firebase rules protect role data.</li>
   <li>User: Dashboard, Relay and schedules. Admin: all user capabilities plus MQTT settings, role management and OTA page.</li>
-  <li>Firmware currently uses TLS transport with certificate verification disabled (<code class="language-plaintext highlighter-rouge">setInsecure()</code>); certificate validation remains a firmware hardening option.</li>
+  <li>Firmware uses HiveMQ Cloud MQTT over TLS on port 8883. Certificate verification is currently disabled with <code class="language-plaintext highlighter-rouge">setInsecure()</code>; transport is encrypted, but server identity is not verified.</li>
+  <li>When PubSubClient reports <code class="language-plaintext highlighter-rouge">MQTT_CONNECT_FAILED</code> (<code class="language-plaintext highlighter-rouge">state=-2</code>), the firmware reports DNS resolution and a separate TLS/TCP probe on Serial Monitor.</li>
 </ul>
 
 
