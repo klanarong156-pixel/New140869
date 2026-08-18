@@ -114,6 +114,7 @@ void telegramNotify(const String &message) {
     return;
 
   telegramTls.setInsecure();
+  telegramTls.setBufferSizes(16384, 512);
   telegramTls.setTimeout(15000);
   String url = String("https://api.telegram.org/bot") + telegramBotToken +
                "/sendMessage";
@@ -450,24 +451,26 @@ void diagnoseMqttTransport() {
   Serial.print(F("MQTT DIAG: DNS="));
   Serial.println(resolved);
 
-  WiFiClientSecure probe;
-  probe.setInsecure();
-  probe.setTimeout(10);
+  // Reuse the MQTT TLS client; creating a second BearSSL client here can
+  // exceed the ESP8266 heap immediately after a failed handshake.
+  tls.setInsecure();
+  tls.setBufferSizes(16384, 512);
+  tls.setTimeout(10);
   uint32_t started = millis();
-  bool tcpTlsOk = probe.connect(MQTT_SERVER, MQTT_PORT);
+  bool tcpTlsOk = tls.connect(MQTT_SERVER, MQTT_PORT);
   uint32_t elapsed = millis() - started;
   if (tcpTlsOk) {
     Serial.printf("MQTT DIAG: TLS TCP 8883 OK (%lu ms)\n",
                   (unsigned long)elapsed);
-    probe.stop();
+    tls.stop();
     return;
   }
 
   char error[128] = "";
-  int errorCode = probe.getLastSSLError(error, sizeof(error));
+  int errorCode = tls.getLastSSLError(error, sizeof(error));
   Serial.printf("MQTT DIAG: TLS TCP FAILED (%lu ms), ssl=%d (%s)\n",
                 (unsigned long)elapsed, errorCode, error);
-  probe.stop();
+  tls.stop();
 }
 
 void publishRelayStatus(uint8_t i) {
@@ -751,8 +754,13 @@ void connectMqtt() {
                   s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
-    Serial.printf("MQTT: Connect FAILED state=%d (%s)\n", state,
-                  mqttStateName(state));
+    Serial.printf("MQTT: Connect FAILED state=%d (%s), heap=%u\n", state,
+                  mqttStateName(state), ESP.getFreeHeap());
+    // A failed BearSSL handshake can retain socket state. Release it before
+    // running diagnostics or the next retry, otherwise two TLS contexts may
+    // compete for the ESP8266 heap.
+    mqtt.disconnect();
+    tls.stop();
     if (state == MQTT_CONNECT_FAILED)
       diagnoseMqttTransport();
     switch (state) {
@@ -957,11 +965,13 @@ void setup() {
   Serial.print(F("Heap after WiFi: "));
   Serial.println(ESP.getFreeHeap());
   tls.setInsecure();
+  tls.setBufferSizes(16384, 512);
   mqtt.setServer(MQTT_SERVER, MQTT_PORT);
   mqtt.setCallback(mqttCallback);
   mqtt.setSocketTimeout(20);
   mqtt.setKeepAlive(30);
-  mqtt.setBufferSize(1536);
+  // Keep the MQTT packet buffer below 1 KB; current firmware payloads fit.
+  mqtt.setBufferSize(768);
   syncRTCFromNTP(true);
   reportClockStatus();
   if (mode == AUTO)
