@@ -85,7 +85,7 @@
   window.setFarmMode=function(mode){
     mode=String(mode||'').toUpperCase();
     if(mode!=='AUTO'&&mode!=='MANUAL')return false;
-    const ok=publish(cfg().topics.modeSet,mode,{retain:true});
+    const ok=publish(cfg().topics.modeSet,mode,{retain:false});
     if(ok){APP_STATE.mode=mode.toLowerCase();window.showToast?.(mode==='AUTO'?'เปลี่ยนเป็น AUTO แล้ว':'เปลี่ยนเป็น MANUAL แล้ว','success');}
     return ok;
   };
