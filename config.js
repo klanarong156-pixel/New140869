@@ -13,13 +13,17 @@ const MQTT_CONFIG = Object.freeze({
     scheduleSet: relay => `smartfarm/schedule/${relay}/set`,
     scheduleStatus: relay => `smartfarm/schedule/${relay}/status`,
     online: 'smartfarm/status/online',
-    deviceStatus: 'smartfarm/device/status'
+    deviceStatus: 'smartfarm/device/status',
+    telegramSet: 'smartfarm/config/telegram/set',
+    telegramTest: 'smartfarm/config/telegram/test',
+    telegramStatus: 'smartfarm/config/telegram/status'
   }),
   allowedSubscribeTopics: Object.freeze([
     'smartfarm/relay/+/status',
     'smartfarm/sensor/dht11',
     'smartfarm/status/online',
     'smartfarm/device/status',
+    'smartfarm/config/telegram/status',
     'smartfarm/mode/status',
     'smartfarm/schedule/+/status'
   ]),

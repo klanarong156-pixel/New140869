@@ -226,6 +226,14 @@ class MqttHandler {
       }
       return;
     }
+    if (topic === this.config.topics.telegramStatus) {
+      try {
+        this.dispatch('telegram:status', JSON.parse(value));
+      } catch (_) {
+        this.dispatch('telegram:status', { configured: false });
+      }
+      return;
+    }
     if (topic === this.config.topics.modeStatus) {
       const mode = value.toUpperCase();
       if (mode === 'MANUAL' || mode === 'AUTO') {
