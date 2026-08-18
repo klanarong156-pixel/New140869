@@ -200,6 +200,19 @@ class MqttHandler {
 
   handleMessage(topic, payload) {
     const value = String(payload).trim();
+    if (topic.startsWith('smartfarm/relay/') && topic.endsWith('/timer/status')) {
+      const relay = topic.split('/')[2];
+      if (!RELAYS.includes(relay)) return;
+      try {
+        const timer = JSON.parse(value);
+        const remaining = Math.max(0, Number(timer.remaining) || 0);
+        this.markDeviceSeen('relay-timer-status');
+        this.dispatch('relay:timer', { relay, active: Boolean(timer.active) && remaining > 0, remaining });
+      } catch (_) {
+        this.dispatch('relay:timer', { relay, active: false, remaining: 0 });
+      }
+      return;
+    }
     if (topic.startsWith('smartfarm/relay/') && topic.endsWith('/status')) {
       const relay = topic.split('/')[2];
       const on = value.toUpperCase() === 'ON';

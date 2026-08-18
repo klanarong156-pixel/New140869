@@ -60,6 +60,30 @@
     $$(`[data-relay-card="${relay}"]`).forEach(card => card.classList.toggle('active', Boolean(on)));
   }
 
+  function renderRelayTimer(relay, active, remaining) {
+    const seconds = Math.max(0, Number(remaining) || 0);
+    const minutes = Math.floor(seconds / 60);
+    const rest = seconds % 60;
+    const text = active && seconds > 0
+      ? `ปิดอัตโนมัติใน ${minutes}:${String(rest).padStart(2, '0')} นาที`
+      : 'ยังไม่ได้ตั้งเวลา';
+    $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = text; });
+  }
+
+  function commandRelayTimer(relay, seconds) {
+    const handler = window.mqttHandler;
+    const topic = window.MQTT_CONFIG?.topics?.relayTimerSet?.(relay);
+    if (!handler?.publish || !topic) return false;
+    const sent = handler.publish(topic, String(Math.max(0, Math.floor(seconds))));
+    if (!sent) {
+      showToast('ต้องตั้งค่าบัญชี MQTT ก่อนตั้งเวลา', 'warning');
+      handler.showSetup?.();
+      return false;
+    }
+    showToast(seconds > 0 ? `${relayLabel(relay)}: เริ่มนับถอยหลังแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาปิดอัตโนมัติแล้ว`, 'success');
+    return true;
+  }
+
   function renderSensor(type, value) {
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return;
@@ -147,6 +171,18 @@
         if (!accepted) input.checked = !input.checked;
       });
     });
+    $$('[data-timer-start]').forEach(button => button.addEventListener('click', () => {
+      const relay = button.dataset.timerStart;
+      const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
+      const minutes = Number(input?.value);
+      if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) {
+        showToast('กรุณาตั้งเวลา 1–1440 นาที', 'warning');
+        return;
+      }
+      commandRelayTimer(relay, minutes * 60);
+    }));
+    $$('[data-timer-cancel]').forEach(button => button.addEventListener('click', () => commandRelayTimer(button.dataset.timerCancel, 0)));
+
     $$('[data-mode]').forEach(button => button.addEventListener('click', () => setFarmMode(button.dataset.mode)));
     $$('[data-mqtt-connect]').forEach(button => button.addEventListener('click', () => {
       if (window.mqttHandler?.hasCredentials?.()) window.mqttHandler.connect();
@@ -169,6 +205,10 @@
     window.addEventListener('relay:status', event => {
       const { relay, status } = event.detail || {};
       if (relay) renderRelay(relay, status);
+    });
+    window.addEventListener('relay:timer', event => {
+      const { relay, active, remaining } = event.detail || {};
+      if (relay) renderRelayTimer(relay, active, remaining);
     });
     window.addEventListener('sensor:data', event => renderSensor(event.detail?.type, event.detail?.value));
     window.addEventListener('device:data', event => {
@@ -205,7 +245,7 @@
 
   window.showToast = showToast;
   window.setFarmMode = setFarmMode;
-  window.SmartFarmUI = { showToast, openMqttSetup, commandRelay, setFarmMode };
+  window.SmartFarmUI = { showToast, openMqttSetup, commandRelay, commandRelayTimer, setFarmMode };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();

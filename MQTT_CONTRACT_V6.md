@@ -15,6 +15,12 @@
 
 Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay and mode status messages are retained by the device so a newly connected dashboard can render the current state.
 
+## Relay countdown timer
+
+Dashboard starts or cancels an automatic OFF timer with the non-retained topic `smartfarm/relay/{relay}/timer/set`. The payload is an integer number of seconds from `1` to `86400`; payload `0` or `CANCEL` cancels the timer. The firmware switches to MANUAL when a timer command arrives, turns the relay ON when a positive timer is started, and turns it OFF automatically when the countdown expires. The retained status topic is `smartfarm/relay/{relay}/timer/status` with JSON payload `{ "active": true, "remaining": 120 }`.
+
+Changing to AUTO cancels active countdown timers so an old manual timer cannot override the schedule.
+
 ## Schedule payload
 
 ```json

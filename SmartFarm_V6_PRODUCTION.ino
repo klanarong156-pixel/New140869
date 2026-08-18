@@ -188,7 +188,68 @@ const uint8_t relayPins[RELAY_COUNT] = {RELAY_PUMP, RELAY_ZONE1,
 const char *relayNames[RELAY_COUNT] = {"pump", "zone1", "lighthome",
                                        "lightsala"};
 uint32_t pumpStartedAt = 0, pumpMqttLostAt = 0;
+uint32_t relayTimerUntil[RELAY_COUNT] = {};
+uint32_t lastTimerStatus = 0;
 bool pumpSafetyLatched = false;
+
+void relaySet(uint8_t i, bool on);
+void publishRelayStatus(uint8_t i);
+
+void clearRelayTimer(uint8_t i) {
+  if (i < RELAY_COUNT)
+    relayTimerUntil[i] = 0;
+}
+void publishRelayTimerStatus(uint8_t i) {
+  if (!mqtt.connected() || i >= RELAY_COUNT)
+    return;
+  StaticJsonDocument<160> d;
+  uint32_t remaining = relayTimerUntil[i]
+                           ? (int32_t)(relayTimerUntil[i] - millis()) > 0
+                                 ? (relayTimerUntil[i] - millis()) / 1000UL
+                                 : 0
+                           : 0;
+  d["active"] = remaining > 0;
+  d["remaining"] = remaining;
+  char out[160];
+  serializeJson(d, out, sizeof(out));
+  String t = String(MQTT_BASE) + "/relay/" + relayNames[i] + "/timer/status";
+  mqtt.publish(t.c_str(), out, true);
+}
+void startRelayTimer(uint8_t i, uint32_t seconds) {
+  if (i >= RELAY_COUNT)
+    return;
+  if (!seconds) {
+    clearRelayTimer(i);
+    publishRelayTimerStatus(i);
+    return;
+  }
+  if (seconds > 86400UL)
+    seconds = 86400UL;
+  relayTimerUntil[i] = millis() + seconds * 1000UL;
+  relaySet((uint8_t)i, true);
+  publishRelayStatus(i);
+  publishRelayTimerStatus(i);
+}
+void runRelayTimers() {
+  if (mode != MANUAL)
+    return;
+  bool statusDue = (uint32_t)(millis() - lastTimerStatus) >= 1000UL;
+  if (statusDue)
+    lastTimerStatus = millis();
+  for (uint8_t i = 0; i < RELAY_COUNT; i++) {
+    if (!relayTimerUntil[i])
+      continue;
+    if (!relayOn(i) || (int32_t)(millis() - relayTimerUntil[i]) >= 0) {
+      bool expired = relayOn(i) && (int32_t)(millis() - relayTimerUntil[i]) >= 0;
+      clearRelayTimer(i);
+      if (expired)
+        relaySet(i, false);
+      publishRelayStatus(i);
+      publishRelayTimerStatus(i);
+    } else if (statusDue)
+      publishRelayTimerStatus(i);
+  }
+}
 
 bool validHM(uint8_t h, uint8_t m) { return h < 24 && m < 60; }
 bool parseHM(const char *s, uint8_t &h, uint8_t &m) {
@@ -253,6 +314,8 @@ void forcePumpOff(const char *reason) {
   telegramNotify(String("แจ้งเตือนความปลอดภัยปั๊ม: ปิดปั๊มอัตโนมัติ (เหตุผล: ") + r + ")");
 }
 void relaySet(uint8_t i, bool on) {
+  if (!on)
+    clearRelayTimer(i);
   if (i != 0) {
     relaySetRaw(i, on);
     return;
@@ -505,6 +568,7 @@ void publishStatus() {
     return;
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     publishRelayStatus(i);
+    publishRelayTimerStatus(i);
     publishScheduleStatus(i);
   }
   mqtt.publish(MQTT_BASE "/mode/status", mode == AUTO ? "AUTO" : "MANUAL",
@@ -607,6 +671,22 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   }
 
   String rp = String(MQTT_BASE) + "/relay/";
+  String tp = String(MQTT_BASE) + "/relay/";
+  if (t.startsWith(tp) && t.endsWith("/timer/set")) {
+    String n = t.substring(tp.length(), t.length() - 10);
+    int i = relayIndex(n);
+    if (i < 0)
+      return;
+    uint32_t seconds = msg.equalsIgnoreCase("CANCEL") ? 0 : strtoul(msg.c_str(), nullptr, 10);
+    if (mode == AUTO) {
+      mode = MANUAL;
+      pumpSafetyLatched = false;
+      saveConfig();
+      mqtt.publish(MQTT_BASE "/mode/status", "MANUAL", true);
+    }
+    startRelayTimer((uint8_t)i, seconds);
+    return;
+  }
   if (t.startsWith(rp) && t.endsWith("/set")) {
     String n = t.substring(rp.length(), t.length() - 4);
     int i = relayIndex(n);
@@ -639,8 +719,11 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       pumpSafetyLatched = false;
       for (uint8_t i = 0; i < RELAY_COUNT; i++)
         relaySetRaw(i, false);
-    } else
+    } else {
+      for (uint8_t i = 0; i < RELAY_COUNT; i++)
+        clearRelayTimer(i);
       applyAutoState(currentMinutes());
+    }
     saveConfig();
     publishStatus();
     telegramNotify(String("เปลี่ยนโหมดเป็น ") +
@@ -1071,6 +1154,7 @@ void loop() {
   if (otaHttpRestartPending && (int32_t)(millis() - otaHttpRestartAt) >= 0)
     ESP.restart();
   runSafety();
+  runRelayTimers();
   runSchedules();
   if ((uint32_t)(millis() - lastSensor) >= SENSOR_INTERVAL_MS) {
     lastSensor = millis();
