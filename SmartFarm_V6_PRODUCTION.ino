@@ -114,7 +114,7 @@ void telegramNotify(const String &message) {
     return;
 
   telegramTls.setInsecure();
-  telegramTls.setBufferSizes(16384, 512);
+  telegramTls.setBufferSizes(4096, 512);
   telegramTls.setTimeout(15000);
   String url = String("https://api.telegram.org/bot") + telegramBotToken +
                "/sendMessage";
@@ -454,7 +454,7 @@ void diagnoseMqttTransport() {
   // Reuse the MQTT TLS client; creating a second BearSSL client here can
   // exceed the ESP8266 heap immediately after a failed handshake.
   tls.setInsecure();
-  tls.setBufferSizes(16384, 512);
+  tls.setBufferSizes(4096, 512);
   tls.setTimeout(10);
   uint32_t started = millis();
   bool tcpTlsOk = tls.connect(MQTT_SERVER, MQTT_PORT);
@@ -965,12 +965,12 @@ void setup() {
   Serial.print(F("Heap after WiFi: "));
   Serial.println(ESP.getFreeHeap());
   tls.setInsecure();
-  tls.setBufferSizes(16384, 512);
+  tls.setBufferSizes(4096, 512);
   mqtt.setServer(MQTT_SERVER, MQTT_PORT);
   mqtt.setCallback(mqttCallback);
   mqtt.setSocketTimeout(20);
   mqtt.setKeepAlive(30);
-  // Keep the MQTT packet buffer below 1 KB; current firmware payloads fit.
+  // Keep both MQTT and TLS buffers small; current payloads fit comfortably.
   mqtt.setBufferSize(768);
   syncRTCFromNTP(true);
   reportClockStatus();
