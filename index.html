@@ -69,8 +69,13 @@
       </div>
     </section>
 
-    <section class="section grid two">
-      <article class="card pad"><div class="connection-card"><span class="connection-icon">◌</span><div><p class="kicker">CONNECTION</p><h2>การเชื่อมต่อ MQTT</h2><p id="mqttStatusText">ยังไม่ได้ตั้งค่าบัญชี MQTT สำหรับเบราว์เซอร์นี้</p></div></div><div class="btn-row" style="margin-top:18px"><button class="btn primary" type="button" data-mqtt-connect>เชื่อมต่อ MQTT</button><button class="btn secondary" type="button" data-mqtt-setup>ตั้งค่าบัญชี</button></div></article>
+    <section id="financeSummary" class="section card pad" aria-labelledby="finance-summary-title">
+      <div class="section-head"><div><p class="kicker">FARM FINANCE</p><h2 id="finance-summary-title">สรุปการเงินฟาร์ม</h2><p id="financeSummaryStatus" class="helper">กำลังโหลดข้อมูลการเงิน…</p></div><a class="btn secondary small" href="finance.html">ดูรายละเอียด</a></div>
+      <div class="grid three finance-summary-grid">
+        <article class="finance-summary-item income"><span>รายรับรวม</span><strong id="dashboardFinanceIncome">฿0.00</strong></article>
+        <article class="finance-summary-item expense"><span>รายจ่ายรวม</span><strong id="dashboardFinanceExpense">฿0.00</strong></article>
+        <article class="finance-summary-item profit"><span>ยอดสุทธิ</span><strong id="dashboardFinanceProfit">฿0.00</strong></article>
+      </div>
     </section>
 
     <footer>สวนลุงนะ Smart Farm · ออกแบบเพื่อการตัดสินใจที่ชัดเจนในทุกวัน</footer>
@@ -79,7 +84,7 @@
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
   <script src="firebase.js?v=8"></script><script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-  <script src="config.js?v=7"></script><script src="mqtt-handler.js?v=7"></script><script src="app.js?v=8"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-dashboard.js?v=1"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="config.js?v=7"></script><script src="mqtt-handler.js?v=7"></script><script src="finance-core.js?v=1"></script><script src="finance-firebase.js?v=1"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=8"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-dashboard.js?v=1"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
