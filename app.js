@@ -220,6 +220,14 @@
       commandRelayTimer(relay, minutes * 60);
     }));
     $$('[data-timer-cancel]').forEach(button => button.addEventListener('click', () => commandRelayTimer(button.dataset.timerCancel, 0)));
+    $$('[data-timer-preset]').forEach(button => button.addEventListener('click', () => {
+      const relay = button.dataset.timerFor;
+      const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
+      if (!input) return;
+      input.value = button.dataset.timerPreset;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      button.closest('.relay-timer')?.querySelectorAll('[data-timer-preset]').forEach(item => item.classList.toggle('active', item === button));
+    }));
 
     $$('[data-mode]').forEach(button => button.addEventListener('click', () => setFarmMode(button.dataset.mode)));
     $$('[data-mqtt-connect]').forEach(button => button.addEventListener('click', () => {

@@ -314,3 +314,21 @@ body::before { opacity:.10; background-size:36px 36px; }
   .weather-grid-compact { grid-template-columns:repeat(2,minmax(0,1fr)); }
   #control .section-head .helper { display:none; }
 }
+
+
+/* Countdown mode: quick, clear and mobile-friendly */
+.relay-timer { gap:9px; margin-top:12px; padding:12px; border:1px solid rgba(119,215,156,.16); border-radius:16px; background:rgba(4,19,12,.20); }
+.relay-timer > label { position:relative; gap:6px; color:#c7d9cc; font-size:11px; font-weight:600; letter-spacing:.01em; }
+.relay-timer > label input { min-height:40px; padding-right:58px; border-color:rgba(139,220,169,.20); background:rgba(255,255,255,.06); font-size:16px; font-weight:700; }
+.input-suffix { position:absolute; right:12px; bottom:12px; color:#8eb69c; font-size:11px; pointer-events:none; }
+.timer-presets { display:flex; gap:6px; flex-wrap:wrap; }
+.timer-presets button { flex:1 1 0; min-height:29px; padding:4px 7px; border:1px solid rgba(139,220,169,.18); border-radius:9px; color:#a9c9b3; background:rgba(255,255,255,.045); font:600 11px/1.1 inherit; cursor:pointer; transition:.16s ease; }
+.timer-presets button:hover, .timer-presets button.active { border-color:rgba(100,222,146,.55); color:#eaffef; background:rgba(72,190,112,.20); }
+.timer-actions { display:grid; grid-template-columns:1.3fr 1fr; gap:7px; }
+.timer-actions .btn { min-height:34px; padding:7px 9px; font-size:12px; }
+.relay-timer [data-timer-status] { display:flex; align-items:center; min-height:21px; padding:5px 8px; border-radius:8px; background:rgba(255,255,255,.035); color:#8fbda0; font-size:11px; }
+.control-card.active .relay-timer [data-timer-status] { color:#a9f4bd; background:rgba(80,210,121,.12); }
+@media (max-width:640px) {
+  .relay-timer { padding:10px; }
+  .timer-presets button { min-height:32px; }
+}
