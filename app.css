@@ -332,3 +332,28 @@ body::before { opacity:.10; background-size:36px 36px; }
   .relay-timer { padding:10px; }
   .timer-presets button { min-height:32px; }
 }
+
+
+/* Compact relay cards for small screens */
+@media (max-width:640px) {
+  #control .grid.four { gap:8px; }
+  #control .control-card { padding:11px; border-radius:20px; }
+  #control .control-top { gap:6px; }
+  #control .control-name { gap:7px; }
+  #control .control-name .icon { width:30px; height:30px; border-radius:10px; font-size:15px; }
+  #control .control-name strong { font-size:14px; line-height:1.1; }
+  #control .control-name small { margin-top:2px; font-size:8px; line-height:1.1; }
+  #control .switch { width:42px; height:24px; }
+  #control .switch span::after { top:3px; left:3px; width:16px; height:16px; }
+  #control .switch input:checked + span::after { transform:translateX(18px); }
+  #control .control-state { margin:9px 0 0; min-height:28px; font-size:10px; line-height:1.25; }
+  #control .relay-timer { gap:6px; margin-top:8px; padding:8px; border-radius:13px; }
+  #control .relay-timer > label { gap:4px; font-size:9px; }
+  #control .relay-timer > label input { min-height:32px; padding:5px 38px 5px 9px; font-size:14px; border-radius:11px; }
+  #control .input-suffix { right:9px; bottom:9px; font-size:9px; }
+  #control .timer-presets { gap:4px; }
+  #control .timer-presets button { min-height:25px; padding:3px 4px; border-radius:8px; font-size:12px; }
+  #control .timer-actions { gap:5px; }
+  #control .timer-actions .btn { min-height:29px; padding:5px 7px; border-radius:9px; font-size:11px; }
+  #control .relay-timer [data-timer-status] { min-height:17px; padding:4px 6px; border-radius:7px; font-size:9px; }
+}
