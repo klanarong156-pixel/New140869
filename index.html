@@ -69,12 +69,14 @@
       </div>
     </section>
 
-    <section id="financeSummary" class="section card pad" aria-labelledby="finance-summary-title">
-      <div class="section-head"><div><p class="kicker">FARM FINANCE</p><h2 id="finance-summary-title">สรุปการเงินฟาร์ม</h2><p id="financeSummaryStatus" class="helper">กำลังโหลดข้อมูลการเงิน…</p></div><a class="btn secondary small" href="finance.html">ดูรายละเอียด</a></div>
-      <div class="grid three finance-summary-grid">
-        <article class="finance-summary-item income"><span>รายรับรวม</span><strong id="dashboardFinanceIncome">฿0.00</strong></article>
-        <article class="finance-summary-item expense"><span>รายจ่ายรวม</span><strong id="dashboardFinanceExpense">฿0.00</strong></article>
-        <article class="finance-summary-item profit"><span>ยอดสุทธิ</span><strong id="dashboardFinanceProfit">฿0.00</strong></article>
+    <section id="financeSummary" class="section card pad finance-summary" aria-labelledby="finance-summary-title">
+      <div class="finance-summary-head"><div><p class="kicker">FARM FINANCE</p><h2 id="finance-summary-title">สรุปการเงินฟาร์ม</h2><p id="financeSummaryStatus" class="helper">กำลังโหลดข้อมูลการเงิน…</p></div><a class="finance-link" href="finance.html" aria-label="ดูรายละเอียดการเงิน">รายละเอียด <span aria-hidden="true">→</span></a></div>
+      <div class="finance-summary-layout">
+        <article class="finance-summary-item profit"><span>ยอดสุทธิ</span><strong id="dashboardFinanceProfit">฿0.00</strong><small>รายรับ − รายจ่าย − ค้างซื้อ</small></article>
+        <div class="finance-summary-subgrid">
+          <article class="finance-summary-item income"><span>รายรับรวม</span><strong id="dashboardFinanceIncome">฿0.00</strong></article>
+          <article class="finance-summary-item expense"><span>รายจ่ายรวม</span><strong id="dashboardFinanceExpense">฿0.00</strong></article>
+        </div>
       </div>
     </section>
 

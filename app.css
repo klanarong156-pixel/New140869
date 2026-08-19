@@ -426,3 +426,33 @@ body::before { opacity:.10; background-size:36px 36px; }
   .finance-summary-item strong { margin-top:6px; font-size:17px; }
   .finance-summary-item span { font-size:10px; }
 }
+
+
+/* Minimal mobile-first finance summary */
+.finance-summary { padding:15px 16px 16px !important; background:rgba(10,31,20,.72); }
+.finance-summary-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.finance-summary-head .kicker { margin-bottom:4px; }
+.finance-summary-head h2 { font-size:18px; }
+.finance-summary-head .helper { margin-top:4px; font-size:11px; }
+.finance-link { display:inline-flex; align-items:center; gap:4px; color:#a8eebe; font-size:12px; white-space:nowrap; }
+.finance-link span { font-size:16px; line-height:1; }
+.finance-summary-layout { display:grid; grid-template-columns:1.15fr 1fr; gap:8px; margin-top:12px; }
+.finance-summary-subgrid { display:grid; gap:8px; }
+.finance-summary .finance-summary-item { min-height:0; justify-content:center; padding:11px 12px; border-radius:11px; }
+.finance-summary .finance-summary-item span { font-size:11px; }
+.finance-summary .finance-summary-item strong { margin-top:5px; font-size:19px; }
+.finance-summary .finance-summary-item small { display:block; margin-top:5px; color:var(--muted); font-size:10px; }
+.finance-summary .finance-summary-item.profit { min-height:92px; background:rgba(72,190,112,.09); border-color:rgba(91,220,140,.22); }
+.finance-summary .finance-summary-item.profit strong { font-size:25px; color:#9af1b5; }
+.finance-summary .finance-summary-item.income { background:rgba(72,190,112,.045); }
+.finance-summary .finance-summary-item.expense { background:rgba(255,129,146,.045); }
+@media (max-width:640px) {
+  .finance-summary { padding:12px !important; border-radius:16px !important; }
+  .finance-summary-layout { grid-template-columns:1fr 1.12fr; gap:7px; margin-top:9px; }
+  .finance-summary-subgrid { gap:7px; }
+  .finance-summary .finance-summary-item { padding:9px 10px; border-radius:10px; }
+  .finance-summary .finance-summary-item.profit { min-height:78px; }
+  .finance-summary .finance-summary-item.profit strong { font-size:21px; }
+  .finance-summary .finance-summary-item strong { font-size:16px; }
+  .finance-summary .finance-summary-item small { font-size:9px; }
+}
