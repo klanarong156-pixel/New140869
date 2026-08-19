@@ -357,3 +357,52 @@ body::before { opacity:.10; background-size:36px 36px; }
   #control .timer-actions .btn { min-height:29px; padding:5px 7px; border-radius:9px; font-size:11px; }
   #control .relay-timer [data-timer-status] { min-height:17px; padding:4px 6px; border-radius:7px; font-size:9px; }
 }
+
+
+/* Site-wide compact layout: tighter spacing without changing page behavior */
+.app-shell .app-main { padding-top:18px; padding-bottom:30px; }
+.app-shell .page-heading { margin-top:6px; margin-bottom:16px; }
+.app-shell .section { margin-top:16px; }
+.app-shell .grid { gap:11px; }
+.app-shell .section-head { gap:10px; margin-bottom:9px; }
+.app-shell .card.pad { padding:16px; }
+.app-shell .metric-card { min-height:108px; padding:14px; }
+.app-shell .control-card { padding:14px; }
+.app-shell .weather-grid { gap:9px; margin-top:11px; }
+.app-shell .notice { margin-top:9px; padding:10px 11px; }
+.app-shell .form-grid { gap:10px; }
+.app-shell .table-wrap { border-radius:12px; }
+.app-shell th, .app-shell td { padding:10px 12px; }
+.app-shell .schedule-slots { gap:9px; }
+.app-shell .slot-card { padding:12px; }
+.app-shell .slot-head { margin-bottom:9px; }
+.app-shell .schedule-summary { margin-top:9px; }
+.app-shell .schedule-actions { margin-top:9px; }
+
+.quick-setup { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:12px 0 14px; padding:12px; border:1px solid rgba(119,215,156,.18); border-radius:15px; background:rgba(75,194,116,.07); }
+.quick-setup p { margin-bottom:3px; }
+.quick-setup strong { display:block; font-size:14px; }
+.quick-setup small { display:block; margin-top:3px; color:var(--muted); font-size:11px; }
+.quick-setup-grid { display:grid; grid-template-columns:repeat(4,minmax(92px,1fr)); gap:6px; flex:1; max-width:520px; }
+.quick-option { display:grid; gap:2px; min-height:48px; padding:7px 8px; border:1px solid var(--line); border-radius:11px; color:var(--muted); background:rgba(255,255,255,.045); text-align:left; transition:.16s ease; }
+.quick-option:hover, .quick-option:focus-visible { border-color:rgba(100,222,146,.55); color:var(--text); background:rgba(72,190,112,.16); }
+.quick-option span { font-size:11px; }
+.quick-option b { color:var(--text); font:600 11px/1.1 "DM Mono",monospace; }
+@media (max-width:640px) {
+  .app-shell .app-main { width:min(100% - 18px,1180px); padding-top:10px; padding-bottom:24px; }
+  .app-shell .topbar { width:min(100% - 18px,1240px); min-height:62px; }
+  .app-shell .page-heading { margin:4px 1px 12px; }
+  .app-shell .section { margin-top:11px; }
+  .app-shell .section-head { margin-bottom:7px; }
+  .app-shell .card.pad { padding:12px; border-radius:16px; }
+  .app-shell .grid { gap:8px; }
+  .app-shell .metric-card { min-height:92px; padding:11px; }
+  .app-shell .control-card { padding:10px; }
+  .app-shell .notice { padding:8px 9px; font-size:12px; }
+  .app-shell .form-grid { gap:8px; }
+  .app-shell th, .app-shell td { padding:8px 10px; }
+  .quick-setup { display:block; margin:8px 0 10px; padding:9px; border-radius:12px; }
+  .quick-setup-grid { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:none; margin-top:8px; }
+  .quick-option { min-height:42px; padding:6px 7px; }
+  .quick-option span, .quick-option b { font-size:10px; }
+}

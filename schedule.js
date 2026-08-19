@@ -54,6 +54,15 @@
     summary.textContent = `ตั้งไว้ ${enabled.length} ช่วงเวลา: ${enabled.map(slot => `${slot.on}–${slot.off}`).join(', ')}`;
   }
 
+  function applyQuickSchedule(value) {
+    const [on, off] = String(value || '').split('|');
+    if (!/^\d{2}:\d{2}$/.test(on) || !/^\d{2}:\d{2}$/.test(off) || on === off) return false;
+    writeSlots({ slots: [{ enabled: true, on, off }, ...emptySlots().slice(1)] });
+    document.querySelectorAll('[data-quick-schedule]').forEach(button => button.classList.toggle('active', button.dataset.quickSchedule === value));
+    window.showToast?.(`เลือกเวลา ${on}–${off} แล้ว กดบันทึกตาราง`, 'success');
+    return true;
+  }
+
   function validate() {
     const data = currentSlots();
     for (let index = 0; index < data.length; index += 1) {
@@ -172,6 +181,7 @@
 
   function bind() {
     document.querySelectorAll('[data-schedule-relay]').forEach(button => button.addEventListener('click', () => switchSchedTab(button.dataset.scheduleRelay)));
+    document.querySelectorAll('[data-quick-schedule]').forEach(button => button.addEventListener('click', () => applyQuickSchedule(button.dataset.quickSchedule)));
     slots().forEach(index => ['slotEnable', 'slotOn', 'slotOff'].forEach(prefix => $(`${prefix}${index}`)?.addEventListener('change', updateSummary)));
     writeSlots(cache[activeRelay] || { slots: emptySlots() });
     switchSchedTab(activeRelay);
