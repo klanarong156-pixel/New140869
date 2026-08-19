@@ -665,6 +665,18 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     msg += (char)payload[i];
   msg.trim();
 
+  // Diagnostic: show every inbound control packet without blocking MQTT.
+  // Limit payload logging to keep Serial output bounded on ESP8266.
+  if (t.startsWith(String(MQTT_BASE) + "/relay/") ||
+      t == MQTT_BASE "/mode/set" ||
+      t.startsWith(String(MQTT_BASE) + "/schedule/") ||
+      t.startsWith(String(MQTT_BASE) + "/config/telegram/")) {
+    String logMsg = msg;
+    if (logMsg.length() > 96)
+      logMsg.remove(96);
+    Serial.printf("MQTT RX: topic=%s payload=%s\\n", t.c_str(), logMsg.c_str());
+  }
+
   if (t == MQTT_BASE "/config/telegram/set") {
     if (!handleTelegramConfig(msg))
       Serial.println(F("Telegram CONFIG: invalid payload"));
@@ -690,7 +702,11 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       saveConfig();
       mqtt.publish(MQTT_BASE "/mode/status", "MANUAL", true);
     }
+    Serial.printf("MQTT TIMER: relay=%s seconds=%lu\\n", n.c_str(),
+                  (unsigned long)seconds);
     startRelayTimer((uint8_t)i, seconds);
+    Serial.printf("MQTT TIMER: relay=%s state=%s\\n", n.c_str(),
+                  relayOn((uint8_t)i) ? "ON" : "OFF");
     return;
   }
   if (t.startsWith(rp) && t.endsWith("/set")) {
@@ -709,9 +725,14 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       relaySet((uint8_t)i, true);
     else if (msg.equalsIgnoreCase("OFF"))
       relaySet((uint8_t)i, false);
-    else
+    else {
+      Serial.printf("MQTT RELAY: invalid payload relay=%s payload=%s\\n",
+                    n.c_str(), msg.c_str());
       return;
+    }
     publishRelayStatus((uint8_t)i);
+    Serial.printf("MQTT RELAY: relay=%s state=%s\\n", n.c_str(),
+                  relayOn((uint8_t)i) ? "ON" : "OFF");
     return;
   }
   if (t == MQTT_BASE "/mode/set") {
