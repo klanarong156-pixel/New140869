@@ -120,21 +120,21 @@ void telegramNotify(const String &message) {
 
   telegramTls.setInsecure();
   telegramTls.setBufferSizes(4096, 512);
-  telegramTls.setTimeout(15000);
+  // Keep Telegram notifications bounded so they cannot starve MQTT keep-alives.
+  telegramTls.setTimeout(5000);
   String url = String("https://api.telegram.org/bot") + telegramBotToken +
                "/sendMessage";
   String body = String("chat_id=") + urlEncode(telegramChatId) + "&text=" +
                 urlEncode(String("[SmartFarm ") + deviceName + "]\n" + message);
 
-  for (uint8_t attempt = 1; attempt <= 2; ++attempt) {
+  for (uint8_t attempt = 1; attempt <= 1; ++attempt) {
     HTTPClient http;
-    http.setTimeout(15000);
+    http.setTimeout(5000);
     http.setReuse(false);
     http.useHTTP10(true);
     if (!http.begin(telegramTls, url)) {
       Serial.printf("Telegram: HTTPS begin failed attempt %u, heap=%u\n",
                     attempt, ESP.getFreeHeap());
-      delay(250);
       continue;
     }
 
@@ -158,7 +158,6 @@ void telegramNotify(const String &message) {
       Serial.printf("Telegram response: %s\n", response.c_str());
     }
     http.end();
-    delay(250);
   }
 }
 
@@ -225,6 +224,8 @@ void startRelayTimer(uint8_t i, uint32_t seconds) {
     return;
   if (!seconds) {
     clearRelayTimer(i);
+    relaySet(i, false);
+    publishRelayStatus(i);
     publishRelayTimerStatus(i);
     return;
   }
@@ -1090,7 +1091,9 @@ void setup() {
   Serial.begin(115200);
   delay(100);
   Serial.println();
-  Serial.println(F("\n=== SmartFarm V6.0.1 HARDENED BOOT ==="));
+  Serial.print(F("\n=== SmartFarm "));
+  Serial.print(SMARTFARM_VERSION);
+  Serial.println(F(" HARDENED BOOT ==="));
   Serial.print(F("Reset reason: "));
   Serial.println(ESP.getResetReason());
   Serial.print(F("Reset info: "));

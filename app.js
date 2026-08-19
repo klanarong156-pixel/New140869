@@ -107,7 +107,7 @@
       return false;
     }
     if (seconds > 0) renderRelay(relay, true);
-    showToast(seconds > 0 ? `${relayLabel(relay)}: เปิดและเริ่มนับถอยหลังแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาปิดอัตโนมัติแล้ว`, 'success');
+    showToast(seconds > 0 ? `${relayLabel(relay)}: เปิดและเริ่มนับถอยหลังแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาและปิดรีเลย์แล้ว`, 'success');
     return true;
   }
 
