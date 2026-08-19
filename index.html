@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png" sizes="192x192">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="app.css?v=7">
+  <link rel="stylesheet" href="app.css?v=8">
   <title>สวนลุงนะ · Smart Farm</title>
 </head>
 <body class="app-shell" data-auth-required="true">
@@ -26,16 +26,15 @@
   <main class="app-main">
     <section class="hero" aria-labelledby="dashboard-title">
       <div class="hero-copy">
-        <p class="kicker">FARM OPERATING SYSTEM</p>
-        <h1 id="dashboard-title">ฟาร์มที่รู้จังหวะของคุณ</h1>
-        <p class="subtitle">ติดตามสภาพแวดล้อม ควบคุมอุปกรณ์ และวางแผนการให้น้ำอย่างมั่นใจจากหน้าจอเดียว</p>
+        <p class="kicker">SMART FARM · ภาพรวม</p>
+        <h1 id="dashboard-title">ควบคุมฟาร์มได้ในหน้าเดียว</h1>
+        <p class="subtitle">ดูสถานะสำคัญและสั่งงานอุปกรณ์ได้ทันที พร้อมระบบตัดการทำงานอัตโนมัติ</p>
         <div class="hero-meta">
           <span class="status-pill offline" data-device-status><i></i>ESP8266 ออฟไลน์</span>
           <span class="tag">โหมด <b data-mode-text>MANUAL</b></span>
-          <span class="tag">อุปกรณ์ 4 จุด</span>
+          <span class="tag">รีเลย์ 4 จุด</span>
         </div>
       </div>
-      <div class="hero-art" aria-hidden="true"><div class="hero-mark">🌱</div></div>
     </section>
 
     <section class="section" aria-labelledby="live-title">
@@ -48,15 +47,11 @@
       </div>
     </section>
 
-    <section class="section card pad" aria-labelledby="crop-dashboard-title"><div class="section-head"><div><p class="kicker">CROP CYCLE</p><h2 id="crop-dashboard-title">รอบปลูกปัจจุบัน</h2><p id="dashboardCropStatus" class="helper">กำลังโหลดข้อมูลรอบปลูก…</p></div><a class="btn secondary" href="schedule.html">จัดการรอบปลูก</a></div><div class="grid three" style="margin-top:15px"><div class="notice"><span>🌱</span><span><strong id="dashboardCropName">กำลังโหลด…</strong>ชื่อพืช</span></div><div class="notice"><span>◷</span><span><strong id="dashboardCropDate">—</strong>วันที่ปลูก</span></div><div class="notice"><span>⌛</span><span><strong id="dashboardCropAge">—</strong>อายุการปลูก</span></div></div></section>
-
     <section id="weatherBox" class="section card pad" aria-labelledby="weather-title">
       <div class="section-head"><div><p class="kicker">OPEN‑METEO · RAIN PROTECTION</p><h2 id="weather-title">อากาศที่ช่วยตัดสินใจ</h2><p id="weatherLocation" class="helper">กำลังเตรียมข้อมูลตำแหน่ง…</p></div><span class="tag">ไม่ใช้ API Key</span></div>
-      <div class="weather-grid">
-        <article class="card metric-card"><div class="metric-top"><span>อุณหภูมิ</span><span class="metric-icon">🌡️</span></div><strong id="weatherTemp">-- °C</strong></article>
-        <article class="card metric-card"><div class="metric-top"><span>ความชื้น</span><span class="metric-icon">💧</span></div><strong id="weatherHumidity">-- %</strong></article>
+      <div class="weather-grid weather-grid-compact">
         <article class="card metric-card"><div class="metric-top"><span>โอกาสฝน 6 ชม.</span><span class="metric-icon">🌧️</span></div><strong id="weatherRainProb">--</strong></article>
-        <article class="card metric-card"><div class="metric-top"><span>ลม</span><span class="metric-icon">〰</span></div><strong id="weatherWind">-- km/h</strong></article>
+        <article class="card metric-card"><div class="metric-top"><span>ความเร็วลม</span><span class="metric-icon">〰</span></div><strong id="weatherWind">-- km/h</strong></article>
       </div>
       <div id="rainProtectionBox" class="rain-protection"><span aria-hidden="true">☂</span><div><strong id="rainProtectionStatus">AUTO ถูกงดชั่วคราว</strong><span id="rainProtectionReason">รอข้อมูลสภาพอากาศ</span></div></div>
       <p id="weatherCondition" class="helper">กำลังโหลดสภาพอากาศ…</p>
@@ -79,7 +74,6 @@
       <article class="card pad"><div class="connection-card"><span class="connection-icon">◌</span><div><p class="kicker">CONNECTION</p><h2>การเชื่อมต่อ MQTT</h2><p id="mqttStatusText">ยังไม่ได้ตั้งค่าบัญชี MQTT สำหรับเบราว์เซอร์นี้</p></div></div><div class="btn-row" style="margin-top:18px"><button class="btn primary" type="button" data-mqtt-connect>เชื่อมต่อ MQTT</button><button class="btn secondary" type="button" data-mqtt-setup>ตั้งค่าบัญชี</button></div></article>
     </section>
 
-    <section class="section card pad" aria-labelledby="hardware-title"><div class="section-head"><div><p class="kicker">HARDWARE MAP</p><h2 id="hardware-title">การเชื่อมต่อฮาร์ดแวร์</h2></div><span class="tag">อ้างอิงเฟิร์มแวร์ V7.0</span></div><div class="grid four"><div class="notice"><span>🌡️</span><span><strong>DHT11</strong>D2 / GPIO4</span></div><div class="notice"><span>🕒</span><span><strong>DS3231 SDA / SCL</strong>D3 / GPIO0 · D4 / GPIO2</span></div><div class="notice"><span>💦</span><span><strong>Relay</strong>D5–D8</span></div><div class="notice"><span>🌱</span><span><strong>Soil sensor</strong>A0 สำรองไว้</span></div></div></section>
     <footer>สวนลุงนะ Smart Farm · ออกแบบเพื่อการตัดสินใจที่ชัดเจนในทุกวัน</footer>
   </main>
 
