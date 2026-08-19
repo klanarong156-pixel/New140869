@@ -102,8 +102,8 @@
     if (!handler?.publish || !topic) return false;
     const sent = handler.publish(topic, String(Math.max(0, Math.floor(seconds))));
     if (!sent) {
-      showToast('ต้องตั้งค่าบัญชี MQTT ก่อนตั้งเวลา', 'warning');
-      handler.showSetup?.();
+      showToast(window.APP_STATE?.mqttConnected ? 'ส่งคำสั่งไม่สำเร็จ กรุณาลองใหม่' : 'MQTT ยังไม่เชื่อมต่อ กรุณารอให้สถานะออนไลน์ก่อน', 'warning');
+      if (!window.APP_STATE?.mqttConnected) handler.showSetup?.();
       return false;
     }
     if (seconds > 0) renderRelay(relay, true);
@@ -135,8 +135,8 @@
     }
     const sent = handler.publish(MQTT_CONFIG.topics.relaySet(relay), 'OFF');
     if (!sent) {
-      showToast('ต้องตั้งค่าบัญชี MQTT ก่อนส่งคำสั่ง', 'warning');
-      handler.showSetup();
+      showToast(window.APP_STATE?.mqttConnected ? 'ส่งคำสั่งไม่สำเร็จ กรุณาลองใหม่' : 'MQTT ยังไม่เชื่อมต่อ กรุณารอให้สถานะออนไลน์ก่อน', 'warning');
+      if (!window.APP_STATE?.mqttConnected) handler.showSetup();
       return false;
     }
     renderRelay(relay, false);

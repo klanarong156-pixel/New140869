@@ -190,6 +190,12 @@ class MqttHandler {
         this.dispatch('mqtt:credentials-required', { configured: false, forPublish: true });
         return false;
       }
+      const isControlCommand = /^(smartfarm\/relay\/|smartfarm\/mode\/set|smartfarm\/schedule\/|smartfarm\/config\/telegram\/)/.test(topic);
+      if (isControlCommand) {
+        this.dispatch('mqtt:command-blocked', { topic, reason: 'not-connected' });
+        this.connect();
+        return false;
+      }
       this.pendingPublishes.push({ topic, payload: String(payload), options, createdAt: Date.now() });
       this.connect();
       return true;
