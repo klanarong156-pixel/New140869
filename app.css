@@ -285,11 +285,15 @@ code { padding:2px 5px; border-radius:5px; color:#c7f9d7; background:rgba(109,23
 /* Dashboard refresh: calmer background, clearer hierarchy, less visual repetition */
 body {
   background:
-    radial-gradient(circle at 8% -10%, rgba(112, 214, 154, .14), transparent 30rem),
-    radial-gradient(circle at 96% 12%, rgba(112, 177, 214, .09), transparent 25rem),
+    linear-gradient(rgba(5, 21, 13, .70), rgba(5, 21, 13, .88)),
+    url('assets/farm-background.jpg') center center / cover fixed no-repeat,
     linear-gradient(155deg, #10271d 0%, #0b1d15 48%, #08140f 100%);
+  background-attachment: fixed;
 }
-body::before { opacity:.10; background-size:36px 36px; }
+body::before { opacity:.035; background-size:36px 36px; }
+@media (max-width:640px) {
+  body { background-attachment:scroll; background-position:center center; }
+}
 .app-main { padding-top:20px; }
 .hero {
   min-height:190px;
