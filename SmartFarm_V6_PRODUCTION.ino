@@ -40,8 +40,6 @@
 #define WIFI_RESET_BUTTON D1
 
 const uint32_t WIFI_RESET_HOLD_MS = 5000UL;
-const uint32_t PUMP_MAX_RUNTIME_MS = 30UL * 60UL * 1000UL;
-const uint32_t PUMP_MQTT_LOSS_OFF_MS = 60UL * 1000UL;
 const uint32_t MQTT_RECONNECT_MS = 5000UL;
 const uint32_t SENSOR_INTERVAL_MS = 30000UL;
 const uint32_t HEARTBEAT_INTERVAL_MS = 10000UL;
@@ -237,8 +235,6 @@ void startRelayTimer(uint8_t i, uint32_t seconds) {
   publishRelayTimerStatus(i);
 }
 void runRelayTimers() {
-  if (mode != MANUAL)
-    return;
   bool statusDue = (uint32_t)(millis() - lastTimerStatus) >= 1000UL;
   if (statusDue)
     lastTimerStatus = millis();
@@ -696,12 +692,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     if (i < 0)
       return;
     uint32_t seconds = msg.equalsIgnoreCase("CANCEL") ? 0 : strtoul(msg.c_str(), nullptr, 10);
-    if (mode == AUTO) {
-      mode = MANUAL;
-      pumpSafetyLatched = false;
-      saveConfig();
-      mqtt.publish(MQTT_BASE "/mode/status", "MANUAL", true);
-    }
     Serial.printf("MQTT TIMER: relay=%s seconds=%lu\\n", n.c_str(),
                   (unsigned long)seconds);
     startRelayTimer((uint8_t)i, seconds);
@@ -786,8 +776,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       }
     }
     saveConfig();
-    if (mode == AUTO)
-      applyAutoState(currentMinutes());
+    applyAutoState(currentMinutes());
     publishScheduleStatus((uint8_t)r);
     publishRelayStatus((uint8_t)r);
     telegramNotify(String("อัปเดตตารางเวลาของรีเลย์ ") + relayNames[r] +
@@ -1146,8 +1135,7 @@ void setup() {
   mqtt.setBufferSize(768);
   syncRTCFromNTP(true);
   reportClockStatus();
-  if (mode == AUTO)
-    applyAutoState(currentMinutes());
+  applyAutoState(currentMinutes());
   ArduinoOTA.setHostname(deviceName);
   ArduinoOTA.onStart([]() {
     Serial.println(F("OTA: START"));
@@ -1189,23 +1177,15 @@ void runSafety() {
   }
   if (!pumpStartedAt)
     pumpStartedAt = millis();
-  if ((uint32_t)(millis() - pumpStartedAt) >= PUMP_MAX_RUNTIME_MS) {
-    forcePumpOff("max runtime");
-    return;
-  }
-  if (mode == MANUAL && !mqtt.connected()) {
-    if (!pumpMqttLostAt)
-      pumpMqttLostAt = millis();
-    if ((uint32_t)(millis() - pumpMqttLostAt) >= PUMP_MQTT_LOSS_OFF_MS)
-      forcePumpOff("MQTT lost");
-  } else
-    pumpMqttLostAt = 0;
+  // ไม่มีเพดานเวลาทำงานแบบ 30 นาที รีเลย์จะทำตามตารางหรือคำสั่งล่าสุด
+  // การหลุด MQTT ต้องไม่ตัดการรดน้ำอัตโนมัติที่เก็บไว้ใน ESP8266
+  pumpMqttLostAt = 0;
 }
 void runSchedules() {
-  if (mode != AUTO ||
-      (uint32_t)(millis() - lastSchedule) < SCHEDULE_INTERVAL_MS)
+  if ((uint32_t)(millis() - lastSchedule) < SCHEDULE_INTERVAL_MS)
     return;
   lastSchedule = millis();
+  // ตารางทำงานอัตโนมัติ ไม่ขึ้นกับโหมดที่ผู้ใช้เลือก
   applyAutoState(currentMinutes());
 }
 
@@ -1239,8 +1219,6 @@ void loop() {
     ntp.update();
     syncRTCFromNTP(false);
   } else {
-    if (relayOn(0) && mode == MANUAL && !pumpMqttLostAt)
-      pumpMqttLostAt = millis();
   }
   otaServer.handleClient();
   ArduinoOTA.handle();
