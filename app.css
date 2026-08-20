@@ -460,3 +460,23 @@ body::before { opacity:.035; background-size:36px 36px; }
   .finance-summary .finance-summary-item strong { font-size:16px; }
   .finance-summary .finance-summary-item small { font-size:9px; }
 }
+
+
+/* Nature control palette */
+.control-card { position:relative; overflow:hidden; }
+.control-card::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:var(--control-accent,#7fcf8f); opacity:.8; }
+.control-card[data-relay-card="pump"] { --control-accent:#6dc7d5; --control-soft:rgba(109,199,213,.15); }
+.control-card[data-relay-card="zone1"] { --control-accent:#8fcf69; --control-soft:rgba(143,207,105,.15); }
+.control-card[data-relay-card="lighthome"] { --control-accent:#e9c879; --control-soft:rgba(233,200,121,.15); }
+.control-card[data-relay-card="lightsala"] { --control-accent:#d9a86c; --control-soft:rgba(217,168,108,.15); }
+.control-card .icon { display:inline-grid; place-items:center; width:40px; height:40px; flex:0 0 40px; border:1px solid color-mix(in srgb,var(--control-accent) 30%, transparent); border-radius:13px; background:var(--control-soft); box-shadow:inset 0 1px 0 rgba(255,255,255,.10); font-size:21px; }
+.control-card .control-name strong { color:#f0f7e9; }
+.control-card .control-name small { color:color-mix(in srgb,var(--control-accent) 70%, #b9cbbb); }
+.control-card .switch input:checked + span { background:var(--control-accent); box-shadow:0 0 0 3px var(--control-soft), 0 4px 12px color-mix(in srgb,var(--control-accent) 28%, transparent); }
+.control-card .timer-presets button:hover, .control-card .timer-presets button.active { border-color:color-mix(in srgb,var(--control-accent) 70%, transparent); color:#f2fae9; background:var(--control-soft); }
+.control-card .timer-actions .btn.secondary { border-color:color-mix(in srgb,var(--control-accent) 58%, transparent); color:#f2fae9; background:var(--control-soft); }
+.control-card .timer-actions .btn.secondary:hover { background:color-mix(in srgb,var(--control-accent) 25%, transparent); }
+.control-card .timer-actions .btn.ghost { color:#b4c5b7; }
+@media (max-width:640px) {
+  .control-card .icon { width:35px; height:35px; flex-basis:35px; border-radius:11px; font-size:18px; }
+}
