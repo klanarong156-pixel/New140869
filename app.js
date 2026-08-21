@@ -57,12 +57,6 @@
     $$('[data-device-online-card]').forEach(card => card.classList.toggle('active', Boolean(online)));
   }
 
-  function renderMode(mode) {
-    const normalized = String(mode || 'MANUAL').toUpperCase() === 'AUTO' ? 'AUTO' : 'MANUAL';
-    $$('[data-mode-text]').forEach(element => { element.textContent = normalized; });
-    $$('[data-mode]').forEach(button => button.classList.toggle('active', button.dataset.mode === normalized));
-  }
-
   function renderRelay(relay, on) {
     $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = Boolean(on); });
     $$(`[data-relay-state="${relay}"]`).forEach(element => { element.textContent = on ? 'กำลังทำงาน' : 'ปิดอยู่'; });
@@ -100,14 +94,16 @@
     const handler = window.mqttHandler;
     const topic = window.MQTT_CONFIG?.topics?.relayTimerSet?.(relay);
     if (!handler?.publish || !topic) return false;
-    const sent = handler.publish(topic, String(Math.max(0, Math.floor(seconds))));
+          const payload = seconds === 'UNLIMITED' ? 'UNLIMITED' : String(Math.max(0, Math.floor(Number(seconds) || 0)));
+      const sent = handler.publish(topic, payload);
+
     if (!sent) {
       showToast(window.APP_STATE?.mqttConnected ? 'ส่งคำสั่งไม่สำเร็จ กรุณาลองใหม่' : 'MQTT ยังไม่เชื่อมต่อ กรุณารอให้สถานะออนไลน์ก่อน', 'warning');
       if (!window.APP_STATE?.mqttConnected) handler.showSetup?.();
       return false;
     }
-    if (seconds > 0) renderRelay(relay, true);
-    showToast(seconds > 0 ? `${relayLabel(relay)}: เปิดและเริ่มนับถอยหลังแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาและปิดรีเลย์แล้ว`, 'success');
+    if (seconds > 0 || seconds === 'UNLIMITED') renderRelay(relay, true);
+    showToast(seconds > 0 || seconds === 'UNLIMITED' ? `${relayLabel(relay)}: เปิดแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาและปิดรีเลย์แล้ว`, 'success');
     return true;
   }
 
@@ -124,9 +120,15 @@
     if (!handler?.publish || !window.MQTT_CONFIG?.topics) return false;
     if (on) {
       const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
+      const unlimited = document.querySelector(`[data-timer-unlimited="${relay}"]`)?.checked;
       const minutes = Number(input?.value);
-      if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) {
-        showToast('กรุณาตั้งเวลา 1–1440 นาที ก่อนกดเปิดรีเลย์', 'warning');
+      if (unlimited) {
+        const sent = commandRelayTimer(relay, 'UNLIMITED');
+        if (sent) renderRelay(relay, true);
+        return sent;
+      }
+      if (!Number.isInteger(minutes) || minutes < 1 || minutes > 525600) {
+        showToast('กรุณาตั้งเวลา 1–525600 นาที หรือเลือกไม่จำกัดเวลา ก่อนกดเปิดรีเลย์', 'warning');
         return false;
       }
       const sent = commandRelayTimer(relay, minutes * 60);
@@ -141,25 +143,6 @@
     }
     renderRelay(relay, false);
     showToast(`${relayLabel(relay)}: ส่งคำสั่งปิดแล้ว`, 'success');
-    return true;
-  }
-
-  function setFarmMode(mode) {
-    const normalized = String(mode || '').toUpperCase();
-    if (!['AUTO', 'MANUAL'].includes(normalized)) return false;
-    if (normalized === 'AUTO' && window.SmartFarmWeather?.state?.autoWateringAllowed === false) {
-      showToast(window.SmartFarmWeather.state.reason || 'สภาพอากาศยังไม่อนุญาตให้ใช้ AUTO', 'warning');
-      return false;
-    }
-    const sent = window.mqttHandler?.publish?.(MQTT_CONFIG.topics.modeSet, normalized, { retain: false });
-    if (!sent) {
-      showToast('ต้องตั้งค่าบัญชี MQTT ก่อนเลือกโหมด', 'warning');
-      window.mqttHandler?.showSetup();
-      return false;
-    }
-    window.APP_STATE.mode = normalized.toLowerCase();
-    renderMode(normalized);
-    showToast(`เปลี่ยนโหมดเป็น ${normalized} แล้ว`, 'success');
     return true;
   }
 
@@ -213,8 +196,12 @@
       const relay = button.dataset.timerStart;
       const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
       const minutes = Number(input?.value);
-      if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) {
-        showToast('กรุณาตั้งเวลา 1–1440 นาที', 'warning');
+      if (document.querySelector(`[data-timer-unlimited="${relay}"]`)?.checked) {
+        commandRelayTimer(relay, 'UNLIMITED');
+        return;
+      }
+      if (!Number.isInteger(minutes) || minutes < 1 || minutes > 525600) {
+        showToast('กรุณาตั้งเวลา 1–525600 นาที หรือเลือกไม่จำกัดเวลา', 'warning');
         return;
       }
       commandRelayTimer(relay, minutes * 60);
@@ -229,7 +216,6 @@
       button.closest('.relay-timer')?.querySelectorAll('[data-timer-preset]').forEach(item => item.classList.toggle('active', item === button));
     }));
 
-    $$('[data-mode]').forEach(button => button.addEventListener('click', () => setFarmMode(button.dataset.mode)));
     $$('[data-mqtt-connect]').forEach(button => button.addEventListener('click', () => {
       if (window.mqttHandler?.hasCredentials?.()) window.mqttHandler.connect();
       else openMqttSetup();
@@ -247,7 +233,6 @@
     window.addEventListener('mqtt:reconnecting', () => renderMqtt(false, 'MQTT กำลังเชื่อมต่อใหม่'));
     window.addEventListener('mqtt:error', () => renderMqtt(false, 'MQTT เชื่อมต่อไม่สำเร็จ'));
     window.addEventListener('esp:status', event => renderDevice(Boolean(event.detail?.online)));
-    window.addEventListener('mode:status', event => renderMode(event.detail));
     window.addEventListener('relay:status', event => {
       const { relay, status } = event.detail || {};
       if (relay) renderRelay(relay, status);
@@ -261,7 +246,6 @@
       const device = event.detail || {};
       if (device.firmware) setText('deviceFirmware', device.firmware);
       if (Number.isFinite(Number(device.rssi))) setText('deviceRssi', `${Number(device.rssi)} dBm`);
-      if (device.mode) renderMode(device.mode);
       if (typeof device.online === 'boolean') renderDevice(device.online);
     });
     window.addEventListener('mqtt:credentials-required', event => {
@@ -278,7 +262,6 @@
   function renderInitialState() {
     renderMqtt(Boolean(window.APP_STATE?.mqttConnected));
     renderDevice(Boolean(window.APP_STATE?.espOnline));
-    renderMode(window.APP_STATE?.mode);
     Object.entries(window.APP_STATE?.relays || {}).forEach(([relay, on]) => renderRelay(relay, on));
   }
 
@@ -290,8 +273,7 @@
   }
 
   window.showToast = showToast;
-  window.setFarmMode = setFarmMode;
-  window.SmartFarmUI = { showToast, openMqttSetup, commandRelay, commandRelayTimer, setFarmMode };
+  window.SmartFarmUI = { showToast, openMqttSetup, commandRelay, commandRelayTimer };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();

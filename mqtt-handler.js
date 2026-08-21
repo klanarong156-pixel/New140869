@@ -253,15 +253,6 @@ class MqttHandler {
       }
       return;
     }
-    if (topic === this.config.topics.modeStatus) {
-      const mode = value.toUpperCase();
-      if (mode === 'MANUAL' || mode === 'AUTO') {
-        APP_STATE.mode = mode.toLowerCase();
-        this.markDeviceSeen('mode-status');
-        this.dispatch('mode:status', mode);
-      }
-      return;
-    }
     if (topic.startsWith('smartfarm/schedule/') && topic.endsWith('/status')) {
       const relay = topic.split('/')[2];
       if (!RELAYS.includes(relay)) return;

@@ -81,7 +81,7 @@
     state.autoWateringAllowed = !blocked;
     state.reason = blocked
       ? `Rain Protection: โอกาสฝน ${Number.isFinite(probability) ? probability.toFixed(0) : '--'}% หรือฝน 6 ชม. ${Number.isFinite(precipitation) ? precipitation.toFixed(1) : '--'} mm`
-      : 'สภาพอากาศอนุญาตให้เปิดโหมด AUTO';
+      : 'สภาพอากาศเหมาะสมสำหรับการรดน้ำ';
     return { probability, precipitation, blocked };
   }
 
@@ -98,7 +98,7 @@
     set('weatherWind', Number(current.wind_speed_10m).toFixed(1) + ' km/h');
     set('weatherCondition', weatherText(current.weather_code));
     set('weatherUpdated', `อัปเดต ${new Date().toLocaleString('th-TH', { timeZone: WEATHER_CONFIG.timezone })}`);
-    set('rainProtectionStatus', state.autoWateringAllowed ? 'AUTO พร้อมใช้งาน' : 'AUTO ถูกงดชั่วคราว');
+    set('rainProtectionStatus', state.autoWateringAllowed ? 'สภาพอากาศปกติ' : 'ควรระวังฝนก่อนรดน้ำ');
     set('rainProtectionReason', state.reason);
     const box = $('weatherBox');
     if (box) box.classList.toggle('weather-blocked', !state.autoWateringAllowed);
@@ -143,8 +143,8 @@
     } catch (error) {
       state.ok = false;
       state.autoWateringAllowed = false;
-      state.reason = 'Open-Meteo API ขัดข้อง — ระบบป้องกันจึงงดโหมด AUTO';
-      set('rainProtectionStatus', 'AUTO ถูกงดชั่วคราว');
+      state.reason = 'Open-Meteo API ขัดข้อง — กรุณาตรวจสภาพอากาศก่อนรดน้ำ';
+      set('rainProtectionStatus', 'ควรระวังฝนก่อนรดน้ำ');
       set('rainProtectionReason', state.reason);
       $('rainProtectionBox')?.classList.remove('ok');
       publishState({ probability: NaN, precipitation: NaN, blocked: true });

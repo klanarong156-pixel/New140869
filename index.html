@@ -31,7 +31,6 @@
         <p class="subtitle">ดูสถานะสำคัญและสั่งงานอุปกรณ์ได้ทันที พร้อมระบบตัดการทำงานอัตโนมัติ</p>
         <div class="hero-meta">
           <span class="status-pill offline" data-device-status><i></i>ESP8266 ออฟไลน์</span>
-          <span class="tag">โหมด <b data-mode-text>MANUAL</b></span>
           <span class="tag">รีเลย์ 4 จุด</span>
         </div>
       </div>
@@ -43,7 +42,7 @@
         <article class="card metric-card interactive"><div class="metric-top"><span>อุณหภูมิ</span><span class="metric-icon">🌡️</span></div><div><strong data-sensor="temperature">-- °C</strong><small>DHT11 · D2 / GPIO4</small></div></article>
         <article class="card metric-card interactive"><div class="metric-top"><span>ความชื้นอากาศ</span><span class="metric-icon">💧</span></div><div><strong data-sensor="humidity">-- %</strong><small>DHT11 · D2 / GPIO4</small></div></article>
         <article class="card metric-card interactive"><div class="metric-top"><span>สถานะบอร์ด</span><span class="metric-icon">📡</span></div><div><strong data-device-online-text>ออฟไลน์</strong><small id="deviceRssi">รอสัญญาณ Wi‑Fi</small></div></article>
-        <article class="card metric-card interactive"><div class="metric-top"><span>โหมดระบบ</span><span class="metric-icon">⚙️</span></div><div><strong data-mode-text>MANUAL</strong><small id="deviceFirmware">รอข้อมูลเฟิร์มแวร์</small></div></article>
+        <article class="card metric-card interactive"><div class="metric-top"><span>เฟิร์มแวร์</span><span class="metric-icon">⚙️</span></div><div><strong id="deviceFirmware">รอข้อมูล</strong><small>เวอร์ชันอุปกรณ์</small></div></article>
       </div>
     </section>
 
@@ -53,7 +52,7 @@
         <article class="card metric-card"><div class="metric-top"><span>โอกาสฝน 6 ชม.</span><span class="metric-icon">🌧️</span></div><strong id="weatherRainProb">--</strong></article>
         <article class="card metric-card"><div class="metric-top"><span>ความเร็วลม</span><span class="metric-icon">〰</span></div><strong id="weatherWind">-- km/h</strong></article>
       </div>
-      <div id="rainProtectionBox" class="rain-protection"><span aria-hidden="true">☂</span><div><strong id="rainProtectionStatus">AUTO ถูกงดชั่วคราว</strong><span id="rainProtectionReason">รอข้อมูลสภาพอากาศ</span></div></div>
+      <div id="rainProtectionBox" class="rain-protection"><span aria-hidden="true">☂</span><div><strong id="rainProtectionStatus">ระบบป้องกันฝน</strong><span id="rainProtectionReason">รอข้อมูลสภาพอากาศ</span></div></div>
       <p id="weatherCondition" class="helper">กำลังโหลดสภาพอากาศ…</p>
       <div class="section-head" style="margin-top:22px"><h3>พยากรณ์ 7 วัน</h3><span id="weatherUpdated" class="helper"></span></div>
       <div id="forecast7" class="forecast-grid" aria-live="polite"></div>

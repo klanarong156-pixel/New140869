@@ -1,4 +1,4 @@
-(function () {
+(() => {
   'use strict';
 
   function allowed() {
@@ -7,12 +7,12 @@
   }
 
   function render() {
-    document.querySelectorAll('[data-mode="AUTO"]').forEach(button => {
-      const ready = allowed();
-      button.disabled = !ready;
-      button.title = ready ? 'สภาพอากาศพร้อมสำหรับโหมด AUTO' : (window.SmartFarmWeather?.state?.reason || 'รอข้อมูลสภาพอากาศ');
-      button.setAttribute('aria-disabled', String(!ready));
-    });
+    const weather = window.SmartFarmWeather?.state;
+    const advice = document.querySelector('[data-weather-advice]');
+    if (advice && weather) {
+      advice.textContent = weather.reason || (allowed() ? 'สภาพอากาศเหมาะกับการรดน้ำตามตาราง' : 'รอข้อมูลสภาพอากาศ');
+    }
+    document.dispatchEvent(new CustomEvent('weather:advice', { detail: { allowed: allowed(), state: weather || null } }));
   }
 
   function boot() {
@@ -20,7 +20,7 @@
     window.addEventListener('weather:protection', render);
   }
 
-  window.SmartFarmAutoWeatherGuard = { allowed, refresh: render };
+  window.SmartFarmWeatherAdvice = { allowed, refresh: render };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();

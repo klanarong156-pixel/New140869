@@ -88,8 +88,6 @@ WiFiManagerParameter pTelegramChat("telegram_chat_id", "Telegram chat ID",
 WiFiManagerParameter pName("device_name", "Device name", deviceName,
                            sizeof(deviceName));
 
-enum Mode : uint8_t { MANUAL, AUTO };
-Mode mode = MANUAL;
 
 String urlEncode(const String &value) {
   String out;
@@ -189,8 +187,9 @@ const uint8_t relayPins[RELAY_COUNT] = {RELAY_PUMP, RELAY_ZONE1,
                                         RELAY_LIGHT_HOME, RELAY_LIGHT_SALA};
 const char *relayNames[RELAY_COUNT] = {"pump", "zone1", "lighthome",
                                        "lightsala"};
-uint32_t pumpStartedAt = 0, pumpMqttLostAt = 0;
+uint32_t pumpStartedAt = 0;
 uint32_t relayTimerUntil[RELAY_COUNT] = {};
+bool relayTimerUnlimited[RELAY_COUNT] = {};
 uint32_t lastTimerStatus = 0;
 bool pumpSafetyLatched = false;
 
@@ -198,38 +197,42 @@ void relaySet(uint8_t i, bool on);
 void publishRelayStatus(uint8_t i);
 
 void clearRelayTimer(uint8_t i) {
-  if (i < RELAY_COUNT)
+  if (i < RELAY_COUNT) {
     relayTimerUntil[i] = 0;
+    relayTimerUnlimited[i] = false;
+  }
 }
 void publishRelayTimerStatus(uint8_t i) {
   if (!mqtt.connected() || i >= RELAY_COUNT)
     return;
   StaticJsonDocument<160> d;
-  uint32_t remaining = relayTimerUntil[i]
-                           ? (int32_t)(relayTimerUntil[i] - millis()) > 0
-                                 ? (relayTimerUntil[i] - millis()) / 1000UL
-                                 : 0
-                           : 0;
-  d["active"] = remaining > 0;
+  uint32_t remaining = relayTimerUnlimited[i]
+                           ? 0
+                           : (relayTimerUntil[i]
+                                  ? (int32_t)(relayTimerUntil[i] - millis()) > 0
+                                        ? (relayTimerUntil[i] - millis()) / 1000UL
+                                        : 0
+                                  : 0);
+  d["active"] = relayTimerUnlimited[i] || remaining > 0;
+  d["unlimited"] = relayTimerUnlimited[i];
   d["remaining"] = remaining;
   char out[160];
   serializeJson(d, out, sizeof(out));
   String t = String(MQTT_BASE) + "/relay/" + relayNames[i] + "/timer/status";
   mqtt.publish(t.c_str(), out, true);
 }
-void startRelayTimer(uint8_t i, uint32_t seconds) {
+void startRelayTimer(uint8_t i, uint32_t seconds, bool unlimited = false) {
   if (i >= RELAY_COUNT)
     return;
-  if (!seconds) {
+  if (!seconds && !unlimited) {
     clearRelayTimer(i);
     relaySet(i, false);
     publishRelayStatus(i);
     publishRelayTimerStatus(i);
     return;
   }
-  if (seconds > 86400UL)
-    seconds = 86400UL;
-  relayTimerUntil[i] = millis() + seconds * 1000UL;
+  relayTimerUnlimited[i] = unlimited;
+  relayTimerUntil[i] = unlimited ? 0 : millis() + seconds * 1000UL;
   relaySet((uint8_t)i, true);
   publishRelayStatus(i);
   publishRelayTimerStatus(i);
@@ -239,8 +242,15 @@ void runRelayTimers() {
   if (statusDue)
     lastTimerStatus = millis();
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
-    if (!relayTimerUntil[i])
+    if (relayTimerUnlimited[i]) {
+      if (!relayOn(i)) {
+        clearRelayTimer(i);
+        publishRelayTimerStatus(i);
+        continue;
+      }
+      if (statusDue) publishRelayTimerStatus(i);
       continue;
+    }
     if (!relayOn(i) || (int32_t)(millis() - relayTimerUntil[i]) >= 0) {
       bool expired = relayOn(i) && (int32_t)(millis() - relayTimerUntil[i]) >= 0;
       clearRelayTimer(i);
@@ -278,6 +288,15 @@ bool slotIsOn(bool enabled, uint8_t onH, uint8_t onM, uint8_t offH,
     return false;
   return on < off ? (now >= on && now < off) : (now >= on || now < off);
 }
+bool relayHasSchedule(uint8_t r) {
+  if (r >= RELAY_COUNT) return false;
+  for (uint8_t s = 0; s < SLOT_COUNT; s++)
+    if (schedules[r][s].enabled) return true;
+  return false;
+}
+bool clockIsValid() {
+  return (rtcAvailable && rtcTimeValid) || ntp.getEpochTime() >= 1704067200UL;
+}
 bool relayScheduleDesired(uint8_t r, uint16_t now) {
   if (r >= RELAY_COUNT)
     return false;
@@ -302,7 +321,6 @@ void relaySetRaw(uint8_t i, bool on) {
       pumpStartedAt = millis();
     if (!on) {
       pumpStartedAt = 0;
-      pumpMqttLostAt = 0;
     }
   }
   if (wasOn != on)
@@ -322,13 +340,12 @@ void relaySet(uint8_t i, bool on) {
     relaySetRaw(i, on);
     return;
   }
-  if (on && mode == AUTO && pumpSafetyLatched)
+  if (on && pumpSafetyLatched)
     return;
   if (on) {
     if (!relayOn(0))
       pumpStartedAt = millis();
     pumpSafetyLatched = false;
-    pumpMqttLostAt = 0;
     relaySetRaw(0, true);
   } else
     relaySetRaw(0, false);
@@ -395,8 +412,6 @@ void loadConfig() {
     Serial.println(F("Config JSON invalid - using defaults"));
     return;
   }
-  const char *m = d["mode"] | "MANUAL";
-  mode = !strcmp(m, "AUTO") ? AUTO : MANUAL;
   JsonArray all = d["s"].as<JsonArray>();
   if (all.isNull())
     return;
@@ -417,7 +432,6 @@ void saveConfig() {
   if (!fsReady)
     return;
   StaticJsonDocument<1536> d;
-  d["mode"] = mode == AUTO ? "AUTO" : "MANUAL";
   JsonArray all = d.createNestedArray("s");
   for (uint8_t r = 0; r < RELAY_COUNT; r++) {
     JsonArray rs = all.createNestedArray();
@@ -573,11 +587,11 @@ void publishStatus() {
     publishRelayTimerStatus(i);
     publishScheduleStatus(i);
   }
-  mqtt.publish(MQTT_BASE "/mode/status", mode == AUTO ? "AUTO" : "MANUAL",
-               true);
 }
 void applyAutoState(uint16_t now) {
+  if (!clockIsValid()) return;
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
+    if (!relayHasSchedule(i)) continue;
     bool desired = relayScheduleDesired(i, now);
     if (i == 0) {
       if (!desired) {
@@ -664,7 +678,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   // Diagnostic: show every inbound control packet without blocking MQTT.
   // Limit payload logging to keep Serial output bounded on ESP8266.
   if (t.startsWith(String(MQTT_BASE) + "/relay/") ||
-      t == MQTT_BASE "/mode/set" ||
       t.startsWith(String(MQTT_BASE) + "/schedule/") ||
       t.startsWith(String(MQTT_BASE) + "/config/telegram/")) {
     String logMsg = msg;
@@ -691,10 +704,13 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     int i = relayIndex(n);
     if (i < 0)
       return;
-    uint32_t seconds = msg.equalsIgnoreCase("CANCEL") ? 0 : strtoul(msg.c_str(), nullptr, 10);
-    Serial.printf("MQTT TIMER: relay=%s seconds=%lu\\n", n.c_str(),
-                  (unsigned long)seconds);
-    startRelayTimer((uint8_t)i, seconds);
+    bool unlimited = msg.equalsIgnoreCase("UNLIMITED");
+    uint32_t seconds = (msg.equalsIgnoreCase("CANCEL") || unlimited)
+                           ? 0
+                           : strtoul(msg.c_str(), nullptr, 10);
+    Serial.printf("MQTT TIMER: relay=%s seconds=%lu unlimited=%s\\n", n.c_str(),
+                  (unsigned long)seconds, unlimited ? "true" : "false");
+    startRelayTimer((uint8_t)i, seconds, unlimited);
     Serial.printf("MQTT TIMER: relay=%s state=%s\\n", n.c_str(),
                   relayOn((uint8_t)i) ? "ON" : "OFF");
     return;
@@ -704,13 +720,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     int i = relayIndex(n);
     if (i < 0)
       return;
-    if (mode == AUTO) {
-      mode = MANUAL;
-      pumpSafetyLatched = false;
-      saveConfig();
-      mqtt.publish(MQTT_BASE "/mode/status", "MANUAL", true);
-      telegramNotify(F("เปลี่ยนโหมดจาก AUTO เป็น MANUAL จากคำสั่ง MQTT"));
-    }
     if (msg.equalsIgnoreCase("ON"))
       relaySet((uint8_t)i, true);
     else if (msg.equalsIgnoreCase("OFF"))
@@ -723,28 +732,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     publishRelayStatus((uint8_t)i);
     Serial.printf("MQTT RELAY: relay=%s state=%s\\n", n.c_str(),
                   relayOn((uint8_t)i) ? "ON" : "OFF");
-    return;
-  }
-  if (t == MQTT_BASE "/mode/set") {
-    if (msg.equalsIgnoreCase("AUTO"))
-      mode = AUTO;
-    else if (msg.equalsIgnoreCase("MANUAL"))
-      mode = MANUAL;
-    else
-      return;
-    if (mode == MANUAL) {
-      pumpSafetyLatched = false;
-      for (uint8_t i = 0; i < RELAY_COUNT; i++)
-        relaySetRaw(i, false);
-    } else {
-      for (uint8_t i = 0; i < RELAY_COUNT; i++)
-        clearRelayTimer(i);
-      applyAutoState(currentMinutes());
-    }
-    saveConfig();
-    publishStatus();
-    telegramNotify(String("เปลี่ยนโหมดเป็น ") +
-                   (mode == AUTO ? "AUTO" : "MANUAL") + " จากคำสั่ง MQTT");
     return;
   }
   String sp = String(MQTT_BASE) + "/schedule/";
@@ -776,7 +763,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       }
     }
     saveConfig();
-    applyAutoState(currentMinutes());
+    if (clockIsValid()) applyAutoState(currentMinutes());
     publishScheduleStatus((uint8_t)r);
     publishRelayStatus((uint8_t)r);
     telegramNotify(String("อัปเดตตารางเวลาของรีเลย์ ") + relayNames[r] +
@@ -840,17 +827,15 @@ void connectMqtt() {
     mqtt.publish(MQTT_BASE "/status/online", "true", true);
     bool s1 = mqtt.subscribe(MQTT_BASE "/relay/+/set");
     bool sTimer = mqtt.subscribe(MQTT_BASE "/relay/+/timer/set");
-    bool s2 = mqtt.subscribe(MQTT_BASE "/mode/set");
     bool s3 = mqtt.subscribe(MQTT_BASE "/schedule/+/set");
     bool s4 = mqtt.subscribe(MQTT_BASE "/config/telegram/set");
     bool s5 = mqtt.subscribe(MQTT_BASE "/config/telegram/test");
     publishStatus();
     publishTelegramStatus();
-    pumpMqttLostAt = 0;
     Serial.println(F("MQTT: Connected"));
     telegramNotify(F("เชื่อมต่อ MQTT สำเร็จ"));
-    Serial.printf("MQTT: Subscribe relay=%s timer=%s mode=%s schedule=%s telegram=%s/%s\n",
-                  s1 ? "OK" : "FAIL", sTimer ? "OK" : "FAIL", s2 ? "OK" : "FAIL",
+    Serial.printf("MQTT: Subscribe relay=%s timer=%s schedule=%s telegram=%s/%s\n",
+                  s1 ? "OK" : "FAIL", sTimer ? "OK" : "FAIL",
                   s3 ? "OK" : "FAIL", s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
@@ -1172,21 +1157,19 @@ void setup() {
 void runSafety() {
   if (!relayOn(0)) {
     pumpStartedAt = 0;
-    pumpMqttLostAt = 0;
     return;
   }
   if (!pumpStartedAt)
     pumpStartedAt = millis();
   // ไม่มีเพดานเวลาทำงานแบบ 30 นาที รีเลย์จะทำตามตารางหรือคำสั่งล่าสุด
   // การหลุด MQTT ต้องไม่ตัดการรดน้ำอัตโนมัติที่เก็บไว้ใน ESP8266
-  pumpMqttLostAt = 0;
 }
 void runSchedules() {
   if ((uint32_t)(millis() - lastSchedule) < SCHEDULE_INTERVAL_MS)
     return;
   lastSchedule = millis();
-  // ตารางทำงานอัตโนมัติ ไม่ขึ้นกับโหมดที่ผู้ใช้เลือก
-  applyAutoState(currentMinutes());
+  // ตรวจตารางตามเวลาปัจจุบันโดยอัตโนมัติ
+  if (clockIsValid()) applyAutoState(currentMinutes());
 }
 
 void publishHeartbeat() {
@@ -1197,8 +1180,8 @@ void publishHeartbeat() {
   d["firmware"] = SMARTFARM_VERSION;
   d["heap"] = ESP.getFreeHeap();
   d["rssi"] = WiFi.RSSI();
-  d["mode"] = mode == AUTO ? "AUTO" : "MANUAL";
   d["pumpSafeLock"] = pumpSafetyLatched;
+  d["clockValid"] = clockIsValid();
   d["rtc"] = rtcAvailable && rtcTimeValid;
   String iso = rtcIso();
   if (iso.length())

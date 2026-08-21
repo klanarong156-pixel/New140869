@@ -10,8 +10,6 @@ const MQTT_CONFIG = Object.freeze({
     relayTimerSet: relay => `smartfarm/relay/${relay}/timer/set`,
     relayTimerStatus: relay => `smartfarm/relay/${relay}/timer/status`,
     sensor: sensor => `smartfarm/sensor/${sensor}`,
-    modeSet: 'smartfarm/mode/set',
-    modeStatus: 'smartfarm/mode/status',
     scheduleSet: relay => `smartfarm/schedule/${relay}/set`,
     scheduleStatus: relay => `smartfarm/schedule/${relay}/status`,
     online: 'smartfarm/status/online',
@@ -27,7 +25,6 @@ const MQTT_CONFIG = Object.freeze({
     'smartfarm/status/online',
     'smartfarm/device/status',
     'smartfarm/config/telegram/status',
-    'smartfarm/mode/status',
     'smartfarm/schedule/+/status'
   ]),
   deviceHeartbeatTimeoutMs: 25000
@@ -56,7 +53,6 @@ const APP_STATE = {
   espOnline: false,
   espLastSeen: 0,
   espStatusSource: 'none',
-  mode: 'manual',
   relays: { pump: false, zone1: false, lighthome: false, lightsala: false }
 };
 
