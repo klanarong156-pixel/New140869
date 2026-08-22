@@ -19,6 +19,7 @@
       id: item.id || generateFinanceId(),
       type,
       item: label.slice(0, 140),
+      category: String(item.category || '').trim().slice(0, 80),
       amount,
       createdAt: item.createdAt || new Date().toISOString()
     };
