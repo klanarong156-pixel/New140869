@@ -63,12 +63,22 @@
     $$(`[data-relay-card="${relay}"]`).forEach(card => card.classList.toggle('active', Boolean(on)));
   }
 
-  function renderRelayTimer(relay, active, remaining) {
+  function renderRelayTimer(relay, active, remaining, unlimited = false) {
     const seconds = Math.max(0, Math.floor(Number(remaining) || 0));
     if (relayTimers[relay]?.interval) window.clearInterval(relayTimers[relay].interval);
-    if (!active || seconds <= 0) {
+    if (!active) {
       delete relayTimers[relay];
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ยังไม่ได้ตั้งเวลา'; });
+      return;
+    }
+    if (unlimited) {
+      delete relayTimers[relay];
+      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
+      return;
+    }
+    if (seconds <= 0) {
+      delete relayTimers[relay];
+      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'หมดเวลาแล้ว กำลังปิดรีเลย์'; });
       return;
     }
     const state = { remaining: seconds, interval: null };
@@ -238,8 +248,8 @@
       if (relay) renderRelay(relay, status);
     });
     window.addEventListener('relay:timer', event => {
-      const { relay, active, remaining } = event.detail || {};
-      if (relay) renderRelayTimer(relay, active, remaining);
+      const { relay, active, unlimited, remaining } = event.detail || {};
+      if (relay) renderRelayTimer(relay, active, remaining, unlimited);
     });
     window.addEventListener('sensor:data', event => renderSensor(event.detail?.type, event.detail?.value));
     window.addEventListener('device:data', event => {

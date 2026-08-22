@@ -213,7 +213,8 @@ class MqttHandler {
         const timer = JSON.parse(value);
         const remaining = Math.max(0, Number(timer.remaining) || 0);
         this.markDeviceSeen('relay-timer-status');
-        this.dispatch('relay:timer', { relay, active: Boolean(timer.active) && remaining > 0, remaining });
+        const unlimited = Boolean(timer.unlimited) || (Boolean(timer.active) && remaining === 0);
+        this.dispatch('relay:timer', { relay, active: Boolean(timer.active), unlimited, remaining });
       } catch (_) {
         this.dispatch('relay:timer', { relay, active: false, remaining: 0 });
       }
@@ -230,15 +231,19 @@ class MqttHandler {
       return;
     }
     if (topic === this.config.topics.online) {
-      if (['true', 'online', '1', 'yes'].includes(value.toLowerCase())) this.markDeviceSeen('presence');
-      else this.setDeviceOnline(false, 'last-will');
+      if (['true', 'online', '1', 'yes'].includes(value.toLowerCase())) {
+        this.markDeviceSeen('presence');
+      } else if (!APP_STATE.espLastSeen || Date.now() - APP_STATE.espLastSeen > this.config.deviceHeartbeatTimeoutMs) {
+        this.setDeviceOnline(false, 'last-will');
+      }
       return;
     }
     if (topic === this.config.topics.deviceStatus) {
       try {
         const device = JSON.parse(value);
-        if (device.online === false) this.setDeviceOnline(false, 'device-status');
-        else this.markDeviceSeen('device-status');
+        if (device.online === false) {
+          if (!APP_STATE.espLastSeen || Date.now() - APP_STATE.espLastSeen > this.config.deviceHeartbeatTimeoutMs) this.setDeviceOnline(false, 'device-status');
+        } else this.markDeviceSeen('device-status');
         this.dispatch('device:data', device);
       } catch (_) {
         this.markDeviceSeen('device-status');
