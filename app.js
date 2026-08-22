@@ -241,7 +241,11 @@
     window.addEventListener('mqtt:connected', event => renderMqtt(Boolean(event.detail)));
     window.addEventListener('mqtt:connecting', () => renderMqtt(false, 'MQTT กำลังเชื่อมต่อ'));
     window.addEventListener('mqtt:reconnecting', () => renderMqtt(false, 'MQTT กำลังเชื่อมต่อใหม่'));
-    window.addEventListener('mqtt:error', () => renderMqtt(false, 'MQTT เชื่อมต่อไม่สำเร็จ'));
+    window.addEventListener('mqtt:error', event => {
+      const raw = event.detail?.message || String(event.detail || '');
+      const detail = raw && raw !== '[object Object]' ? `: ${raw}` : '';
+      renderMqtt(false, `MQTT เชื่อมต่อไม่สำเร็จ${detail}`);
+    });
     window.addEventListener('esp:status', event => renderDevice(Boolean(event.detail?.online)));
     window.addEventListener('relay:status', event => {
       const { relay, status } = event.detail || {};
