@@ -46,6 +46,12 @@
       </div>
     </section>
 
+    <section id="cropCycleCard" class="section card pad crop-cycle-card" aria-labelledby="crop-cycle-dashboard-title">
+      <div class="section-head"><div><p class="kicker">CROP CYCLE · PLANT AGE</p><h2 id="crop-cycle-dashboard-title">อายุพืชในแปลง</h2><p class="helper" id="dashboardCropStatus">กำลังโหลดข้อมูลรอบปลูก…</p></div><span class="tag success">นับวันอัตโนมัติ</span></div>
+      <div class="crop-cycle-summary"><div class="crop-cycle-icon" aria-hidden="true">🌱</div><div><strong id="dashboardCropName">กำลังโหลด…</strong><p id="dashboardCropDate" class="helper">—</p></div><div class="crop-cycle-age"><strong id="dashboardCropAge">—</strong><small>วัน</small></div></div>
+      <div class="btn-row" style="margin-top:16px"><a class="btn secondary small" href="schedule.html#crop-cycle-title">จัดการรอบปลูก</a></div>
+    </section>
+
     <section id="weatherBox" class="section card pad" aria-labelledby="weather-title">
       <div class="section-head"><div><p class="kicker">OPEN‑METEO · RAIN PROTECTION</p><h2 id="weather-title">อากาศที่ช่วยตัดสินใจ</h2><p id="weatherLocation" class="helper">กำลังเตรียมข้อมูลตำแหน่ง…</p></div><span class="tag">ไม่ใช้ API Key</span></div>
       <div class="weather-grid weather-grid-compact">
@@ -85,7 +91,7 @@
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
   <script src="firebase.js?v=8"></script><script src="mqtt.min.js?v=1"></script>
-  <script src="config.js?v=9"></script><script src="mqtt-handler.js?v=9"></script><script src="finance-core.js?v=1"></script><script src="finance-firebase.js?v=1"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=9"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-dashboard.js?v=1"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="config.js?v=9"></script><script src="mqtt-handler.js?v=9"></script><script src="finance-core.js?v=1"></script><script src="finance-firebase.js?v=1"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=9"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-dashboard.js?v=2"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
