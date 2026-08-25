@@ -36,6 +36,7 @@ Automation and safety
 Time
 - DS3231 is the preferred local clock when present and valid.
 - NTP synchronizes DS3231 when Wi-Fi is available and provides fallback time when RTC is unavailable.
+- The homepage clock uses the `time` field from the ESP8266 device heartbeat only when `rtc`/RTC validity is true. It shows the RTC source and waits for an RTC heartbeat instead of silently using the browser clock.
 
 MQTT topics
 - smartfarm/relay/{relay}/set and /status

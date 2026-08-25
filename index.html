@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png" sizes="192x192">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="app.css?v=13">
+  <link rel="stylesheet" href="app.css?v=15">
   <title>สวนลุงนะ · Smart Farm</title>
 </head>
 <body class="app-shell" data-auth-required="true">
@@ -20,7 +20,7 @@
     <nav class="desktop-nav" aria-label="เมนูหลัก">
       <a class="active" href="index.html">แดชบอร์ด</a><a href="schedule.html">ตั้งเวลา</a><a href="finance.html">การเงิน</a><a href="account.html">บัญชี</a><a href="settings.html">ตั้งค่า</a>
     </nav>
-    <div class="topbar-actions"><span class="status-pill offline" data-mqtt-status><i></i>MQTT ยังไม่เชื่อมต่อ</span></div>
+    <div class="topbar-actions"><div class="farm-clock" aria-label="วันและเวลาจาก RTC ของ ESP8266"><span class="farm-clock-label">เวลาจาก RTC</span><strong data-farm-time>--:--:--</strong><small data-farm-date>ยังไม่ได้รับเวลาจาก RTC</small><em data-farm-clock-source>รอ RTC จาก ESP8266</em></div><span class="status-pill offline" data-mqtt-status><i></i>MQTT ยังไม่เชื่อมต่อ</span></div>
   </header>
 
   <main class="app-main">
@@ -103,7 +103,7 @@
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
   <script src="firebase.js?v=8"></script><script src="mqtt.min.js?v=1"></script>
-  <script src="config.js?v=10"></script><script src="mqtt-handler.js?v=10"></script><script src="finance-core.js?v=1"></script><script src="finance-firebase.js?v=1"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=9"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=2"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=1"></script><script src="farm-tools.js?v=1"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="config.js?v=10"></script><script src="mqtt-handler.js?v=10"></script><script src="finance-core.js?v=1"></script><script src="finance-firebase.js?v=1"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=9"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=2"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=1"></script><script src="farm-tools.js?v=1"></script><script src="farm-clock.js?v=2"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
