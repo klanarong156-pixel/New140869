@@ -543,3 +543,148 @@ body::before { opacity:.035; background-size:36px 36px; }
   .crop-tasks-card .btn-row { display:grid; grid-template-columns:1fr; gap:7px; }
   .crop-tasks-card .btn-row .notice { justify-content:center; }
 }
+
+
+/* Soft Nature theme — applied to the live UI; behavior and connection code remain unchanged */
+:root {
+  --bg:#f3f6f0;
+  --bg-soft:#e8f0e5;
+  --surface:#ffffff;
+  --surface-strong:#ffffff;
+  --surface-muted:#f0f5ee;
+  --line:#dbe6d7;
+  --line-strong:#b9cfb4;
+  --text:#203128;
+  --muted:#6d7d72;
+  --primary:#5b9664;
+  --primary-strong:#407a4d;
+  --primary-ink:#ffffff;
+  --blue:#4d83b5;
+  --amber:#ae7928;
+  --danger:#b85d69;
+  --shadow:0 18px 44px rgba(50,79,55,.11);
+}
+html { background:var(--bg); color-scheme:light; }
+body {
+  color:var(--text);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(197,223,190,.56), transparent 28rem),
+    radial-gradient(circle at 100% 4%, rgba(247,224,180,.34), transparent 24rem),
+    linear-gradient(155deg,#f8faf6 0%,#f1f6ee 52%,#edf3ea 100%);
+  background-attachment:fixed;
+}
+body::before { display:none; }
+.brand-symbol { border-color:#c5ddc1; color:#477250; background:linear-gradient(145deg,#e6f3e2,#c9e3c4); box-shadow:0 10px 24px rgba(76,137,82,.14); }
+.brand-copy strong { color:#243a2b; }
+.brand-copy span { color:#718176; }
+.desktop-nav { border-color:var(--line); background:rgba(255,255,255,.78); box-shadow:0 7px 22px rgba(50,79,55,.06); }
+.desktop-nav a { color:#718176; }
+.desktop-nav a:hover, .desktop-nav a.active { color:#31533b; background:#e5f0e2; }
+.bottom-nav { border-color:rgba(207,222,203,.92); background:rgba(255,255,255,.90); box-shadow:0 14px 40px rgba(50,79,55,.16); }
+.bottom-nav a { color:#718176; }
+.bottom-nav a.active { color:#376043; background:#e5f0e2; box-shadow:inset 0 0 0 1px #c8ddc3; }
+.kicker { color:#5a8b62; }
+h1,h2,h3 { color:#203128; }
+.subtitle, .helper, .muted { color:#6d7d72; }
+.hero { border-color:#d3e3d0; background:linear-gradient(135deg,rgba(233,244,229,.96),rgba(255,255,255,.96)); box-shadow:var(--shadow); }
+.hero::after { border-color:rgba(111,161,103,.22); box-shadow:0 0 0 28px rgba(111,161,103,.06),0 0 0 56px rgba(111,161,103,.035); }
+.hero-mark { border-color:#c9dfc5; background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.96),#d5ead1 42%,#bad8b8 72%); box-shadow:inset 0 0 45px rgba(104,157,94,.16),0 18px 45px rgba(57,95,62,.10); color:#4f8358; }
+.status-pill, .tag { border-color:var(--line); background:rgba(255,255,255,.74); color:#607166; }
+.status-pill.online i { background:#4f9a5d; box-shadow:0 0 0 4px rgba(79,154,93,.13); }
+.status-pill.warning i { background:#c18a35; box-shadow:0 0 0 4px rgba(193,138,53,.14); }
+.status-pill.offline i { background:#bd6670; box-shadow:0 0 0 4px rgba(189,102,112,.13); }
+.tag.success { color:#3f7749; border-color:#c7dfc3; background:#edf7eb; }
+.tag.warn { color:#936722; border-color:#ead5a9; background:#fff8e8; }
+.tag.danger { color:#9b4d59; border-color:#e7c2c8; background:#fff1f3; }
+.card { border-color:var(--line); background:rgba(255,255,255,.90); box-shadow:0 10px 28px rgba(50,79,55,.08); }
+.card.interactive:hover { border-color:#b8d1b4; box-shadow:0 18px 42px rgba(50,79,55,.13); }
+.metric-card .metric-top { color:#6d7d72; }
+.metric-icon { background:#edf6eb; color:#477b50; }
+.control-card { background:rgba(255,255,255,.94); }
+.control-card.active { border-color:#a9caa5; background:linear-gradient(145deg,#f0f8ed,#e3f1df); }
+.control-name .icon { background:#edf6eb; color:#4e8657; }
+.control-name strong, .control-card .control-name strong { color:#203128; }
+.control-name small, .control-card .control-name small { color:#718176; }
+.switch span { border-color:#cdddc9; background:#eef3ec; }
+.switch span::after { background:#ffffff; box-shadow:0 2px 6px rgba(43,72,47,.18); }
+.switch input:checked + span { border-color:#70a779; background:#5b9664; }
+.switch input:checked + span::after { background:#ffffff; }
+.btn.primary { color:#ffffff; background:linear-gradient(135deg,#5f9d68,#417d4d); box-shadow:0 8px 20px rgba(65,125,77,.18); }
+.btn.secondary { color:#3d6146; border-color:#cbdcc8; background:#f7faf5; }
+.btn.secondary.active { color:#376043; border-color:#a8caa5; background:#e8f3e5; }
+.btn.danger { color:#a34f5b; border-color:#e6c1c7; background:#fff2f3; }
+.btn.ghost { color:#6d7d72; }
+input, select, textarea { border-color:#d5e2d2; color:#203128; background:#ffffff; }
+input::placeholder, textarea::placeholder { color:#9aaa9e; }
+input:focus, select:focus, textarea:focus { border-color:#79ac80; background:#ffffff; box-shadow:0 0 0 3px rgba(91,150,100,.13); }
+.field label, .time-grid label, .reminder-settings label, .reminder-editor label { color:#53685a; }
+select option { color:#203128; background:#ffffff; }
+.notice { border-color:#dbe6d7; background:#f8fbf7; color:#6d7d72; }
+.notice strong { color:#304a37; }
+.notice.success { border-color:#c8dfc4; background:#eef8ec; color:#4d7954; }
+.notice.warning { border-color:#ecd5a4; background:#fff8e9; color:#916a2c; }
+.notice.danger { border-color:#e8c1c7; background:#fff1f3; color:#9c515d; }
+.mode-switch { border-color:#dbe6d7; background:#f3f7f1; }
+.connection-icon { background:#eef5fb; color:#4d83b5; }
+.weather-grid .metric-card, .forecast-day { background:#ffffff; }
+.rain-protection { border-color:#ecd5a4; background:#fff8e9; color:#916a2c; }
+.rain-protection.ok { border-color:#c8dfc4; background:#eef8ec; color:#4d7954; }
+.schedule-tab { border-color:#d5e2d2; color:#6d7d72; background:#ffffff; }
+.schedule-tab.active { border-color:#a8caa5; color:#376043; background:#e8f3e5; }
+.slot-card { background:#ffffff; }
+th { color:#6d7d72; background:#f4f8f2; }
+td { color:#385140; }
+.empty-state .empty-icon { background:#edf5ea; color:#5b9664; }
+.finance-metric.income strong, .finance-amount.income { color:#4f9760; }
+.finance-metric.expense strong, .finance-amount.expense { color:#b85d69; }
+.finance-metric.pending strong, .finance-amount.pending { color:#a9792d; }
+.finance-metric.profit strong { color:#4d83b5; }
+.finance-summary { background:#ffffff !important; }
+.finance-summary-item { border-color:#dbe6d7; background:#f8fbf7; }
+.finance-summary-item.income { border-color:#c8dfc4; background:#eef8ec; }
+.finance-summary-item.income strong { color:#4f9760; }
+.finance-summary-item.expense { border-color:#e8c1c7; background:#fff1f3; }
+.finance-summary-item.expense strong { color:#b85d69; }
+.finance-summary-item.profit { border-color:#c8dced; background:#eef5fb; }
+.finance-summary-item.profit strong { color:#4d83b5; }
+.auth-pitch p { color:#687b6d; }
+.auth-point { color:#47604d; }
+.auth-point i { background:#e8f3e5; color:#4f8358; }
+.auth-card { background:rgba(255,255,255,.94); box-shadow:var(--shadow); }
+.auth-switch { border-color:#dbe6d7; background:#f3f7f1; }
+.auth-switch button.active { color:#376043; background:#e5f0e2; }
+.toast { border-color:#dbe6d7; background:rgba(255,255,255,.97); color:#3e5945; box-shadow:0 14px 35px rgba(50,79,55,.14); }
+footer { color:#829287; }
+.modal-overlay { background:rgba(38,56,42,.35); }
+code { color:#4f8358; background:#edf6eb; }
+.ota-card { background:linear-gradient(145deg,#eef8ec,#ffffff); border-color:#c8dfc4; }
+.relay-timer { border-color:#dbe6d7; background:#f5f9f3; }
+.relay-timer > label { color:#53685a; }
+.relay-timer > label input { border-color:#d5e2d2; background:#ffffff; }
+.input-suffix { color:#7c9080; }
+.timer-presets button { border-color:#d5e2d2; color:#617567; background:#ffffff; }
+.timer-presets button:hover, .timer-presets button.active { border-color:#8fba91; color:#376043; background:#e8f3e5; }
+.timer-actions .btn.secondary { border-color:#b8d1b4; color:#376043; background:#edf6eb; }
+.relay-timer [data-timer-status] { background:#ffffff; color:#6c8b73; }
+.control-card.active .relay-timer [data-timer-status] { color:#4f8358; background:#eef8ec; }
+.control-card::before { background:var(--control-accent,#7eaa80); }
+.crop-tasks-card, .reminder-section { background:linear-gradient(145deg,#ffffff,#f2f8ef); }
+.crop-task-highlight { border-color:#ead5a9; background:#fff8e9; }
+.crop-task-icon { color:#ae7928; background:#fff0c9; }
+.crop-task-highlight strong { color:#304a37; }
+.reminder-settings { border-color:#d4e5d0; background:#f1f8ef; }
+.reminder-editor { background:#fbfdfb; }
+.reminder-item { border-color:#dbe6d7; background:#ffffff; }
+.reminder-item.is-soon { border-color:#e5cc94; background:#fff9ec; }
+.reminder-item.is-overdue { border-color:#e8c1c7; background:#fff2f3; }
+.reminder-item.is-done { border-color:#c8dfc4; background:#eef8ec; }
+.reminder-item-icon { color:#ae7928; background:#fff0c9; }
+.reminder-item.is-overdue .reminder-item-icon { color:#b85d69; background:#ffe5e9; }
+.reminder-item.is-done .reminder-item-icon { color:#4f9760; background:#e3f2df; }
+.reminder-item-main strong { color:#304a37; }
+.reminder-item-actions button { border-color:#d5e2d2; color:#617567; background:#ffffff; }
+.reminder-item-actions button:hover, .reminder-item-actions button:focus-visible { border-color:#8fba91; color:#376043; background:#e8f3e5; }
+@media (max-width:640px) {
+  body { background-attachment:scroll; }
+  .auth-layout { padding-bottom:28px; }
+}
