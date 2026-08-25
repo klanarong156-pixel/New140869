@@ -33,6 +33,7 @@ jobs:
           while IFS= read -r file; do
             grep -oE '(src|href)="[^"]+"' "$file" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' | while IFS= read -r ref; do
               local_ref="${ref%%\?*}"
+              local_ref="${local_ref%%\#*}"
               test -e "$local_ref" || { echo "$file -> $ref (MISSING)"; exit 1; }
             done
           done < <(find . -maxdepth 1 -name '*.html' -print)
