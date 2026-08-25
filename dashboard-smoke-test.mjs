@@ -11,6 +11,7 @@ const files = [
   'crop-plots.js',
   'farm-analytics.js',
   'farm-tools.js',
+  'farm-clock.js',
   'mqtt-shared-worker.js',
   'weather.js',
   'auto-weather-guard.js',
@@ -34,6 +35,7 @@ const reminders = read('crop-reminders.js');
 const plots = read('crop-plots.js');
 const analytics = read('farm-analytics.js');
 const tools = read('farm-tools.js');
+const clock = read('farm-clock.js');
 const worker = read('mqtt-shared-worker.js');
 const weather = read('weather.js');
 const guard = read('auto-weather-guard.js');
@@ -68,6 +70,7 @@ const checks = [
   ['Schedule page contains reminder management UI', /id="crop-reminders"/.test(schedulePage) && /reminderSettingsForm/.test(schedulePage) && /reminderForm/.test(schedulePage)],
   ['Multiple plot model is bounded and persisted', /MAX_PLOTS = 8/.test(plots) && /farm\/cropPlots/.test(plots) && /textContent/.test(plots)],
   ['Analytics stores real sensor history and renders chart', /sensor:data/.test(analytics) && /sensorHistoryChart/.test(analytics) && /getContext\('2d'\)/.test(analytics) && !/Math\.random/.test(analytics)],
+  ['Homepage clock uses RTC heartbeat time directly', /device:data/.test(clock) && /device\.time/.test(clock) && /rtc/.test(clock) && /data-farm-time/.test(index) && /data-farm-clock-source/.test(index)],
   ['Backup excludes secrets and supports restore', /SECRET_KEY/.test(tools) && /downloadJson/.test(tools) && /FirebaseDB\.put/.test(tools)],
   ['Firmware uses same broker and base topic', /#define MQTT_SERVER/.test(firmware) && /#define MQTT_BASE "smartfarm"/.test(firmware)],
   ['Firmware subscribes to relay/timer/schedule topics', /relay\/\+\/set/.test(firmware) && /timer\/set/.test(firmware) && /schedule\/\+\/set/.test(firmware)],
@@ -76,14 +79,14 @@ const checks = [
   ['Firmware deduplicates sent reminders', /lastSentDate/.test(firmware) && /send_failed/.test(firmware)],
   ['Firmware schedule parser accepts slots/on/off', /d\["slots"\]/.test(firmware) && /o\["on"\]/.test(firmware) && /o\["off"\]/.test(firmware)],
   ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
-  ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /farm-tools\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw)],
+  ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /farm-tools\.js/.test(sw) && /farm-clock\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw)],
   ['Dashboard loads OTA controller', /dashboard-ota\.js\?v=/.test(settings) && /otaDashboardForm/.test(ota)],
   ['Weather assets are loaded by dashboard', /weather\.js\?v=/.test(index)],
   ['Open-Meteo endpoint configured', /https:\/\/api\.open-meteo\.com\/v1\/forecast/.test(weather)],
   ['Weather protection is advisory only', /autoWateringAllowed = !blocked/.test(weather) && !/data-mode|\bAUTO\b|\bMANUAL\b/.test(guard)],
   ['No new mode MQTT contract introduced', !/modeSet|mode\/set|data-mode|\bAUTO\b|\bMANUAL\b/.test(cfg + handler + app + schedule + index + schedulePage + settings + firmware)],
   ['Emergency stop uses existing relay OFF commands', /data-emergency-stop/.test(index) && /relaySet\(relay\), 'OFF'/.test(tools)],
-  ['Dashboard loads latest stylesheet cache version', /app\.css\?v=13/.test(index) && /app\.css\?v=13/.test(schedulePage) && /app\.css\?v=13/.test(settings)],
+  ['Dashboard loads latest stylesheet cache version', /app\.css\?v=15/.test(index) && /app\.css\?v=13/.test(schedulePage) && /app\.css\?v=13/.test(settings)],
 ];
 
 let failed = 0;
