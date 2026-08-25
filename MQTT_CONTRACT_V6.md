@@ -1,6 +1,6 @@
-# Smart Farm V7.0 MQTT contract
+# Smart Farm V7.1 MQTT contract
 
-เฟิร์มแวร์ `V7.0.0-PRODUCTION-HARDENED` และเว็บแอป V7 ใช้ topic ต่อไปนี้
+เฟิร์มแวร์ `V7.1.0-REMINDER` และเว็บแอป V7 ใช้ topic ต่อไปนี้
 
 | Feature | Command topic | Status topic | Payload |
 | --- | --- | --- | --- |
@@ -12,6 +12,7 @@
 | Sensor | — | `smartfarm/sensor/dht11` | temperature/humidity JSON |
 | Telegram configuration | `smartfarm/config/telegram/set` | `smartfarm/config/telegram/status` | JSON `{ "botToken": "...", "chatId": "..." }`; status JSON reports `configured` |
 | Telegram test | `smartfarm/config/telegram/test` | — | any payload triggers a test message |
+| Crop reminder | `smartfarm/reminder/set` | `smartfarm/reminder/status` | JSON operation `settings`, `upsert`, `done`, `snooze`, `delete`, `sync` or `test` |
 
 Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay and mode status messages are retained by the device so a newly connected dashboard can render the current state.
 
@@ -33,6 +34,24 @@ Changing to AUTO cancels active countdown timers so an old manual timer cannot o
 ```
 
 Each relay has at most four independent slots. The firmware rejects equal start and stop times, persists accepted slots in LittleFS, and applies them only in AUTO mode. A `DELETE` payload clears all four slots for the selected relay.
+
+## Crop Telegram reminders
+
+The dashboard sends reminder commands through the non-retained topic `smartfarm/reminder/set`. The ESP8266 stores up to eight reminders in `/smartfarm_reminders.json`, checks the existing RTC/NTP time every 30 seconds, and sends the reminder after the configured time when the due date minus `leadDays` equals the current date. The default is one day before at 18:00.
+
+Example settings payload:
+
+```json
+{"op":"settings","enabled":true,"repeatDaily":false,"leadDays":1,"hour":18,"minute":0}
+```
+
+Example task payload:
+
+```json
+{"op":"upsert","id":"task-fertilize-2","title":"ใส่ปุ๋ยครั้งที่ 2","due":"2026-08-08","leadDays":1,"note":"ปุ๋ยละลายช้า 1 ช้อนโต๊ะต่อต้น","enabled":true,"done":false}
+```
+
+`done` marks a task complete, `snooze` changes its due date, `delete` removes it, `sync` asks for retained reminder status, and `test` sends a test Telegram message. Each task stores `lastSentDate` so the same reminder is not sent twice on the same day. If daily overdue reminders are enabled, an incomplete overdue task is sent once per day after the configured time. The device must have Wi‑Fi, a valid RTC/NTP clock, and Telegram credentials configured; if it was offline at the scheduled time, it can send later on the same day after reconnecting.
 
 ## Mode and safety behavior
 

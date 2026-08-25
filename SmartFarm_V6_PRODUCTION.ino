@@ -21,7 +21,7 @@
 #include <WiFiUdp.h>
 #include <Wire.h>
 
-#define SMARTFARM_VERSION "V7.0.0-PRODUCTION-HARDENED"
+#define SMARTFARM_VERSION "V7.1.0-REMINDER"
 #define MQTT_SERVER "650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud"
 #define MQTT_PORT 8883
 #define MQTT_BASE "smartfarm"
@@ -109,10 +109,10 @@ String urlEncode(const String &value) {
   return out;
 }
 
-void telegramNotify(const String &message) {
+bool telegramNotify(const String &message) {
   if (WiFi.status() != WL_CONNECTED || !telegramBotToken[0] ||
       !telegramChatId[0])
-    return;
+    return false;
 
   telegramTls.setInsecure();
   telegramTls.setBufferSizes(4096, 512);
@@ -140,7 +140,7 @@ void telegramNotify(const String &message) {
     if (code >= 200 && code < 300) {
       Serial.printf("Telegram: sent OK HTTP %d\n", code);
       http.end();
-      return;
+      return true;
     }
 
     Serial.printf("Telegram: send failed HTTP %d (%s), attempt %u, heap=%u\n",
@@ -155,6 +155,7 @@ void telegramNotify(const String &message) {
     }
     http.end();
   }
+  return false;
 }
 
 void reportWifiState() {
@@ -183,6 +184,26 @@ struct ScheduleSlot {
 };
 static const uint8_t RELAY_COUNT = 4, SLOT_COUNT = 4;
 ScheduleSlot schedules[RELAY_COUNT][SLOT_COUNT] = {};
+
+static const uint8_t REMINDER_COUNT = 8;
+struct CropReminder {
+  bool enabled;
+  bool done;
+  uint8_t leadDays;
+  char id[32];
+  char title[72];
+  char dueDate[11];
+  char note[128];
+  char lastSentDate[11];
+};
+CropReminder reminders[REMINDER_COUNT] = {};
+bool reminderEnabled = true;
+bool reminderRepeatDaily = false;
+uint8_t reminderDefaultLeadDays = 1;
+uint8_t reminderHour = 18;
+uint8_t reminderMinute = 0;
+uint32_t lastReminderCheck = 0;
+
 const uint8_t relayPins[RELAY_COUNT] = {RELAY_PUMP, RELAY_ZONE1,
                                         RELAY_LIGHT_HOME, RELAY_LIGHT_SALA};
 const char *relayNames[RELAY_COUNT] = {"pump", "zone1", "lighthome",
@@ -450,6 +471,303 @@ void saveConfig() {
     f.close();
   }
 }
+
+int clampInt(int value, int minimum, int maximum, int fallback) {
+  if (value < minimum || value > maximum)
+    return fallback;
+  return value;
+}
+
+bool validDateString(const char *value) {
+  int y, m, day;
+  if (!value || sscanf(value, "%d-%d-%d", &y, &m, &day) != 3)
+    return false;
+  DateTime date(y, m, day);
+  return date.isValid();
+}
+
+String currentDateString() {
+  if (rtcAvailable && rtcTimeValid) {
+    DateTime now = rtc.now();
+    char out[11];
+    snprintf(out, sizeof(out), "%04u-%02u-%02u", now.year(), now.month(),
+             now.day());
+    return String(out);
+  }
+  uint32_t epoch = ntp.getEpochTime();
+  if (epoch < 1704067200UL)
+    return String();
+  DateTime now(epoch);
+  char out[12];
+  snprintf(out, sizeof(out), "%04u-%02u-%02u", now.year(), now.month(), now.day());
+  return String(out);
+}
+
+int dateDeltaDays(const char *target, const String &today) {
+  if (!validDateString(target) || !validDateString(today.c_str()))
+    return 9999;
+  int ty, tm, td, yy, ym, yd;
+  if (sscanf(target, "%d-%d-%d", &ty, &tm, &td) != 3 ||
+      sscanf(today.c_str(), "%d-%d-%d", &yy, &ym, &yd) != 3)
+    return 9999;
+  DateTime targetDate(ty, tm, td), todayDate(yy, ym, yd);
+  return (int)((targetDate.unixtime() - todayDate.unixtime()) / 86400L);
+}
+
+int findReminder(const char *id) {
+  if (!id || !id[0])
+    return -1;
+  for (uint8_t i = 0; i < REMINDER_COUNT; i++)
+    if (reminders[i].id[0] && strcmp(reminders[i].id, id) == 0)
+      return i;
+  return -1;
+}
+
+int findEmptyReminder() {
+  for (uint8_t i = 0; i < REMINDER_COUNT; i++)
+    if (!reminders[i].enabled && !reminders[i].id[0])
+      return i;
+  return -1;
+}
+
+void clearReminders() {
+  for (uint8_t i = 0; i < REMINDER_COUNT; i++)
+    reminders[i] = {};
+}
+
+void loadReminders() {
+  clearReminders();
+  reminderEnabled = true;
+  reminderRepeatDaily = false;
+  reminderDefaultLeadDays = 1;
+  reminderHour = 18;
+  reminderMinute = 0;
+  if (!fsReady || !LittleFS.exists("/smartfarm_reminders.json"))
+    return;
+  File f = LittleFS.open("/smartfarm_reminders.json", "r");
+  if (!f)
+    return;
+  DynamicJsonDocument d(4096);
+  DeserializationError e = deserializeJson(d, f);
+  f.close();
+  if (e)
+    return;
+  reminderEnabled = d["enabled"] | true;
+  reminderRepeatDaily = d["repeatDaily"] | false;
+  reminderDefaultLeadDays = clampInt(d["leadDays"] | 1, 0, 7, 1);
+  reminderHour = clampInt(d["hour"] | 18, 0, 23, 18);
+  reminderMinute = clampInt(d["minute"] | 0, 0, 59, 0);
+  JsonArray items = d["items"].as<JsonArray>();
+  if (items.isNull())
+    return;
+  uint8_t index = 0;
+  for (JsonObject item : items) {
+    if (index >= REMINDER_COUNT)
+      break;
+    const char *id = item["id"] | "";
+    const char *title = item["title"] | "";
+    const char *due = item["due"] | "";
+    if (!id[0] || !title[0] || !validDateString(due))
+      continue;
+    CropReminder &reminder = reminders[index++];
+    reminder.enabled = item["enabled"] | true;
+    reminder.done = item["done"] | false;
+    reminder.leadDays = clampInt(item["leadDays"] | reminderDefaultLeadDays, 0, 7, reminderDefaultLeadDays);
+    strlcpy(reminder.id, id, sizeof(reminder.id));
+    strlcpy(reminder.title, title, sizeof(reminder.title));
+    strlcpy(reminder.dueDate, due, sizeof(reminder.dueDate));
+    strlcpy(reminder.note, item["note"] | "", sizeof(reminder.note));
+    strlcpy(reminder.lastSentDate, item["lastSentDate"] | "",
+            sizeof(reminder.lastSentDate));
+  }
+}
+
+void saveReminders() {
+  if (!fsReady)
+    return;
+  DynamicJsonDocument d(4096);
+  d["enabled"] = reminderEnabled;
+  d["repeatDaily"] = reminderRepeatDaily;
+  d["leadDays"] = reminderDefaultLeadDays;
+  d["hour"] = reminderHour;
+  d["minute"] = reminderMinute;
+  JsonArray items = d.createNestedArray("items");
+  for (uint8_t i = 0; i < REMINDER_COUNT; i++) {
+    if (!reminders[i].id[0])
+      continue;
+    JsonObject item = items.createNestedObject();
+    item["enabled"] = reminders[i].enabled;
+    item["done"] = reminders[i].done;
+    item["leadDays"] = reminders[i].leadDays;
+    item["id"] = reminders[i].id;
+    item["title"] = reminders[i].title;
+    item["due"] = reminders[i].dueDate;
+    item["note"] = reminders[i].note;
+    item["lastSentDate"] = reminders[i].lastSentDate;
+  }
+  File f = LittleFS.open("/smartfarm_reminders.json", "w");
+  if (f) {
+    serializeJson(d, f);
+    f.close();
+  }
+}
+
+void publishReminderStatus(const char *event, int index = -1,
+                           const String &detail = String()) {
+  if (!mqtt.connected())
+    return;
+  StaticJsonDocument<640> d;
+  d["event"] = event ? event : "status";
+  d["enabled"] = reminderEnabled;
+  d["repeatDaily"] = reminderRepeatDaily;
+  d["leadDays"] = reminderDefaultLeadDays;
+  d["hour"] = reminderHour;
+  d["minute"] = reminderMinute;
+  if (index >= 0 && index < REMINDER_COUNT) {
+    CropReminder &reminder = reminders[index];
+    d["id"] = reminder.id;
+    d["done"] = reminder.done;
+    d["taskEnabled"] = reminder.enabled;
+    d["lastSentDate"] = reminder.lastSentDate;
+  }
+  if (detail.length())
+    d["detail"] = detail;
+  char out[640];
+  serializeJson(d, out, sizeof(out));
+  mqtt.publish(MQTT_BASE "/reminder/status", out, true);
+}
+
+bool handleReminderMessage(const String &message) {
+  StaticJsonDocument<768> d;
+  if (deserializeJson(d, message))
+    return false;
+  const char *op = d["op"] | "";
+  if (strcmp(op, "settings") == 0) {
+    reminderEnabled = d["enabled"] | true;
+    reminderRepeatDaily = d["repeatDaily"] | false;
+    reminderDefaultLeadDays = clampInt(d["leadDays"] | 1, 0, 7, 1);
+    reminderHour = clampInt(d["hour"] | 18, 0, 23, 18);
+    reminderMinute = clampInt(d["minute"] | 0, 0, 59, 0);
+    saveReminders();
+    publishReminderStatus("settings");
+    return true;
+  }
+  if (strcmp(op, "sync") == 0) {
+    publishReminderStatus("sync");
+    return true;
+  }
+  if (strcmp(op, "test") == 0) {
+    bool sent = telegramNotify(F("ทดสอบ Telegram reminder จาก ESP8266 สำเร็จ"));
+    publishReminderStatus(sent ? "test_sent" : "test_failed");
+    return sent;
+  }
+
+  const char *id = d["id"] | "";
+  int index = findReminder(id);
+  if (strcmp(op, "delete") == 0) {
+    if (index < 0)
+      return false;
+    reminders[index] = {};
+    saveReminders();
+    publishReminderStatus("delete", -1, String(id));
+    return true;
+  }
+  if (strcmp(op, "done") == 0) {
+    if (index < 0)
+      return false;
+    reminders[index].done = d["done"] | true;
+    saveReminders();
+    publishReminderStatus("done", index);
+    return true;
+  }
+  if (strcmp(op, "snooze") == 0) {
+    const char *due = d["due"] | "";
+    if (index < 0 || !validDateString(due))
+      return false;
+    strlcpy(reminders[index].dueDate, due, sizeof(reminders[index].dueDate));
+    reminders[index].done = false;
+    reminders[index].lastSentDate[0] = '\0';
+    saveReminders();
+    publishReminderStatus("snooze", index);
+    return true;
+  }
+  if (strcmp(op, "upsert") != 0)
+    return false;
+
+  const char *title = d["title"] | "";
+  const char *due = d["due"] | "";
+  if (!id[0] || !title[0] || !validDateString(due))
+    return false;
+  if (index < 0)
+    index = findEmptyReminder();
+  if (index < 0)
+    return false;
+  CropReminder &reminder = reminders[index];
+  bool changed = strcmp(reminder.title, title) != 0 ||
+                strcmp(reminder.dueDate, due) != 0 ||
+                reminder.leadDays !=
+                    clampInt(d["leadDays"] | reminderDefaultLeadDays, 0, 7, reminderDefaultLeadDays);
+  reminder.enabled = d["enabled"] | true;
+  reminder.done = d["done"] | false;
+  reminder.leadDays = clampInt(d["leadDays"] | reminderDefaultLeadDays, 0, 7, reminderDefaultLeadDays);
+  strlcpy(reminder.id, id, sizeof(reminder.id));
+  strlcpy(reminder.title, title, sizeof(reminder.title));
+  strlcpy(reminder.dueDate, due, sizeof(reminder.dueDate));
+  strlcpy(reminder.note, d["note"] | "", sizeof(reminder.note));
+  if (changed)
+    reminder.lastSentDate[0] = '\0';
+  saveReminders();
+  publishReminderStatus("upsert", index);
+  return true;
+}
+
+void runReminderTask(uint8_t index, const String &today, bool overdue) {
+  CropReminder &reminder = reminders[index];
+  String message = overdue ? "งานรอบปลูกเลยกำหนดแล้ว" : "แจ้งเตือนงานรอบปลูกล่วงหน้า";
+  message += "\n\n";
+  message += overdue ? "งาน: " : "กำหนดพรุ่งนี้: ";
+  message += reminder.title;
+  message += "\nครบกำหนด: ";
+  message += reminder.dueDate;
+  if (reminder.note[0]) {
+    message += "\nรายละเอียด: ";
+    message += reminder.note;
+  }
+  if (telegramNotify(message)) {
+    strlcpy(reminder.lastSentDate, today.c_str(), sizeof(reminder.lastSentDate));
+    saveReminders();
+    publishReminderStatus("sent", index);
+  } else {
+    publishReminderStatus("send_failed", index);
+  }
+}
+
+void runReminders() {
+  if ((uint32_t)(millis() - lastReminderCheck) < 30000UL)
+    return;
+  lastReminderCheck = millis();
+  if (!reminderEnabled || !clockIsValid())
+    return;
+  String today = currentDateString();
+  if (!validDateString(today.c_str()))
+    return;
+  uint16_t now = currentMinutes();
+  uint16_t reminderAt = reminderHour * 60U + reminderMinute;
+  for (uint8_t i = 0; i < REMINDER_COUNT; i++) {
+    CropReminder &reminder = reminders[i];
+    if (!reminder.enabled || reminder.done || !reminder.id[0] ||
+        !validDateString(reminder.dueDate))
+      continue;
+    int delta = dateDeltaDays(reminder.dueDate, today);
+    bool overdue = delta < 0 && reminderRepeatDaily;
+    bool dueForReminder = delta == reminder.leadDays;
+    if ((!dueForReminder && !overdue) || now < reminderAt ||
+        strcmp(reminder.lastSentDate, today.c_str()) == 0)
+      continue;
+    runReminderTask(i, today, overdue);
+  }
+}
+
 uint16_t currentMinutes() {
   if (rtcAvailable && rtcTimeValid) {
     DateTime n = rtc.now();
@@ -679,7 +997,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   // Limit payload logging to keep Serial output bounded on ESP8266.
   if (t.startsWith(String(MQTT_BASE) + "/relay/") ||
       t.startsWith(String(MQTT_BASE) + "/schedule/") ||
-      t.startsWith(String(MQTT_BASE) + "/config/telegram/")) {
+      t.startsWith(String(MQTT_BASE) + "/config/telegram/") ||
+      t.startsWith(String(MQTT_BASE) + "/reminder/")) {
     String logMsg = msg;
     if (logMsg.length() > 96)
       logMsg.remove(96);
@@ -694,6 +1013,13 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   if (t == MQTT_BASE "/config/telegram/test") {
     telegramNotify(F("ทดสอบ Telegram จากแดชบอร์ดสำเร็จ"));
     publishTelegramStatus();
+    return;
+  }
+  if (t == MQTT_BASE "/reminder/set") {
+    if (!handleReminderMessage(msg)) {
+      Serial.println(F("Reminder: invalid payload"));
+      publishReminderStatus("error", -1, "invalid payload");
+    }
     return;
   }
 
@@ -830,13 +1156,16 @@ void connectMqtt() {
     bool s3 = mqtt.subscribe(MQTT_BASE "/schedule/+/set");
     bool s4 = mqtt.subscribe(MQTT_BASE "/config/telegram/set");
     bool s5 = mqtt.subscribe(MQTT_BASE "/config/telegram/test");
+    bool s6 = mqtt.subscribe(MQTT_BASE "/reminder/set");
     publishStatus();
     publishTelegramStatus();
+    publishReminderStatus("online");
     Serial.println(F("MQTT: Connected"));
     telegramNotify(F("เชื่อมต่อ MQTT สำเร็จ"));
-    Serial.printf("MQTT: Subscribe relay=%s timer=%s schedule=%s telegram=%s/%s\n",
+    Serial.printf("MQTT: Subscribe relay=%s timer=%s schedule=%s telegram=%s/%s reminder=%s\n",
                   s1 ? "OK" : "FAIL", sTimer ? "OK" : "FAIL",
-                  s3 ? "OK" : "FAIL", s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL");
+                  s3 ? "OK" : "FAIL", s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL",
+                  s6 ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
     Serial.printf("MQTT: Connect FAILED state=%d (%s), heap=%u\n", state,
@@ -1102,6 +1431,7 @@ void setup() {
   }
   initFS();
   loadConfig();
+  loadReminders();
   initRTC();
   dht.begin();
   ntp.begin();
@@ -1210,6 +1540,7 @@ void loop() {
   runSafety();
   runRelayTimers();
   runSchedules();
+  runReminders();
   if ((uint32_t)(millis() - lastSensor) >= SENSOR_INTERVAL_MS) {
     lastSensor = millis();
     float h = dht.readHumidity(), c = dht.readTemperature();

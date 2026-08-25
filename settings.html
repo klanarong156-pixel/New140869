@@ -24,7 +24,7 @@
         <form id="telegramSettingsForm" class="ota-form">
           <label>Telegram Bot Token<input id="telegramBotToken" type="password" autocomplete="off" placeholder="123456789:AA..." maxlength="79" required></label>
           <label>Telegram Chat ID<input id="telegramChatId" type="text" inputmode="numeric" autocomplete="off" placeholder="เช่น 123456789" maxlength="31" required></label>
-          <div class="btn-row"><button id="telegramSaveButton" class="btn primary" type="submit">บันทึกลง ESP8266</button><button id="telegramTestButton" class="btn secondary" type="button">ส่งข้อความทดสอบ</button></div>
+          <div class="btn-row"><button id="telegramSaveButton" class="btn primary" type="submit">บันทึกลง ESP8266</button><button id="telegramTestButton" class="btn secondary" type="button">ส่งข้อความทดสอบ</button><a class="btn ghost" href="schedule.html#crop-reminders">ตั้งค่า reminder รอบปลูก</a></div>
         </form>
         <p id="telegramSettingsStatus" class="notice" role="status"><span>i</span><span>เชื่อมต่อ MQTT แล้วจึงจะส่งการตั้งค่าไปยังอุปกรณ์ได้</span></p>
         <p class="helper" style="margin-top:14px">ค่า Telegram จะถูกส่งผ่าน MQTT ไปบันทึกใน ESP8266 และไม่ถูกเก็บไว้ในโค้ดหรือ local storage ของแดชบอร์ด</p>
@@ -36,6 +36,6 @@
     <footer>สวนลุงนะ Smart Farm · ดูแลระบบอย่างมั่นใจ</footer>
   </main>
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a class="active" href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
-  <script src="firebase.js?v=8"></script><script src="mqtt.min.js?v=1"></script><script src="config.js?v=8"></script><script src="mqtt-handler.js?v=8"></script><script src="app.js?v=8"></script><script src="dashboard-ota.js?v=1"></script><script src="telegram-settings.js?v=1"></script><script src="access.js?v=8"></script>
+  <script src="firebase.js?v=8"></script><script src="mqtt.min.js?v=1"></script><script src="config.js?v=10"></script><script src="mqtt-handler.js?v=10"></script><script src="app.js?v=8"></script><script src="dashboard-ota.js?v=1"></script><script src="telegram-settings.js?v=1"></script><script src="access.js?v=8"></script>
 </body>
 </html>

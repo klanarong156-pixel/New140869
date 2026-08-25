@@ -7,6 +7,8 @@ const files = [
   'app.js',
   'schedule.js',
   'telegram-settings.js',
+  'crop-reminders.js',
+  'mqtt-shared-worker.js',
   'weather.js',
   'auto-weather-guard.js',
   'dashboard-ota.js',
@@ -25,6 +27,8 @@ const handler = read('mqtt-handler.js');
 const app = read('app.js');
 const schedule = read('schedule.js');
 const telegram = read('telegram-settings.js');
+const reminders = read('crop-reminders.js');
+const worker = read('mqtt-shared-worker.js');
 const weather = read('weather.js');
 const guard = read('auto-weather-guard.js');
 const ota = read('dashboard-ota.js');
@@ -32,6 +36,7 @@ const index = read('index.html');
 const schedulePage = read('schedule.html');
 const settings = read('settings.html');
 const firmware = read('SmartFarm_V6_PRODUCTION.ino');
+const sw = read('sw.js');
 
 const checks = [
   ['HiveMQ WSS endpoint is configured', /wss:\/\/[^"']+:8884\/mqtt/.test(cfg)],
@@ -43,18 +48,25 @@ const checks = [
   ['Device status topic exists', /deviceStatus: 'smartfarm\/device\/status'/.test(cfg)],
   ['Schedule topic factory exists', /scheduleSet: relay =>/.test(cfg)],
   ['Telegram topics exist', /telegramSet: 'smartfarm\/config\/telegram\/set'/.test(cfg) && /telegramTest: 'smartfarm\/config\/telegram\/test'/.test(cfg)],
+  ['Reminder topics exist', /reminderSet: 'smartfarm\/reminder\/set'/.test(cfg) && /reminderStatus: 'smartfarm\/reminder\/status'/.test(cfg)],
   ['Browser uses current MQTT handler', /new MqttHandler\(MQTT_CONFIG\)/.test(handler)],
+  ['SharedWorker keeps one MQTT connection across pages', /new SharedWorker/.test(handler) && /mqtt-shared-worker\.js/.test(handler) && /importScripts\('mqtt\.min\.js/.test(worker)],
   ['Current app binds relay controls', /\[data-relay-toggle\]/.test(app)],
   ['Unlimited timer command is supported', /seconds === 'UNLIMITED'/.test(app) && /UNLIMITED/.test(firmware)],
   ['Schedule payload uses slots/on/off schema', /return \{ slots: data \}/.test(schedule) && /JSON\.stringify\(payload\)/.test(schedule)],
   ['Schedule delete uses DELETE command', /scheduleSet\(activeRelay\), 'DELETE'/.test(schedule)],
   ['Telegram payload uses botToken/chatId', /botToken/.test(telegram) && /chatId/.test(telegram)],
   ['Telegram commands are non-retained', /retain: false/.test(telegram)],
+  ['Reminder UI stores tasks and sends settings', /cropReminders/.test(reminders) && /reminderSet/.test(reminders) && /farm\/cropReminders/.test(reminders)],
+  ['Schedule page contains reminder management UI', /id="crop-reminders"/.test(schedulePage) && /reminderSettingsForm/.test(schedulePage) && /reminderForm/.test(schedulePage)],
   ['Firmware uses same broker and base topic', /#define MQTT_SERVER/.test(firmware) && /#define MQTT_BASE "smartfarm"/.test(firmware)],
   ['Firmware subscribes to relay/timer/schedule topics', /relay\/\+\/set/.test(firmware) && /timer\/set/.test(firmware) && /schedule\/\+\/set/.test(firmware)],
   ['Firmware accepts Telegram topics', /config\/telegram\/set/.test(firmware) && /config\/telegram\/test/.test(firmware)],
+  ['Firmware accepts reminder topic and persists reminders', /reminder\/set/.test(firmware) && /smartfarm_reminders\.json/.test(firmware) && /runReminders/.test(firmware)],
+  ['Firmware deduplicates sent reminders', /lastSentDate/.test(firmware) && /send_failed/.test(firmware)],
   ['Firmware schedule parser accepts slots/on/off', /d\["slots"\]/.test(firmware) && /o\["on"\]/.test(firmware) && /o\["off"\]/.test(firmware)],
   ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
+  ['PWA caches reminder assets', /crop-reminders\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw)],
   ['Dashboard loads OTA controller', /dashboard-ota\.js\?v=/.test(settings) && /otaDashboardForm/.test(ota)],
   ['Weather assets are loaded by dashboard', /weather\.js\?v=/.test(index)],
   ['Open-Meteo endpoint configured', /https:\/\/api\.open-meteo\.com\/v1\/forecast/.test(weather)],

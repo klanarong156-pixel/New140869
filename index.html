@@ -52,6 +52,12 @@
       <div class="btn-row" style="margin-top:16px"><a class="btn secondary small" href="schedule.html#crop-cycle-title">จัดการรอบปลูก</a></div>
     </section>
 
+    <section id="cropTasksCard" class="section card pad crop-tasks-card" aria-labelledby="crop-tasks-title">
+      <div class="section-head"><div><p class="kicker">CROP CARE · TELEGRAM</p><h2 id="crop-tasks-title">รอบปลูกและสิ่งที่ต้องทำ</h2><p class="helper">ดูงานถัดไปและกำหนดการเตือนในหน้าเดียว</p></div><span id="cropTasksCount" class="tag success">กำลังโหลด…</span></div>
+      <div id="cropTasksSummary" class="crop-task-highlight"><span class="crop-task-icon" aria-hidden="true">◷</span><div><strong id="cropTasksTitle">กำลังโหลดงานรอบปลูก…</strong><p id="cropTasksMeta" class="helper">ข้อมูลจะซิงก์กับ ESP8266 เมื่อ MQTT เชื่อมต่อ</p></div></div>
+      <div class="btn-row" style="margin-top:14px"><a id="cropTasksLink" class="btn secondary small" href="schedule.html#crop-reminders">จัดการงานรอบปลูก</a><span id="telegramReminderStatus" class="notice" style="margin:0;padding:7px 9px"><span>⌁</span><span>Telegram reminder</span></span></div>
+    </section>
+
     <section id="weatherBox" class="section card pad" aria-labelledby="weather-title">
       <div class="section-head"><div><p class="kicker">OPEN‑METEO · RAIN PROTECTION</p><h2 id="weather-title">อากาศที่ช่วยตัดสินใจ</h2><p id="weatherLocation" class="helper">กำลังเตรียมข้อมูลตำแหน่ง…</p></div><span class="tag">ไม่ใช้ API Key</span></div>
       <div class="weather-grid weather-grid-compact">
@@ -91,7 +97,7 @@
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
   <script src="firebase.js?v=8"></script><script src="mqtt.min.js?v=1"></script>
-  <script src="config.js?v=9"></script><script src="mqtt-handler.js?v=9"></script><script src="finance-core.js?v=1"></script><script src="finance-firebase.js?v=1"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=9"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-dashboard.js?v=2"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="config.js?v=10"></script><script src="mqtt-handler.js?v=10"></script><script src="finance-core.js?v=1"></script><script src="finance-firebase.js?v=1"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=9"></script><script src="access.js?v=9"></script><script src="crop-cycle.js?v=2"></script><script src="crop-reminders.js?v=1"></script><script src="crop-dashboard.js?v=2"></script><script src="weather.js?v=7"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

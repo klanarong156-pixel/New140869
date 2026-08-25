@@ -480,3 +480,66 @@ body::before { opacity:.035; background-size:36px 36px; }
 @media (max-width:640px) {
   .control-card .icon { width:35px; height:35px; flex-basis:35px; border-radius:11px; font-size:18px; }
 }
+
+
+/* Crop cycle Telegram reminders — UI only; MQTT transport remains unchanged */
+.reminder-section { overflow:hidden; background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(67,161,92,.075)); }
+.reminder-section .section-head h2, .reminder-section .section-head h3 { letter-spacing:-.025em; }
+.reminder-settings { display:grid; gap:10px; padding:13px; border:1px solid rgba(119,215,156,.16); border-radius:15px; background:rgba(72,190,112,.055); }
+.reminder-settings .slot-toggle { padding:8px 0; }
+.reminder-settings .time-grid { margin:0; }
+.reminder-settings select, .reminder-settings input[type="time"], .reminder-editor select, .reminder-editor input, .reminder-editor textarea { width:100%; min-height:38px; padding:8px 10px; border:1px solid var(--line); border-radius:10px; color:var(--text); background:rgba(255,255,255,.07); font:inherit; }
+.reminder-settings label, .reminder-editor label { display:grid; gap:5px; color:var(--muted); font-size:11px; }
+.reminder-settings .slot-toggle, .reminder-editor .schedule-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.reminder-settings .slot-toggle input { width:18px; height:18px; accent-color:#69d895; }
+.reminder-layout { display:grid; grid-template-columns:minmax(260px,.82fr) minmax(0,1.18fr); gap:11px; margin-top:12px; }
+.reminder-editor { padding:13px !important; background:rgba(255,255,255,.035); }
+.reminder-list-wrap { min-width:0; padding:2px 0; }
+.reminder-list { display:grid; gap:8px; }
+.reminder-item { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:9px; align-items:start; padding:11px; border:1px solid var(--line); border-radius:13px; background:rgba(255,255,255,.045); }
+.reminder-item.is-soon { border-color:rgba(233,200,121,.45); background:rgba(233,200,121,.075); }
+.reminder-item.is-overdue { border-color:rgba(255,129,146,.4); background:rgba(255,129,146,.07); }
+.reminder-item.is-done { opacity:.7; border-color:rgba(119,215,156,.24); background:rgba(72,190,112,.055); }
+.reminder-item-icon { display:grid; place-items:center; width:28px; height:28px; border-radius:9px; color:#e9c879; background:rgba(233,200,121,.13); font-weight:800; }
+.reminder-item.is-overdue .reminder-item-icon { color:#ffabb6; background:rgba(255,129,146,.12); }
+.reminder-item.is-done .reminder-item-icon { color:#82efaa; background:rgba(72,190,112,.13); }
+.reminder-item-main { min-width:0; }
+.reminder-item-main strong { display:block; overflow:hidden; color:var(--text); font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+.reminder-item-main small { display:block; margin-top:4px; color:var(--muted); font-size:10px; line-height:1.45; }
+.reminder-item-date { color:var(--muted); font-size:10px; white-space:nowrap; }
+.reminder-item-actions { display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; }
+.reminder-item-actions button { min-height:25px; padding:4px 7px; border:1px solid var(--line); border-radius:8px; color:var(--muted); background:rgba(255,255,255,.06); font-size:10px; cursor:pointer; }
+.reminder-item-actions button:hover, .reminder-item-actions button:focus-visible { border-color:rgba(119,215,156,.56); color:var(--text); background:rgba(72,190,112,.13); }
+#reminderStatus.notice.success, #telegramReminderStatus.notice.success { border-color:rgba(119,215,156,.32); }
+#reminderStatus.notice.warning, #telegramReminderStatus.notice.warning { border-color:rgba(233,200,121,.34); }
+@media (max-width:780px) {
+  .reminder-layout { grid-template-columns:1fr; }
+  .reminder-list-wrap { padding-top:5px; }
+}
+@media (max-width:640px) {
+  .reminder-settings { padding:10px; border-radius:13px; }
+  .reminder-layout { gap:8px; margin-top:9px; }
+  .reminder-item { grid-template-columns:auto minmax(0,1fr); padding:9px; }
+  .reminder-item-date { grid-column:2; }
+  .reminder-item-main strong { font-size:11px; }
+  .reminder-item-main small { font-size:9px; }
+  .reminder-item-actions button { font-size:9px; }
+}
+
+
+/* Dashboard crop-task summary */
+.crop-tasks-card { background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(72,190,112,.08)); }
+.crop-task-highlight { display:flex; align-items:center; gap:11px; min-height:68px; padding:12px; border:1px solid rgba(233,200,121,.3); border-radius:13px; background:rgba(233,200,121,.07); }
+.crop-task-icon { display:grid; place-items:center; width:36px; height:36px; flex:0 0 36px; border-radius:12px; color:#e9c879; background:rgba(233,200,121,.14); font-size:20px; }
+.crop-task-highlight strong { display:block; color:var(--text); font-size:14px; }
+.crop-task-highlight .helper { margin-top:4px; font-size:11px; }
+.crop-tasks-card .btn-row { align-items:center; }
+.crop-tasks-card .notice { margin:0; padding:7px 9px; font-size:10px; }
+@media (max-width:640px) {
+  .crop-task-highlight { min-height:60px; padding:9px; }
+  .crop-task-icon { width:31px; height:31px; flex-basis:31px; border-radius:10px; font-size:17px; }
+  .crop-task-highlight strong { font-size:12px; }
+  .crop-task-highlight .helper { font-size:9px; }
+  .crop-tasks-card .btn-row { display:grid; grid-template-columns:1fr; gap:7px; }
+  .crop-tasks-card .btn-row .notice { justify-content:center; }
+}
