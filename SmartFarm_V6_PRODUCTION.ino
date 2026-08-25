@@ -190,15 +190,21 @@ struct CropReminder {
   bool enabled;
   bool done;
   uint8_t leadDays;
+  uint8_t repeatEveryDays;
   char id[32];
   char title[72];
   char dueDate[11];
   char note[128];
+  char plotId[32];
   char lastSentDate[11];
 };
 CropReminder reminders[REMINDER_COUNT] = {};
 bool reminderEnabled = true;
 bool reminderRepeatDaily = false;
+uint8_t reminderQuietStartHour = 22;
+uint8_t reminderQuietStartMinute = 0;
+uint8_t reminderQuietEndHour = 7;
+uint8_t reminderQuietEndMinute = 0;
 uint8_t reminderDefaultLeadDays = 1;
 uint8_t reminderHour = 18;
 uint8_t reminderMinute = 0;
@@ -539,6 +545,10 @@ void loadReminders() {
   clearReminders();
   reminderEnabled = true;
   reminderRepeatDaily = false;
+  reminderQuietStartHour = 22;
+  reminderQuietStartMinute = 0;
+  reminderQuietEndHour = 7;
+  reminderQuietEndMinute = 0;
   reminderDefaultLeadDays = 1;
   reminderHour = 18;
   reminderMinute = 0;
@@ -554,6 +564,10 @@ void loadReminders() {
     return;
   reminderEnabled = d["enabled"] | true;
   reminderRepeatDaily = d["repeatDaily"] | false;
+  reminderQuietStartHour = clampInt(d["quietStartHour"] | 22, 0, 23, 22);
+  reminderQuietStartMinute = clampInt(d["quietStartMinute"] | 0, 0, 59, 0);
+  reminderQuietEndHour = clampInt(d["quietEndHour"] | 7, 0, 23, 7);
+  reminderQuietEndMinute = clampInt(d["quietEndMinute"] | 0, 0, 59, 0);
   reminderDefaultLeadDays = clampInt(d["leadDays"] | 1, 0, 7, 1);
   reminderHour = clampInt(d["hour"] | 18, 0, 23, 18);
   reminderMinute = clampInt(d["minute"] | 0, 0, 59, 0);
@@ -572,11 +586,13 @@ void loadReminders() {
     CropReminder &reminder = reminders[index++];
     reminder.enabled = item["enabled"] | true;
     reminder.done = item["done"] | false;
+    reminder.repeatEveryDays = clampInt(item["repeatEveryDays"] | 0, 0, 30, 0);
     reminder.leadDays = clampInt(item["leadDays"] | reminderDefaultLeadDays, 0, 7, reminderDefaultLeadDays);
     strlcpy(reminder.id, id, sizeof(reminder.id));
     strlcpy(reminder.title, title, sizeof(reminder.title));
     strlcpy(reminder.dueDate, due, sizeof(reminder.dueDate));
     strlcpy(reminder.note, item["note"] | "", sizeof(reminder.note));
+    strlcpy(reminder.plotId, item["plotId"] | "", sizeof(reminder.plotId));
     strlcpy(reminder.lastSentDate, item["lastSentDate"] | "",
             sizeof(reminder.lastSentDate));
   }
@@ -588,6 +604,10 @@ void saveReminders() {
   DynamicJsonDocument d(4096);
   d["enabled"] = reminderEnabled;
   d["repeatDaily"] = reminderRepeatDaily;
+  d["quietStartHour"] = reminderQuietStartHour;
+  d["quietStartMinute"] = reminderQuietStartMinute;
+  d["quietEndHour"] = reminderQuietEndHour;
+  d["quietEndMinute"] = reminderQuietEndMinute;
   d["leadDays"] = reminderDefaultLeadDays;
   d["hour"] = reminderHour;
   d["minute"] = reminderMinute;
@@ -598,11 +618,13 @@ void saveReminders() {
     JsonObject item = items.createNestedObject();
     item["enabled"] = reminders[i].enabled;
     item["done"] = reminders[i].done;
+    item["repeatEveryDays"] = reminders[i].repeatEveryDays;
     item["leadDays"] = reminders[i].leadDays;
     item["id"] = reminders[i].id;
     item["title"] = reminders[i].title;
     item["due"] = reminders[i].dueDate;
     item["note"] = reminders[i].note;
+    item["plotId"] = reminders[i].plotId;
     item["lastSentDate"] = reminders[i].lastSentDate;
   }
   File f = LittleFS.open("/smartfarm_reminders.json", "w");
@@ -616,10 +638,14 @@ void publishReminderStatus(const char *event, int index = -1,
                            const String &detail = String()) {
   if (!mqtt.connected())
     return;
-  StaticJsonDocument<640> d;
+  StaticJsonDocument<768> d;
   d["event"] = event ? event : "status";
   d["enabled"] = reminderEnabled;
   d["repeatDaily"] = reminderRepeatDaily;
+  d["quietStartHour"] = reminderQuietStartHour;
+  d["quietStartMinute"] = reminderQuietStartMinute;
+  d["quietEndHour"] = reminderQuietEndHour;
+  d["quietEndMinute"] = reminderQuietEndMinute;
   d["leadDays"] = reminderDefaultLeadDays;
   d["hour"] = reminderHour;
   d["minute"] = reminderMinute;
@@ -628,11 +654,14 @@ void publishReminderStatus(const char *event, int index = -1,
     d["id"] = reminder.id;
     d["done"] = reminder.done;
     d["taskEnabled"] = reminder.enabled;
+    d["due"] = reminder.dueDate;
+    d["repeatEveryDays"] = reminder.repeatEveryDays;
+    d["plotId"] = reminder.plotId;
     d["lastSentDate"] = reminder.lastSentDate;
   }
   if (detail.length())
     d["detail"] = detail;
-  char out[640];
+  char out[768];
   serializeJson(d, out, sizeof(out));
   mqtt.publish(MQTT_BASE "/reminder/status", out, true);
 }
@@ -645,6 +674,10 @@ bool handleReminderMessage(const String &message) {
   if (strcmp(op, "settings") == 0) {
     reminderEnabled = d["enabled"] | true;
     reminderRepeatDaily = d["repeatDaily"] | false;
+    reminderQuietStartHour = clampInt(d["quietStartHour"] | 22, 0, 23, 22);
+    reminderQuietStartMinute = clampInt(d["quietStartMinute"] | 0, 0, 59, 0);
+    reminderQuietEndHour = clampInt(d["quietEndHour"] | 7, 0, 23, 7);
+    reminderQuietEndMinute = clampInt(d["quietEndMinute"] | 0, 0, 59, 0);
     reminderDefaultLeadDays = clampInt(d["leadDays"] | 1, 0, 7, 1);
     reminderHour = clampInt(d["hour"] | 18, 0, 23, 18);
     reminderMinute = clampInt(d["minute"] | 0, 0, 59, 0);
@@ -703,17 +736,24 @@ bool handleReminderMessage(const String &message) {
   if (index < 0)
     return false;
   CropReminder &reminder = reminders[index];
+    uint8_t nextRepeatEveryDays = clampInt(d["repeatEveryDays"] | 0, 0, 30, 0);
+  const char *nextPlotId = d["plotId"] | "";
   bool changed = strcmp(reminder.title, title) != 0 ||
-                strcmp(reminder.dueDate, due) != 0 ||
-                reminder.leadDays !=
-                    clampInt(d["leadDays"] | reminderDefaultLeadDays, 0, 7, reminderDefaultLeadDays);
+                 strcmp(reminder.dueDate, due) != 0 ||
+                 strcmp(reminder.plotId, nextPlotId) != 0 ||
+                 reminder.repeatEveryDays != nextRepeatEveryDays ||
+                 reminder.leadDays !=
+                     clampInt(d["leadDays"] | reminderDefaultLeadDays, 0, 7, reminderDefaultLeadDays);
   reminder.enabled = d["enabled"] | true;
   reminder.done = d["done"] | false;
+  reminder.repeatEveryDays = nextRepeatEveryDays;
   reminder.leadDays = clampInt(d["leadDays"] | reminderDefaultLeadDays, 0, 7, reminderDefaultLeadDays);
+
   strlcpy(reminder.id, id, sizeof(reminder.id));
   strlcpy(reminder.title, title, sizeof(reminder.title));
   strlcpy(reminder.dueDate, due, sizeof(reminder.dueDate));
   strlcpy(reminder.note, d["note"] | "", sizeof(reminder.note));
+  strlcpy(reminder.plotId, nextPlotId, sizeof(reminder.plotId));
   if (changed)
     reminder.lastSentDate[0] = '\0';
   saveReminders();
@@ -721,22 +761,58 @@ bool handleReminderMessage(const String &message) {
   return true;
 }
 
+String reminderDateAfterDays(const char *value, int days) {
+  if (!validDateString(value))
+    return String(value ? value : "");
+  int year = 0, month = 0, day = 0;
+  if (sscanf(value, "%d-%d-%d", &year, &month, &day) != 3)
+    return String(value);
+  DateTime next((uint32_t)(DateTime(year, month, day).unixtime() + (int32_t)days * 86400L));
+  char out[11];
+  snprintf(out, sizeof(out), "%04u-%02u-%02u", next.year(), next.month(), next.day());
+  return String(out);
+}
+
+bool reminderInQuietHours() {
+  uint16_t now = currentMinutes();
+  uint16_t start = reminderQuietStartHour * 60U + reminderQuietStartMinute;
+  uint16_t end = reminderQuietEndHour * 60U + reminderQuietEndMinute;
+  if (start == end)
+    return false;
+  return start < end ? (now >= start && now < end) : (now >= start || now < end);
+}
+
 void runReminderTask(uint8_t index, const String &today, bool overdue) {
   CropReminder &reminder = reminders[index];
   String message = overdue ? "งานรอบปลูกเลยกำหนดแล้ว" : "แจ้งเตือนงานรอบปลูกล่วงหน้า";
   message += "\n\n";
-  message += overdue ? "งาน: " : "กำหนดพรุ่งนี้: ";
+  message += overdue ? "งาน: " : "กำหนด: ";
   message += reminder.title;
+  if (reminder.plotId[0]) {
+    message += "\nแปลง: ";
+    message += reminder.plotId;
+  }
   message += "\nครบกำหนด: ";
   message += reminder.dueDate;
+  if (reminder.repeatEveryDays > 0) {
+    message += "\nทำซ้ำทุก ";
+    message += reminder.repeatEveryDays;
+    message += " วัน";
+  }
   if (reminder.note[0]) {
     message += "\nรายละเอียด: ";
     message += reminder.note;
   }
   if (telegramNotify(message)) {
-    strlcpy(reminder.lastSentDate, today.c_str(), sizeof(reminder.lastSentDate));
+    if (reminder.repeatEveryDays > 0) {
+      String nextDue = reminderDateAfterDays(reminder.dueDate, reminder.repeatEveryDays);
+      strlcpy(reminder.dueDate, nextDue.c_str(), sizeof(reminder.dueDate));
+      reminder.lastSentDate[0] = '\0';
+    } else {
+      strlcpy(reminder.lastSentDate, today.c_str(), sizeof(reminder.lastSentDate));
+    }
     saveReminders();
-    publishReminderStatus("sent", index);
+    publishReminderStatus(reminder.repeatEveryDays > 0 ? "sent_recurring" : "sent", index);
   } else {
     publishReminderStatus("send_failed", index);
   }
@@ -747,6 +823,8 @@ void runReminders() {
     return;
   lastReminderCheck = millis();
   if (!reminderEnabled || !clockIsValid())
+    return;
+  if (reminderInQuietHours())
     return;
   String today = currentDateString();
   if (!validDateString(today.c_str()))

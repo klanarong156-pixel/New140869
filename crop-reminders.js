@@ -8,6 +8,8 @@
   const state = {
     enabled: true,
     repeatDaily: false,
+    quietStart: '22:00',
+    quietEnd: '07:00',
     leadDays: 1,
     hour: 18,
     minute: 0,
@@ -32,6 +34,8 @@
       title,
       due,
       note: String(value.note || '').trim().slice(0, 120),
+      plotId: String(value.plotId || '').trim().slice(0, 32),
+      repeatEveryDays: clamp(value.repeatEveryDays, 0, 30, 0),
       leadDays: clamp(value.leadDays, 0, 7, state.leadDays),
       enabled: value.enabled !== false,
       done: value.done === true,
@@ -42,6 +46,8 @@
   function normalizeBundle(value = {}) {
     state.enabled = value.enabled !== false;
     state.repeatDaily = value.repeatDaily === true;
+    state.quietStart = /^\d{2}:\d{2}$/.test(String(value.quietStart || '')) ? String(value.quietStart) : '22:00';
+    state.quietEnd = /^\d{2}:\d{2}$/.test(String(value.quietEnd || '')) ? String(value.quietEnd) : '07:00';
     state.leadDays = clamp(value.leadDays, 0, 7, 1);
     state.hour = clamp(value.hour, 0, 23, 18);
     state.minute = clamp(value.minute, 0, 59, 0);
@@ -55,6 +61,8 @@
     return {
       enabled: state.enabled,
       repeatDaily: state.repeatDaily,
+      quietStart: state.quietStart,
+      quietEnd: state.quietEnd,
       leadDays: state.leadDays,
       hour: state.hour,
       minute: state.minute,
@@ -116,14 +124,7 @@
 
   function syncToDevice() {
     if (!isMqttConnected()) return false;
-    publish({
-      op: 'settings',
-      enabled: state.enabled,
-      repeatDaily: state.repeatDaily,
-      leadDays: state.leadDays,
-      hour: state.hour,
-      minute: state.minute
-    }, true);
+    publish(settingsPayload(), true);
     state.items.forEach(item => publish({ op: 'upsert', ...item }, true));
     setStatus('ตั้งค่า reminder พร้อมใช้งานบน ESP8266', 'success');
     return true;
@@ -171,6 +172,17 @@
     return `${String(state.hour).padStart(2, '0')}:${String(state.minute).padStart(2, '0')}`;
   }
 
+  function timeParts(value, fallbackHour, fallbackMinute) {
+    const match = /^(\d{2}):(\d{2})$/.exec(String(value || ''));
+    return match ? { hour: Number(match[1]), minute: Number(match[2]) } : { hour: fallbackHour, minute: fallbackMinute };
+  }
+
+  function settingsPayload() {
+    const start = timeParts(state.quietStart, 22, 0);
+    const end = timeParts(state.quietEnd, 7, 0);
+    return { op: 'settings', enabled: state.enabled, repeatDaily: state.repeatDaily, quietStartHour: start.hour, quietStartMinute: start.minute, quietEndHour: end.hour, quietEndMinute: end.minute, leadDays: state.leadDays, hour: state.hour, minute: state.minute };
+  }
+
   function pendingItems() {
     return state.items.filter(item => item.enabled && !item.done).sort((a, b) => a.due.localeCompare(b.due));
   }
@@ -203,6 +215,9 @@
   function renderSettings() {
     if ($('reminderEnabled')) $('reminderEnabled').checked = state.enabled;
     if ($('reminderRepeatDaily')) $('reminderRepeatDaily').checked = state.repeatDaily;
+    if ($('reminderQuietStart')) $('reminderQuietStart').value = state.quietStart;
+    if ($('reminderQuietEnd')) $('reminderQuietEnd').value = state.quietEnd;
+    if ($('reminderQuietSummary')) $('reminderQuietSummary').textContent = `ช่วงเงียบ ${state.quietStart}–${state.quietEnd}`;
     if ($('reminderLeadDays')) $('reminderLeadDays').value = String(state.leadDays);
     if ($('reminderTime')) $('reminderTime').value = reminderTime();
     const configured = $('telegramReminderConfigured');
@@ -223,7 +238,8 @@
       article.className = `reminder-item ${item.done ? 'is-done' : delta < 0 ? 'is-overdue' : delta <= 1 ? 'is-soon' : ''}`;
       article.innerHTML = `<div class="reminder-item-icon">${item.done ? '✓' : delta < 0 ? '!' : '◷'}</div><div class="reminder-item-main"><strong></strong><small></small><div class="reminder-item-actions"></div></div><span class="reminder-item-date"></span>`;
       article.querySelector('strong').textContent = `${relativeDate(item.due)} · ${item.title}`;
-      article.querySelector('small').textContent = `${formatDate(item.due)} · ${item.note || 'ไม่มีหมายเหตุ'} · เตือน ${item.leadDays} วันล่วงหน้า เวลา ${reminderTime()}`;
+      const plot = window.cropPlots?.find?.(item.plotId);
+      article.querySelector('small').textContent = `${formatDate(item.due)} · ${plot ? `${plot.name} · ` : ''}${item.note || 'ไม่มีหมายเหตุ'} · ${item.repeatEveryDays ? `ทำซ้ำทุก ${item.repeatEveryDays} วัน · ` : ''}เตือน ${item.leadDays} วันล่วงหน้า เวลา ${reminderTime()}`;
       article.querySelector('.reminder-item-date').textContent = item.done ? 'เสร็จแล้ว' : item.enabled ? 'เปิดเตือน' : 'ปิดเตือน';
       const actions = article.querySelector('.reminder-item-actions');
       if (!item.done) {
@@ -255,11 +271,13 @@
     }
     state.enabled = Boolean($('reminderEnabled')?.checked);
     state.repeatDaily = Boolean($('reminderRepeatDaily')?.checked);
+    state.quietStart = String($('reminderQuietStart')?.value || '22:00');
+    state.quietEnd = String($('reminderQuietEnd')?.value || '07:00');
     state.leadDays = clamp($('reminderLeadDays')?.value, 0, 7, 1);
     state.hour = Number(match[1]);
     state.minute = Number(match[2]);
     await persist();
-    publish({ op: 'settings', enabled: state.enabled, repeatDaily: state.repeatDaily, leadDays: state.leadDays, hour: state.hour, minute: state.minute });
+    publish(settingsPayload());
     renderAll();
     setStatus('บันทึกการตั้งค่า Telegram reminder แล้ว', 'success');
     return true;
@@ -287,6 +305,8 @@
       title,
       due,
       note: $('reminderNote')?.value || '',
+      plotId: $('reminderPlotId')?.value || '',
+      repeatEveryDays: $('reminderRepeatDays')?.value,
       leadDays: $('reminderLead')?.value,
       enabled: existing?.enabled !== false,
       done: existing?.done === true && existing.due === due
@@ -312,13 +332,16 @@
     const id = button.dataset.reminderId;
     const index = state.items.findIndex(item => item.id === id);
     if (index < 0) return;
-    const item = state.items[index];
-    const action = button.dataset.reminderAction;
+          const item = state.items[index];
+      const action = button.dataset.reminderAction;
+
     if (action === 'edit') {
       if ($('reminderTaskId')) $('reminderTaskId').value = item.id;
       if ($('reminderTitle')) $('reminderTitle').value = item.title;
       if ($('reminderDue')) $('reminderDue').value = item.due;
       if ($('reminderNote')) $('reminderNote').value = item.note;
+      if ($('reminderPlotId')) $('reminderPlotId').value = item.plotId || '';
+      if ($('reminderRepeatDays')) $('reminderRepeatDays').value = String(item.repeatEveryDays || 0);
       if ($('reminderLead')) $('reminderLead').value = String(item.leadDays);
       if ($('reminderFormTitle')) $('reminderFormTitle').textContent = 'แก้ไขงานรอบปลูก';
       $('reminderTitle')?.focus();
@@ -327,10 +350,12 @@
     if (action === 'delete') {
       if (!window.confirm(`ลบงาน “${item.title}” หรือไม่?`)) return;
       state.items.splice(index, 1);
+      window.farmAnalytics?.recordTask?.('deleted', { id, title: item.title });
       await persist();
       publish({ op: 'delete', id });
     } else if (action === 'done') {
       item.done = true;
+      window.farmAnalytics?.recordTask?.('done', { id, title: item.title });
       await persist();
       publish({ op: 'done', id, done: true });
     } else if (action === 'toggle') {
@@ -342,6 +367,7 @@
       item.due = due;
       item.done = false;
       item.lastSentDate = '';
+      window.farmAnalytics?.recordTask?.('snoozed', { id, title: item.title, due });
       await persist();
       publish({ op: 'snooze', id, due });
     }
@@ -359,11 +385,26 @@
     window.addEventListener('mqtt:connected', syncToDevice);
     window.addEventListener('reminder:status', event => {
       const detail = event.detail || {};
+      let changed = false;
+      const hm = (hour, minute, fallback) => Number.isFinite(Number(hour)) && Number.isFinite(Number(minute)) ? `${String(Number(hour)).padStart(2, '0')}:${String(Number(minute)).padStart(2, '0')}` : fallback;
+      if (detail.quietStartHour !== undefined) state.quietStart = hm(detail.quietStartHour, detail.quietStartMinute, state.quietStart);
+      if (detail.quietEndHour !== undefined) state.quietEnd = hm(detail.quietEndHour, detail.quietEndMinute, state.quietEnd);
+      if (detail.leadDays !== undefined) state.leadDays = clamp(detail.leadDays, 0, 7, state.leadDays);
+      if (detail.hour !== undefined) state.hour = clamp(detail.hour, 0, 23, state.hour);
+      if (detail.minute !== undefined) state.minute = clamp(detail.minute, 0, 59, state.minute);
       if (detail.id) {
         const item = state.items.find(entry => entry.id === detail.id);
-        if (item && detail.lastSentDate !== undefined) item.lastSentDate = detail.lastSentDate || '';
+        if (item) {
+          if (detail.lastSentDate !== undefined && item.lastSentDate !== (detail.lastSentDate || '')) { item.lastSentDate = detail.lastSentDate || ''; changed = true; }
+          if (detail.due && item.due !== detail.due) { item.due = detail.due; changed = true; }
+          if (detail.done !== undefined && item.done !== Boolean(detail.done)) { item.done = Boolean(detail.done); changed = true; }
+          if (detail.taskEnabled !== undefined && item.enabled !== Boolean(detail.taskEnabled)) { item.enabled = Boolean(detail.taskEnabled); changed = true; }
+          if (detail.repeatEveryDays !== undefined && item.repeatEveryDays !== (Number(detail.repeatEveryDays) || 0)) { item.repeatEveryDays = Number(detail.repeatEveryDays) || 0; changed = true; }
+          if (detail.plotId !== undefined && item.plotId !== (detail.plotId || '')) { item.plotId = detail.plotId || ''; changed = true; }
+        }
       }
-      if (detail.event === 'sent') setStatus('ESP8266 ส่ง Telegram reminder แล้ว', 'success');
+      if (changed) persist();
+      if (detail.event === 'sent' || detail.event === 'sent_recurring') { setStatus('ESP8266 ส่ง Telegram reminder แล้ว', 'success'); window.farmAnalytics?.recordTask?.('sent', detail); }
       if (detail.event === 'send_failed') setStatus('ESP8266 ส่ง reminder ไม่สำเร็จ จะตรวจอีกครั้งตามรอบ', 'warning');
       renderAll();
     });
