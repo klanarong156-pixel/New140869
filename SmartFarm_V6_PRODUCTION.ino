@@ -321,8 +321,29 @@ bool relayHasSchedule(uint8_t r) {
     if (schedules[r][s].enabled) return true;
   return false;
 }
+bool validRtcDateTime(const DateTime &value) {
+  return value.isValid() && value.year() >= 2024 && value.year() <= 2099;
+}
+bool readRtcNow(DateTime &value) {
+  if (!rtcAvailable) {
+    rtcTimeValid = false;
+    return false;
+  }
+  DateTime candidate = rtc.now();
+  if (!validRtcDateTime(candidate)) {
+    rtcTimeValid = false;
+    return false;
+  }
+  value = candidate;
+  rtcTimeValid = true;
+  return true;
+}
 bool clockIsValid() {
-  return (rtcAvailable && rtcTimeValid) || ntp.getEpochTime() >= 1704067200UL;
+  if (rtcAvailable && rtcTimeValid) {
+    DateTime checked(2000, 1, 1);
+    if (readRtcNow(checked)) return true;
+  }
+  return ntp.getEpochTime() >= 1704067200UL;
 }
 bool relayScheduleDesired(uint8_t r, uint16_t now) {
   if (r >= RELAY_COUNT)
@@ -493,8 +514,8 @@ bool validDateString(const char *value) {
 }
 
 String currentDateString() {
-  if (rtcAvailable && rtcTimeValid) {
-    DateTime now = rtc.now();
+  DateTime now(2000, 1, 1);
+  if (readRtcNow(now)) {
     char out[11];
     snprintf(out, sizeof(out), "%04u-%02u-%02u", now.year(), now.month(),
              now.day());
@@ -503,9 +524,9 @@ String currentDateString() {
   uint32_t epoch = ntp.getEpochTime();
   if (epoch < 1704067200UL)
     return String();
-  DateTime now(epoch);
+  DateTime fallbackNow(epoch);
   char out[12];
-  snprintf(out, sizeof(out), "%04u-%02u-%02u", now.year(), now.month(), now.day());
+  snprintf(out, sizeof(out), "%04u-%02u-%02u", fallbackNow.year(), fallbackNow.month(), fallbackNow.day());
   return String(out);
 }
 
@@ -847,21 +868,17 @@ void runReminders() {
 }
 
 uint16_t currentMinutes() {
-  if (rtcAvailable && rtcTimeValid) {
-    DateTime n = rtc.now();
-    return n.hour() * 60U + n.minute();
-  }
+  DateTime now(2000, 1, 1);
+  if (readRtcNow(now)) return now.hour() * 60U + now.minute();
   return ntp.getHours() * 60U + ntp.getMinutes();
 }
 String rtcIso() {
-  if (rtcAvailable && rtcTimeValid) {
-    DateTime n = rtc.now();
-    char b[25];
-    snprintf(b, sizeof(b), "%04u-%02u-%02uT%02u:%02u:%02u+07:00", n.year(),
-             n.month(), n.day(), n.hour(), n.minute(), n.second());
-    return String(b);
-  }
-  return String();
+  DateTime now(2000, 1, 1);
+  if (!readRtcNow(now)) return String();
+  char b[25];
+  snprintf(b, sizeof(b), "%04u-%02u-%02uT%02u:%02u:%02u+07:00", now.year(),
+           now.month(), now.day(), now.hour(), now.minute(), now.second());
+  return String(b);
 }
 void initRTC() {
   Wire.begin(RTC_SDA, RTC_SCL);
@@ -875,8 +892,10 @@ void initRTC() {
     rtcTimeValid = false;
     Serial.println(F("DS3231 lost power - waiting for NTP sync"));
   } else {
-    DateTime n = rtc.now();
-    rtcTimeValid = n.year() >= 2024 && n.year() <= 2099;
+    DateTime n(2000, 1, 1);
+    rtcTimeValid = readRtcNow(n);
+    if (!rtcTimeValid)
+      Serial.println(F("DS3231 returned invalid time - NTP fallback"));
   }
 }
 void syncRTCFromNTP(bool force = false) {
@@ -889,9 +908,20 @@ void syncRTCFromNTP(bool force = false) {
     uint32_t localEpoch = ntp.getEpochTime();
     if (localEpoch >= 1704067200UL) {
       rtc.adjust(DateTime(localEpoch));
-      rtcTimeValid = true;
-      lastRtcSync = millis();
-      Serial.println(F("RTC synced from NTP"));
+      DateTime verified(2000, 1, 1);
+      bool readBackOk = readRtcNow(verified);
+      uint32_t verifiedEpoch = readBackOk ? verified.unixtime() : 0;
+      uint32_t delta = verifiedEpoch >= localEpoch
+                           ? verifiedEpoch - localEpoch
+                           : localEpoch - verifiedEpoch;
+      if (readBackOk && delta <= 2UL) {
+        rtcTimeValid = true;
+        lastRtcSync = millis();
+        Serial.println(F("RTC synced from NTP and read-back verified"));
+      } else {
+        rtcTimeValid = false;
+        Serial.println(F("RTC sync read-back failed - NTP fallback"));
+      }
     }
   }
 }
@@ -1589,9 +1619,10 @@ void publishHeartbeat() {
   d["heap"] = ESP.getFreeHeap();
   d["rssi"] = WiFi.RSSI();
   d["pumpSafeLock"] = pumpSafetyLatched;
-  d["clockValid"] = clockIsValid();
-  d["rtc"] = rtcAvailable && rtcTimeValid;
   String iso = rtcIso();
+  bool rtcNowValid = rtcAvailable && rtcTimeValid && iso.length();
+  d["clockValid"] = rtcNowValid || ntp.getEpochTime() >= 1704067200UL;
+  d["rtc"] = rtcNowValid;
   if (iso.length())
     d["time"] = iso;
   char out[384];
