@@ -31,11 +31,13 @@ jobs:
         run: |
           set -euo pipefail
           while IFS= read -r file; do
-            grep -oE '(src|href)="[^"]+"' "$file" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' | while IFS= read -r ref; do
+            refs=$(grep -oE '(src|href)="[^"]+"' "$file" || true)
+            while IFS= read -r ref; do
+              [[ -z "$ref" ]] && continue
               local_ref="${ref%%\?*}"
               local_ref="${local_ref%%\#*}"
               test -e "$local_ref" || { echo "$file -> $ref (MISSING)"; exit 1; }
-            done
+            done < <(printf '%s\n' "$refs" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' || true)
           done < <(find . -maxdepth 1 -name '*.html' -print)
           test -f icon-512.png
           test "$(file icon-512.png | grep -c '512 x 512')" -eq 1
