@@ -688,3 +688,15 @@ code { color:#4f8358; background:#edf6eb; }
   body { background-attachment:scroll; }
   .auth-layout { padding-bottom:28px; }
 }
+
+
+/* Suan Lung Na brand logo */
+.brand-symbol { overflow:hidden; place-items:center; padding:0; }
+.brand-logo { display:block; width:100%; height:100%; object-fit:contain; object-position:center; }
+.auth-pitch .brand { align-items:center; }
+.auth-pitch .brand-symbol { width:64px; height:64px; flex-basis:64px; border-radius:18px; background:#f8f5e9; border-color:#d9dfc9; }
+.auth-pitch .brand-logo { object-fit:contain; }
+@media (max-width:640px) {
+  .brand-symbol { width:38px; height:38px; flex-basis:38px; border-radius:11px; }
+  .auth-pitch .brand-symbol { width:56px; height:56px; flex-basis:56px; border-radius:16px; }
+}
