@@ -77,6 +77,8 @@ const checks = [
   ['Firmware accepts Telegram topics', /config\/telegram\/set/.test(firmware) && /config\/telegram\/test/.test(firmware)],
   ['Firmware accepts reminder topic and persists reminders', /reminder\/set/.test(firmware) && /smartfarm_reminders\.json/.test(firmware) && /runReminders/.test(firmware)],
   ['Firmware deduplicates sent reminders', /lastSentDate/.test(firmware) && /send_failed/.test(firmware)],
+  ['Firmware validates every RTC read', /bool validRtcDateTime/.test(firmware) && /DateTime candidate = rtc\.now\(\)/.test(firmware) && /readRtcNow/.test(firmware)],
+  ['Firmware verifies RTC read-back after NTP adjust', /rtc\.adjust\(DateTime\(localEpoch\)\)/.test(firmware) && /readBackOk/.test(firmware) && /delta <= 2UL/.test(firmware)],
   ['Firmware schedule parser accepts slots/on/off', /d\["slots"\]/.test(firmware) && /o\["on"\]/.test(firmware) && /o\["off"\]/.test(firmware)],
   ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
   ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /farm-tools\.js/.test(sw) && /farm-clock\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw)],
