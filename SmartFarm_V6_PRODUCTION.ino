@@ -1323,6 +1323,7 @@ void otaHttpCors() {
   otaServer.sendHeader("Access-Control-Allow-Origin", "*");
   otaServer.sendHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   otaServer.sendHeader("Access-Control-Allow-Headers", "Authorization,Content-Type");
+  otaServer.sendHeader("Access-Control-Allow-Private-Network", "true");
 }
 
 bool otaHttpAuthorized() {
@@ -1349,7 +1350,9 @@ void otaHttpUpload() {
     Serial.printf("OTA HTTP: START %s\n", upload.filename.c_str());
     telegramNotify(String("เริ่มอัปเดตเฟิร์มแวร์ผ่าน HTTP OTA โดยไฟล์ ") +
                    upload.filename);
-    if (!Update.begin(upload.contentLength)) {
+    uint32_t maxSketchSpace =
+        (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+    if (!Update.begin(maxSketchSpace, U_FLASH)) {
       otaUploadFailed = true;
       Update.printError(Serial);
     }
