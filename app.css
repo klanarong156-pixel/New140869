@@ -700,3 +700,50 @@ code { color:#4f8358; background:#edf6eb; }
   .brand-symbol { width:38px; height:38px; flex-basis:38px; border-radius:11px; }
   .auth-pitch .brand-symbol { width:56px; height:56px; flex-basis:56px; border-radius:16px; }
 }
+
+
+/* Compact relay controls with stronger readable state labels */
+#control .grid.four { gap:12px; }
+#control .control-card { padding:14px; border-radius:18px; }
+#control .control-top { gap:8px; }
+#control .control-name { gap:8px; }
+#control .control-name .icon { width:32px; height:32px; border-radius:10px; font-size:16px; }
+#control .control-name strong { font-size:16px; font-weight:750; letter-spacing:-.02em; }
+#control .control-name small { margin-top:2px; font-size:9px; }
+#control .switch { width:44px; height:25px; }
+#control .switch span::after { top:3px; left:3px; width:17px; height:17px; }
+#control .switch input:checked + span::after { transform:translateX(18px); }
+#control .control-state { display:flex; align-items:center; gap:5px; margin:10px 0 0; min-height:28px; color:#708074; font-size:12px; }
+#control .control-state b { display:inline-flex; align-items:center; min-height:24px; padding:3px 8px; border:1px solid #e6c5cb; border-radius:999px; color:#a04f5b; background:#fff2f4; font-size:12px; font-weight:800; letter-spacing:-.01em; white-space:nowrap; }
+#control .control-card.active .control-state b { border-color:#b9d8b5; color:#347343; background:#eaf7e7; }
+#control .relay-timer { gap:7px; margin-top:9px; padding:9px; border-radius:13px; }
+#control .relay-timer > label { gap:4px; font-size:10px; }
+#control .relay-timer > label input { min-height:36px; padding:6px 42px 6px 9px; font-size:15px; }
+#control .input-suffix { right:10px; bottom:10px; font-size:10px; }
+#control .timer-presets { gap:5px; }
+#control .timer-presets button { min-height:27px; padding:4px 6px; border-radius:8px; font-size:11px; }
+#control .timer-actions { gap:6px; }
+#control .timer-actions .btn { min-height:32px; padding:6px 8px; font-size:11px; }
+#control .relay-timer [data-timer-status] { min-height:19px; padding:4px 7px; font-size:10px; }
+@media (max-width:640px) {
+  #control .grid.four { gap:7px; }
+  #control .control-card { padding:10px; border-radius:16px; }
+  #control .control-name { gap:6px; }
+  #control .control-name .icon { width:28px; height:28px; border-radius:9px; font-size:14px; }
+  #control .control-name strong { font-size:13px; }
+  #control .control-name small { font-size:8px; }
+  #control .switch { width:39px; height:22px; }
+  #control .switch span::after { top:3px; left:3px; width:14px; height:14px; }
+  #control .switch input:checked + span::after { transform:translateX(16px); }
+  #control .control-state { gap:3px; margin-top:7px; min-height:24px; font-size:9px; }
+  #control .control-state b { min-height:20px; padding:2px 5px; font-size:10px; }
+  #control .relay-timer { gap:5px; margin-top:7px; padding:7px; border-radius:11px; }
+  #control .relay-timer > label { font-size:8px; }
+  #control .relay-timer > label input { min-height:30px; padding:4px 32px 4px 7px; font-size:13px; }
+  #control .input-suffix { right:7px; bottom:8px; font-size:8px; }
+  #control .timer-presets { gap:3px; }
+  #control .timer-presets button { min-height:23px; padding:3px 3px; font-size:10px; }
+  #control .timer-actions { gap:4px; }
+  #control .timer-actions .btn { min-height:27px; padding:4px 5px; font-size:10px; }
+  #control .relay-timer [data-timer-status] { min-height:16px; padding:3px 5px; font-size:8px; }
+}
