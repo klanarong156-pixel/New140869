@@ -21,6 +21,8 @@
     .lead { color:var(--muted); margin-top:10px; }
     .notice { display:flex; gap:10px; margin:18px 0; padding:13px 14px; border:1px solid #f0d89f; border-radius:14px; color:#704d13; background:var(--warn-bg); }
     .notice b { flex:0 0 auto; color:var(--warn); }
+    .origin-warning { display:flex; border-color:#e3b2ad; color:#85332f; background:#fff1ef; }
+    .origin-warning[hidden] { display:none; }
     .grid { display:grid; gap:14px; }
     label { display:grid; gap:6px; color:#4f6555; font-weight:650; }
     input { width:100%; border:1px solid #cddbc9; border-radius:12px; padding:12px 13px; color:var(--ink); background:#fff; font:inherit; }
@@ -51,7 +53,8 @@
     <section class="card">
       <p class="hint">อัปเดตเฟิร์มแวร์ภายในเครือข่ายเดียวกับ ESP8266</p>
       <h1>อัปโหลด Firmware OTA</h1>
-      <p class="lead">หน้านี้เป็นไฟล์เดียว ใช้เปิดจาก <code>http://localhost</code> หรือเปิดตรงจาก ESP8266 เพื่อหลีกเลี่ยง Mixed Content จาก GitHub Pages HTTPS</p>
+      <p class="lead">หน้านี้เป็นไฟล์เดียว ใช้เปิดจาก <code>file://</code>, <code>http://localhost</code> หรือเปิดตรงจาก ESP8266 เพื่อหลีกเลี่ยง Mixed Content จาก GitHub Pages HTTPS</p>
+      <div id="originWarning" class="notice origin-warning" hidden><b>!</b><span><strong>กำลังเปิดหน้านี้ผ่าน HTTPS</strong> Browser จะบล็อกการส่งจาก GitHub Pages HTTPS ไปยัง ESP8266 HTTP ให้ดาวน์โหลดไฟล์นี้แล้วเปิดแบบ <code>file://</code> หรือเปิดผ่าน local HTTP server หรือเปิด <code>http://IP-ของ-ESP/</code> โดยตรง</span></div>
       <div class="notice"><b>!</b><span>ต้องอยู่ Wi‑Fi เดียวกับบอร์ด และ URL ต้องเป็น HTTP เช่น <code>http://192.168.1.50</code> ห้ามใส่ <code>/update</code> ต่อท้าย URL</span></div>
       <div class="grid">
         <label>URL ของ ESP8266
@@ -93,6 +96,7 @@
       const status = document.getElementById('status');
       const progress = document.getElementById('progress');
       const fileHint = document.getElementById('fileHint');
+      const originWarning = document.getElementById('originWarning');
 
       const setStatus = (title, detail, kind = 'info') => {
         status.dataset.kind = kind;
@@ -111,6 +115,12 @@
         if (url.protocol !== 'http:') throw new Error('OTA endpoint ของ Firmware นี้ใช้ http:// ไม่ใช่ https://');
         return url.origin;
       };
+      const ensureCompatibleOrigin = base => {
+        if (location.protocol === 'https:' && base.startsWith('http://')) {
+          throw new Error('หน้านี้เปิดผ่าน HTTPS จึงถูก Browser บล็อกการเชื่อมต่อไปยัง ESP8266 HTTP — เปิดไฟล์นี้แบบ file:// หรือ http://localhost หรือเปิด http://IP-ของ-ESP/ โดยตรง');
+        }
+      };
+      if (location.protocol === 'https:') originWarning.hidden = false;
       const getAuth = () => {
         if (!passInput.value) throw new Error('กรุณากรอกรหัสผ่าน OTA');
         return `Basic ${btoa(`admin:${passInput.value}`)}`;
@@ -132,6 +142,7 @@
         setBusy(true);
         try {
           const base = getBaseUrl();
+          ensureCompatibleOrigin(base);
           const auth = getAuth();
           setStatus('กำลังตรวจการเชื่อมต่อ…', `${base}/api/status`);
           const response = await fetch(`${base}/api/status`, { headers: { Authorization: auth }, credentials: 'omit', cache: 'no-store' });
@@ -147,7 +158,7 @@
 
       uploadButton.addEventListener('click', () => {
         let base, auth, file;
-        try { base = getBaseUrl(); auth = getAuth(); file = getFile(); }
+        try { base = getBaseUrl(); ensureCompatibleOrigin(base); auth = getAuth(); file = getFile(); }
         catch (error) { setStatus('ข้อมูลยังไม่ครบ', error.message, 'warning'); return; }
         const request = new XMLHttpRequest();
         const form = new FormData();
@@ -172,7 +183,7 @@
           }
           setBusy(false);
         });
-        request.addEventListener('error', () => { setStatus('ส่งไฟล์ไป ESP8266 ไม่ได้', 'ตรวจว่าเปิดหน้านี้จาก localhost/LAN, ใช้ http://IP และ Browser อนุญาต Local Network Access', 'error'); setBusy(false); });
+        request.addEventListener('error', () => { setStatus('ส่งไฟล์ไป ESP8266 ไม่ได้', location.protocol === 'https:' ? 'หน้านี้เปิดผ่าน HTTPS และ Browser บล็อกการเชื่อมต่อไปยัง HTTP ใน LAN — เปิดไฟล์แบบ file:// หรือ http://localhost แทน' : 'ตรวจว่าเปิดหน้านี้จาก localhost/LAN, ใช้ http://IP และ Browser อนุญาต Local Network Access', 'error'); setBusy(false); });
         request.addEventListener('abort', () => { setStatus('ยกเลิกการอัปโหลด', 'Firmware อาจยังเขียนไม่ครบ ห้ามนำบอร์ดไปใช้งานจนกว่าจะตรวจ boot ผ่าน', 'warning'); setBusy(false); });
         request.send(form);
       });
