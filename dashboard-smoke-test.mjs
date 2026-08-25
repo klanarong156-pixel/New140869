@@ -40,6 +40,7 @@ const worker = read('mqtt-shared-worker.js');
 const weather = read('weather.js');
 const guard = read('auto-weather-guard.js');
 const ota = read('dashboard-ota.js');
+const standaloneOta = read('ota-standalone.html');
 const index = read('index.html');
 const schedulePage = read('schedule.html');
 const settings = read('settings.html');
@@ -79,10 +80,12 @@ const checks = [
   ['Firmware deduplicates sent reminders', /lastSentDate/.test(firmware) && /send_failed/.test(firmware)],
   ['Firmware validates every RTC read', /bool validRtcDateTime/.test(firmware) && /DateTime candidate = rtc\.now\(\)/.test(firmware) && /readRtcNow/.test(firmware)],
   ['Firmware verifies RTC read-back after NTP adjust', /rtc\.adjust\(DateTime\(localEpoch\)\)/.test(firmware) && /readBackOk/.test(firmware) && /delta <= 2UL/.test(firmware)],
+  ['Firmware OTA uses max sketch space and PNA CORS', /maxSketchSpace/.test(firmware) && /Update\.begin\(maxSketchSpace, U_FLASH\)/.test(firmware) && /Access-Control-Allow-Private-Network/.test(firmware)],
   ['Firmware schedule parser accepts slots/on/off', /d\["slots"\]/.test(firmware) && /o\["on"\]/.test(firmware) && /o\["off"\]/.test(firmware)],
   ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
   ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /farm-tools\.js/.test(sw) && /farm-clock\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw)],
   ['Dashboard loads OTA controller', /dashboard-ota\.js\?v=/.test(settings) && /otaDashboardForm/.test(ota)],
+  ['Standalone OTA page targets local HTTP without MQTT', /STANDALONE HTTP OTA/.test(standaloneOta) && /\/api\/status/.test(standaloneOta) && /\/update/.test(standaloneOta) && /credentials: 'omit'/.test(standaloneOta) && !/<script[^>]+src=[^>]*(?:mqtt|firebase)/i.test(standaloneOta)],
   ['Weather assets are loaded by dashboard', /weather\.js\?v=/.test(index)],
   ['Open-Meteo endpoint configured', /https:\/\/api\.open-meteo\.com\/v1\/forecast/.test(weather)],
   ['Weather protection is advisory only', /autoWateringAllowed = !blocked/.test(weather) && !/data-mode|\bAUTO\b|\bMANUAL\b/.test(guard)],

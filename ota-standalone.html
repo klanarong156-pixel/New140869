@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Smart Farm · Standalone OTA</title>
+  <style>
+    :root { color-scheme: light; --ink:#263b2d; --muted:#6a7c6d; --line:#dbe6d7; --paper:#ffffff; --mist:#f2f7f0; --leaf:#3b8b55; --leaf-dark:#28663a; --warn:#9b6514; --warn-bg:#fff8e9; --danger:#a13c39; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:linear-gradient(135deg,#edf5eb,#fbfaf3 58%,#eaf4ee); font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(760px,calc(100% - 28px)); margin:28px auto 48px; }
+    .brand { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    .mark { display:grid; place-items:center; width:45px; height:45px; border-radius:14px; color:#fff; background:linear-gradient(145deg,#4baa62,#286c43); font-weight:800; letter-spacing:-.08em; box-shadow:0 9px 22px #3b8b5533; }
+    .brand strong { display:block; font-size:18px; }
+    .brand span { color:var(--muted); font-size:12px; letter-spacing:.08em; }
+    .card { border:1px solid var(--line); border-radius:22px; padding:24px; background:#ffffffdc; box-shadow:0 16px 42px #56735614; backdrop-filter:blur(8px); }
+    h1 { margin:0; font-size:clamp(26px,5vw,38px); letter-spacing:-.04em; }
+    h2 { margin:0 0 8px; font-size:19px; }
+    p { margin:8px 0; }
+    .lead { color:var(--muted); margin-top:10px; }
+    .notice { display:flex; gap:10px; margin:18px 0; padding:13px 14px; border:1px solid #f0d89f; border-radius:14px; color:#704d13; background:var(--warn-bg); }
+    .notice b { flex:0 0 auto; color:var(--warn); }
+    .grid { display:grid; gap:14px; }
+    label { display:grid; gap:6px; color:#4f6555; font-weight:650; }
+    input { width:100%; border:1px solid #cddbc9; border-radius:12px; padding:12px 13px; color:var(--ink); background:#fff; font:inherit; }
+    input:focus { outline:3px solid #79b78555; border-color:var(--leaf); }
+    input[type=file] { padding:9px; }
+    .hint { color:var(--muted); font-size:12px; font-weight:400; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+    button { border:0; border-radius:12px; padding:11px 15px; color:#fff; background:var(--leaf); font:700 14px/1.2 inherit; cursor:pointer; box-shadow:0 6px 14px #3b8b5526; }
+    button:hover { background:var(--leaf-dark); }
+    button:disabled { cursor:not-allowed; opacity:.55; }
+    button.secondary { color:var(--leaf-dark); background:#e5f0e3; box-shadow:none; }
+    .status { display:grid; gap:8px; margin-top:18px; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--mist); }
+    .status[data-kind=success] { border-color:#a7d2ad; color:#245d34; background:#eff9ef; }
+    .status[data-kind=error] { border-color:#e3b2ad; color:#85332f; background:#fff1ef; }
+    .status[data-kind=warning] { border-color:#efd39b; color:#80550f; background:#fff9ed; }
+    progress { width:100%; height:12px; accent-color:var(--leaf); }
+    .steps { display:grid; gap:9px; margin:22px 0 0; padding:0; list-style:none; color:var(--muted); }
+    .steps li { display:flex; gap:9px; }
+    .steps b { color:var(--leaf); }
+    code { padding:2px 5px; border-radius:5px; color:#31553b; background:#eaf3e8; }
+    footer { margin-top:18px; color:var(--muted); font-size:12px; text-align:center; }
+    @media (max-width:560px) { main { width:min(100% - 18px,760px); margin-top:12px; } .card { padding:18px; border-radius:18px; } .actions button { flex:1 1 100%; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand"><div class="mark" aria-hidden="true">SF</div><div><strong>สวนลุงนะ Smart Farm</strong><span>STANDALONE HTTP OTA</span></div></div>
+    <section class="card">
+      <p class="hint">อัปเดตเฟิร์มแวร์ภายในเครือข่ายเดียวกับ ESP8266</p>
+      <h1>อัปโหลด Firmware OTA</h1>
+      <p class="lead">หน้านี้เป็นไฟล์เดียว ใช้เปิดจาก <code>http://localhost</code> หรือเปิดตรงจาก ESP8266 เพื่อหลีกเลี่ยง Mixed Content จาก GitHub Pages HTTPS</p>
+      <div class="notice"><b>!</b><span>ต้องอยู่ Wi‑Fi เดียวกับบอร์ด และ URL ต้องเป็น HTTP เช่น <code>http://192.168.1.50</code> ห้ามใส่ <code>/update</code> ต่อท้าย URL</span></div>
+      <div class="grid">
+        <label>URL ของ ESP8266
+          <input id="deviceUrl" type="text" inputmode="url" autocomplete="url" placeholder="http://192.168.1.50" required>
+          <span class="hint">ดู IP ได้จาก Serial Monitor บรรทัด OTA HTTP READY</span>
+        </label>
+        <label>รหัสผ่าน OTA
+          <input id="password" type="password" autocomplete="current-password" placeholder="ค่า ota_pass" required>
+          <span class="hint">username ของ endpoint คือ <code>admin</code> และจะไม่ถูกบันทึกลงเครื่อง</span>
+        </label>
+        <label>ไฟล์ Firmware (.bin)
+          <input id="firmware" type="file" accept=".bin,application/octet-stream" required>
+          <span id="fileHint" class="hint">เลือกไฟล์ .bin ที่ตรงกับบอร์ด NodeMCU ESP8266</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="testButton" class="secondary" type="button">ตรวจการเชื่อมต่อ</button>
+        <button id="uploadButton" type="button">เริ่มอัปโหลด</button>
+      </div>
+      <div id="status" class="status" data-kind="info" role="status" aria-live="polite"><strong>พร้อมใช้งาน</strong><span>กรอก URL รหัสผ่าน และเลือกไฟล์ก่อนเริ่ม</span></div>
+      <progress id="progress" value="0" max="100" aria-label="ความคืบหน้าการอัปโหลด"></progress>
+      <ul class="steps">
+        <li><b>1.</b><span>กดตรวจการเชื่อมต่อให้ได้สถานะ 200 ก่อน</span></li>
+        <li><b>2.</b><span>ตรวจว่ารีเลย์/ปั๊มปิดอยู่ และจ่ายไฟให้บอร์ดคงที่</span></li>
+        <li><b>3.</b><span>เริ่มอัปโหลดแล้วห้ามถอดไฟหรือปิดหน้านี้จนกว่าจะจบ</span></li>
+        <li><b>4.</b><span>รอ ESP8266 รีสตาร์ต แล้วตรวจ firmware, MQTT และรีเลย์หลังอัปเดต</span></li>
+      </ul>
+    </section>
+    <footer>ไม่ใช้ MQTT และไม่ส่ง credential ไปยัง server อื่น · Smart Farm</footer>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const urlInput = document.getElementById('deviceUrl');
+      const passInput = document.getElementById('password');
+      const fileInput = document.getElementById('firmware');
+      const testButton = document.getElementById('testButton');
+      const uploadButton = document.getElementById('uploadButton');
+      const status = document.getElementById('status');
+      const progress = document.getElementById('progress');
+      const fileHint = document.getElementById('fileHint');
+
+      const setStatus = (title, detail, kind = 'info') => {
+        status.dataset.kind = kind;
+        status.innerHTML = '';
+        const strong = document.createElement('strong');
+        strong.textContent = title;
+        const span = document.createElement('span');
+        span.textContent = detail;
+        status.append(strong, span);
+      };
+      const getBaseUrl = () => {
+        let value = urlInput.value.trim().replace(/\/+$/, '');
+        if (value && !/^https?:\/\//i.test(value)) value = `http://${value}`;
+        if (!value) throw new Error('กรุณากรอก URL ของ ESP8266');
+        const url = new URL(value);
+        if (url.protocol !== 'http:') throw new Error('OTA endpoint ของ Firmware นี้ใช้ http:// ไม่ใช่ https://');
+        return url.origin;
+      };
+      const getAuth = () => {
+        if (!passInput.value) throw new Error('กรุณากรอกรหัสผ่าน OTA');
+        return `Basic ${btoa(`admin:${passInput.value}`)}`;
+      };
+      const getFile = () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) throw new Error('กรุณาเลือกไฟล์ .bin');
+        if (!file.name.toLowerCase().endsWith('.bin')) throw new Error('ไฟล์ต้องเป็น .bin เท่านั้น');
+        return file;
+      };
+      const setBusy = busy => { testButton.disabled = busy; uploadButton.disabled = busy; };
+
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files && fileInput.files[0];
+        fileHint.textContent = file ? `${file.name} · ${(file.size / 1024).toFixed(1)} KB` : 'เลือกไฟล์ .bin ที่ตรงกับบอร์ด NodeMCU ESP8266';
+      });
+
+      testButton.addEventListener('click', async () => {
+        setBusy(true);
+        try {
+          const base = getBaseUrl();
+          const auth = getAuth();
+          setStatus('กำลังตรวจการเชื่อมต่อ…', `${base}/api/status`);
+          const response = await fetch(`${base}/api/status`, { headers: { Authorization: auth }, credentials: 'omit', cache: 'no-store' });
+          const text = await response.text();
+          if (!response.ok) throw new Error(`HTTP ${response.status}${text ? ` · ${text}` : ''}`);
+          let device = {};
+          try { device = JSON.parse(text); } catch (_) { /* response is still reachable */ }
+          setStatus('เชื่อมต่อสำเร็จ', `ESP8266 ${device.device || ''} · firmware ${device.firmware || 'ไม่ระบุ'} · RSSI ${device.rssi ?? 'ไม่ระบุ'}`, 'success');
+        } catch (error) {
+          setStatus('ตรวจการเชื่อมต่อล้มเหลว', error.message || 'ตรวจสอบ IP, Wi‑Fi, password และสิทธิ์ Local Network ของ Browser', 'error');
+        } finally { setBusy(false); }
+      });
+
+      uploadButton.addEventListener('click', () => {
+        let base, auth, file;
+        try { base = getBaseUrl(); auth = getAuth(); file = getFile(); }
+        catch (error) { setStatus('ข้อมูลยังไม่ครบ', error.message, 'warning'); return; }
+        const request = new XMLHttpRequest();
+        const form = new FormData();
+        form.append('firmware', file, file.name);
+        setBusy(true);
+        progress.value = 0;
+        setStatus('กำลังเตรียมอัปโหลด…', `${file.name} · ${(file.size / 1024).toFixed(1)} KB`);
+        request.open('POST', `${base}/update`);
+        request.setRequestHeader('Authorization', auth);
+        request.upload.addEventListener('progress', event => {
+          if (!event.lengthComputable) return;
+          const percent = Math.round(event.loaded / event.total * 100);
+          progress.value = percent;
+          setStatus('กำลังอัปโหลด…', `${percent}%`);
+        });
+        request.addEventListener('load', () => {
+          if (request.status >= 200 && request.status < 300) {
+            progress.value = 100;
+            setStatus('อัปโหลดสำเร็จ', 'ESP8266 กำลังเขียน flash และรีสตาร์ต ห้ามตัดไฟจนกว่าจะกลับมาออนไลน์', 'success');
+          } else {
+            setStatus('Firmware ปฏิเสธการอัปโหลด', `HTTP ${request.status}${request.responseText ? ` · ${request.responseText}` : ''}`, 'error');
+          }
+          setBusy(false);
+        });
+        request.addEventListener('error', () => { setStatus('ส่งไฟล์ไป ESP8266 ไม่ได้', 'ตรวจว่าเปิดหน้านี้จาก localhost/LAN, ใช้ http://IP และ Browser อนุญาต Local Network Access', 'error'); setBusy(false); });
+        request.addEventListener('abort', () => { setStatus('ยกเลิกการอัปโหลด', 'Firmware อาจยังเขียนไม่ครบ ห้ามนำบอร์ดไปใช้งานจนกว่าจะตรวจ boot ผ่าน', 'warning'); setBusy(false); });
+        request.send(form);
+      });
+    })();
+  </script>
+</body>
+</html>
