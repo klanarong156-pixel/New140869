@@ -20,7 +20,7 @@
 {"@context":"https://schema.org","@type":"WebPage","headline":"NewFarm V6.2 MQTT Contract","url":"https://klanarong156-pixel.github.io/smartfarm7.0/MQTT_CONTRACT_V6.html"}</script>
 <!-- End Jekyll SEO tag -->
 
-    <link rel="stylesheet" href="app.css?v=12">
+    <link rel="stylesheet" href="app.css?v=13">
     <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
 
 <!-- Setup Google Analytics -->
@@ -79,6 +79,15 @@
   <li>Status: <code class="language-plaintext highlighter-rouge">smartfarm/config/telegram/status</code> with JSON <code class="language-plaintext highlighter-rouge">{ "configured": true|false }</code></li>
   <li>Test command: <code class="language-plaintext highlighter-rouge">smartfarm/config/telegram/test</code>; any payload requests a test notification.</li>
   <li>The ESP8266 persists these values in LittleFS; the dashboard does not place them in <code class="language-plaintext highlighter-rouge">config.js</code>.</li>
+</ul>
+
+<h2 id="reminder">Crop Telegram reminder</h2>
+<ul>
+  <li>Command topic: <code class="language-plaintext highlighter-rouge">smartfarm/reminder/set</code>; status topic: <code class="language-plaintext highlighter-rouge">smartfarm/reminder/status</code>.</li>
+  <li>Commands are <code class="language-plaintext highlighter-rouge">settings</code>, <code class="language-plaintext highlighter-rouge">upsert</code>, <code class="language-plaintext highlighter-rouge">done</code>, <code class="language-plaintext highlighter-rouge">snooze</code>, <code class="language-plaintext highlighter-rouge">delete</code>, <code class="language-plaintext highlighter-rouge">sync</code> and <code class="language-plaintext highlighter-rouge">test</code>.</li>
+  <li>Optional task fields include <code class="language-plaintext highlighter-rouge">plotId</code> and <code class="language-plaintext highlighter-rouge">repeatEveryDays</code>; settings include quiet-hour fields <code class="language-plaintext highlighter-rouge">quietStartHour</code>, <code class="language-plaintext highlighter-rouge">quietStartMinute</code>, <code class="language-plaintext highlighter-rouge">quietEndHour</code> and <code class="language-plaintext highlighter-rouge">quietEndMinute</code>.</li>
+  <li>The ESP8266 stores up to eight active reminder jobs in LittleFS and sends Telegram without the Dashboard being open.</li>
+  <li>A successful recurring delivery reports <code class="language-plaintext highlighter-rouge">sent_recurring</code> and advances the due date. During quiet hours the device defers delivery and checks again later.</li>
 </ul>
 
 <h2 id="esp-status">ESP status</h2>

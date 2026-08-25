@@ -12,7 +12,7 @@
 | Sensor | — | `smartfarm/sensor/dht11` | temperature/humidity JSON |
 | Telegram configuration | `smartfarm/config/telegram/set` | `smartfarm/config/telegram/status` | JSON `{ "botToken": "...", "chatId": "..." }`; status JSON reports `configured` |
 | Telegram test | `smartfarm/config/telegram/test` | — | any payload triggers a test message |
-| Crop reminder | `smartfarm/reminder/set` | `smartfarm/reminder/status` | JSON operation `settings`, `upsert`, `done`, `snooze`, `delete`, `sync` or `test` |
+| Crop reminder | `smartfarm/reminder/set` | `smartfarm/reminder/status` | JSON operation `settings`, `upsert`, `done`, `snooze`, `delete`, `sync` or `test`; optional recurrence, plot and quiet-hour fields |
 
 Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay and mode status messages are retained by the device so a newly connected dashboard can render the current state.
 
@@ -42,16 +42,16 @@ The dashboard sends reminder commands through the non-retained topic `smartfarm/
 Example settings payload:
 
 ```json
-{"op":"settings","enabled":true,"repeatDaily":false,"leadDays":1,"hour":18,"minute":0}
+{"op":"settings","enabled":true,"repeatDaily":false,"quietStart":"22:00","quietEnd":"07:00","leadDays":1,"hour":18,"minute":0}
 ```
 
 Example task payload:
 
 ```json
-{"op":"upsert","id":"task-fertilize-2","title":"ใส่ปุ๋ยครั้งที่ 2","due":"2026-08-08","leadDays":1,"note":"ปุ๋ยละลายช้า 1 ช้อนโต๊ะต่อต้น","enabled":true,"done":false}
+{"op":"upsert","id":"task-fertilize-2","title":"ใส่ปุ๋ยครั้งที่ 2","due":"2026-08-08","leadDays":1,"repeatEveryDays":0,"plotId":"plot-legacy","note":"ปุ๋ยละลายช้า 1 ช้อนโต๊ะต่อต้น","enabled":true,"done":false}
 ```
 
-`done` marks a task complete, `snooze` changes its due date, `delete` removes it, `sync` asks for retained reminder status, and `test` sends a test Telegram message. Each task stores `lastSentDate` so the same reminder is not sent twice on the same day. If daily overdue reminders are enabled, an incomplete overdue task is sent once per day after the configured time. The device must have Wi‑Fi, a valid RTC/NTP clock, and Telegram credentials configured; if it was offline at the scheduled time, it can send later on the same day after reconnecting.
+`done` marks a task complete, `snooze` changes its due date, `delete` removes it, `sync` asks for retained reminder status, and `test` sends a test Telegram message. Each task stores `lastSentDate` so the same reminder is not sent twice on the same day. `repeatEveryDays` from 1–30 advances the due date after a successful send, while `plotId` identifies the crop area. `quietStart` and `quietEnd` define a local-time window during which the device does not send reminders. If daily overdue reminders are enabled, an incomplete overdue task is sent once per day after the configured time. The device must have Wi‑Fi, a valid RTC/NTP clock, and Telegram credentials configured; if it was offline at the scheduled time, it can send later on the same day after reconnecting.
 
 ## Mode and safety behavior
 

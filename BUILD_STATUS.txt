@@ -3,7 +3,7 @@ Smart Farm V7.0 build and validation status
 The most recent historical CI evidence in this repository predates the V7.0 source changes. It confirmed that the previous ESP8266 source compiled successfully, but it is not evidence that the modified V7.0 firmware compiles or behaves correctly.
 
 Current source changes requiring validation
-- Firmware version string is now V7.0.0-PRODUCTION-HARDENED.
+- Firmware version string is now V7.1.0-REMINDER with bounded recurrence, plot labels and quiet-hour scheduler settings.
 - Switching from AUTO to MANUAL explicitly turns all relays OFF before accepting individual manual commands.
 - Dashboard MQTT credentials were removed from source and must now be supplied by the operator in the browser.
 - Dashboard pin-map content was aligned to the current firmware: DHT11=D2, DS3231 SDA=D3, DS3231 SCL=D4, relays D5–D8.
@@ -17,7 +17,7 @@ Required validation before production use
 6. Verify pump safety timeout and the 60-second MANUAL MQTT-loss cutoff on real hardware.
 7. Verify OTA with a stable power supply and the configured OTA password.
 
-The known build resource profile from the historical V6 compile was approximately 41% global RAM, 94% IRAM and 48% flash. IRAM headroom was limited, so the V7 compile result must be reviewed before new firmware is deployed.
+The full-system upgrade compile profile is 49% global RAM (39,444/80,192 bytes), 94% IRAM (62,099/65,536 bytes) and 51% flash (545,208/1,048,576 bytes). IRAM headroom remains limited; avoid adding large firmware arrays or history buffers.
 
 
 Latest V7 CI verification
@@ -26,4 +26,5 @@ Latest V7 CI verification
 - Web syntax/assets job: SUCCESS.
 - ESP8266 firmware build job: SUCCESS in approximately 1 minute 5 seconds.
 - Artifact: SmartFarm-V7-ESP8266-BIN.
-- This CI result verifies compilation and static checks. It does not replace physical relay, sensor, Wi-Fi, MQTT, RTC or OTA validation.
+- This CI result verifies compilation and static checks. It does not replace physical relay, sensor, Wi-Fi, MQTT, Telegram, RTC or OTA validation.
+- Telemetry history and relay statistics remain in browser/Firebase; the ESP8266 stores only the bounded active reminder list and quiet-hour settings.
