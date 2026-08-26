@@ -31,3 +31,4 @@ Latest V7 CI verification
 - Previous RTC-validated local artifact: `SmartFarm_V7.1.0-RTC-VALIDATED.bin`, SHA-256 `95798d5ea62d1c67df907d0cc5a4f7e493ad3b9b181e15cbca812d7f11f5ee5b`.
 - Previous OTA-hardened local artifact: `SmartFarm_V7.1.0-OTA-HARDENED.bin`, SHA-256 `b6c4674f20e51ca38f85452a0dc18ec4eb7178fe37105ab4fada56c8f5f77dac`.
 - Latest connection-stable local artifact: `SmartFarm_V7.1.0-CONNECTION-STABLE.bin`, SHA-256 `ab4ab7232f511c56c0e0188afc1c40db69e7ad38889eec98310db223c98e3331`.
+- Latest OTA reboot-fix local artifact: `SmartFarm_V7.1.0-OTA-REBOOT-FIX.bin`, SHA-256 `30ae95d0e744ae52f479f41177a6d650648a8622afce321a283ee7bd38e394f6`. It stops MQTT/TLS and Telegram side effects before streaming, verifies total upload bytes against written bytes, sends the HTTP response with Connection close, and delays reboot by 1500 ms after a successful finalize.
