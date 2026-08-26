@@ -240,7 +240,11 @@
   function bindEvents() {
     window.addEventListener('mqtt:connected', event => renderMqtt(Boolean(event.detail)));
     window.addEventListener('mqtt:connecting', () => renderMqtt(false, 'MQTT กำลังเชื่อมต่อ'));
-    window.addEventListener('mqtt:reconnecting', () => renderMqtt(false, 'MQTT กำลังเชื่อมต่อใหม่'));
+    window.addEventListener('mqtt:reconnecting', event => {
+      const delay = Number(event.detail?.delay) || 0;
+      const suffix = delay > 0 ? `ใน ${Math.ceil(delay / 1000)} วินาที` : '';
+      renderMqtt(false, `MQTT กำลังเชื่อมต่อใหม่${suffix}`);
+    });
     window.addEventListener('mqtt:error', event => {
       const raw = event.detail?.message || String(event.detail || '');
       const detail = raw && raw !== '[object Object]' ? `: ${raw}` : '';

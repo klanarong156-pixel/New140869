@@ -6,6 +6,10 @@ let client = null;
 let connecting = false;
 let connectionConfig = null;
 let connectionCredentials = null;
+let reconnectTimer = null;
+let reconnectAttempt = 0;
+const RECONNECT_BASE_MS = 1000;
+const RECONNECT_MAX_MS = 30000;
 
 function send(port, message) {
   try { port.postMessage(message); } catch (_) { /* A navigated page may have closed its port. */ }
@@ -28,6 +32,23 @@ function subscribeAll() {
   });
 }
 
+function scheduleReconnect() {
+  if (reconnectTimer || !connectionConfig || !connectionCredentials?.username || !connectionCredentials?.password)
+    return;
+  const delay = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * (2 ** Math.min(reconnectAttempt, 5)));
+  reconnectAttempt++;
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    connect(false);
+  }, delay);
+  broadcast({ type: 'reconnect-scheduled', delay });
+}
+
+function clearReconnectTimer() {
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  reconnectTimer = null;
+}
+
 function connect(force = false) {
   if (typeof mqtt === 'undefined') {
     broadcast({ type: 'error', error: 'ไม่พบ MQTT library ใน SharedWorker' });
@@ -38,45 +59,60 @@ function connect(force = false) {
     return false;
   }
   if (!force && (client?.connected || connecting)) return true;
+  clearReconnectTimer();
   if (force && client) {
-    client.end(true);
+    const oldClient = client;
     client = null;
+    oldClient.end(true);
     connecting = false;
   }
   connecting = true;
   broadcast({ type: 'connecting' });
+  let nextClient;
   try {
-    client = mqtt.connect(connectionConfig.url, {
+    nextClient = mqtt.connect(connectionConfig.url, {
       clientId: connectionConfig.clientId,
       username: connectionCredentials.username,
       password: connectionCredentials.password,
       clean: true,
-      reconnectPeriod: 5000,
+      // The worker owns backoff so pages never start competing reconnect loops.
+      reconnectPeriod: 0,
       connectTimeout: 30000,
       keepalive: 30
     });
+    client = nextClient;
   } catch (error) {
     connecting = false;
     broadcast({ type: 'error', error: errorMessage(error) });
+    scheduleReconnect();
     return false;
   }
-  client.on('connect', () => {
+  nextClient.on('connect', () => {
+    if (client !== nextClient) return;
     connecting = false;
+    reconnectAttempt = 0;
+    clearReconnectTimer();
     subscribeAll();
     broadcast({ type: 'connect' });
   });
-  client.on('message', (topic, message) => {
-    broadcast({ type: 'message', topic, payload: message.toString() });
+  nextClient.on('message', (topic, message) => {
+    if (client === nextClient) broadcast({ type: 'message', topic, payload: message.toString() });
   });
-  client.on('close', () => {
+  nextClient.on('close', () => {
+    if (client !== nextClient) return;
+    client = null;
     connecting = false;
     broadcast({ type: 'close' });
+    scheduleReconnect();
   });
-  client.on('reconnect', () => {
+  nextClient.on('reconnect', () => {
+    if (client !== nextClient) return;
     connecting = true;
     broadcast({ type: 'reconnect' });
   });
-  client.on('error', error => broadcast({ type: 'error', error: errorMessage(error) }));
+  nextClient.on('error', error => {
+    if (client === nextClient) broadcast({ type: 'error', error: errorMessage(error) });
+  });
   return true;
 }
 
@@ -99,6 +135,8 @@ self.onconnect = event => {
       return;
     }
     if (message.type === 'disconnect') {
+      clearReconnectTimer();
+      reconnectAttempt = 0;
       if (client) client.end(true);
       client = null;
       connecting = false;

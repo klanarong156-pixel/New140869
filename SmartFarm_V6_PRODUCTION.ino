@@ -47,6 +47,7 @@ const uint32_t SCHEDULE_INTERVAL_MS = 1000UL;
 const uint32_t RTC_NTP_SYNC_INTERVAL_MS = 6UL * 60UL * 60UL * 1000UL;
 const uint8_t MQTT_AUTH_FAIL_LIMIT = 3;
 const uint32_t MQTT_DIAGNOSTIC_INTERVAL_MS = 30000UL;
+const uint32_t WIFI_RECONNECT_INTERVAL_MS = 15000UL;
 
 WiFiClientSecure tls;
 WiFiClientSecure telegramTls;
@@ -59,7 +60,8 @@ DHT dht(DHT_PIN, DHT11);
 
 bool fsReady = false, rtcAvailable = false, rtcTimeValid = false;
 uint32_t lastRtcSync = 0, lastMqttAttempt = 0, lastSensor = 0,
-         lastHeartbeat = 0, lastSchedule = 0, lastMqttDiagnostic = 0;
+         lastHeartbeat = 0, lastSchedule = 0, lastMqttDiagnostic = 0,
+         lastWifiReconnect = 0;
 uint8_t mqttAuthFailures = 0;
 bool mqttPortalOpened = false;
 bool mqttConfigReported = false;
@@ -175,7 +177,22 @@ void reportWifiState() {
                    WiFi.localIP().toString());
   } else {
     Serial.println(F("WiFi: disconnected"));
+    // Drop stale MQTT/TLS state immediately. The next Wi-Fi recovery can
+    // establish a clean TLS session instead of reusing a broken socket.
+    mqtt.disconnect();
+    tls.stop();
+    lastMqttAttempt = millis() - MQTT_RECONNECT_MS;
   }
+}
+
+void maintainWifi() {
+  if (WiFi.status() == WL_CONNECTED)
+    return;
+  if ((uint32_t)(millis() - lastWifiReconnect) < WIFI_RECONNECT_INTERVAL_MS)
+    return;
+  lastWifiReconnect = millis();
+  Serial.println(F("WiFi: reconnect requested"));
+  WiFi.reconnect();
 }
 
 struct ScheduleSlot {
@@ -1253,6 +1270,8 @@ void connectMqtt() {
   Serial.print(MQTT_SERVER);
   Serial.print(F(":"));
   Serial.println(MQTT_PORT);
+  // Ensure a failed TLS handshake cannot leak a stale socket into the next try.
+  tls.stop();
   bool connected = mqtt.connect(cid.c_str(), mqttUser, mqttPass,
                                 MQTT_BASE "/status/online", 0, true, "false");
   int8_t state = mqtt.state();
@@ -1636,6 +1655,7 @@ void publishHeartbeat() {
 void loop() {
   ESP.wdtFeed();
   handleWifiResetButton();
+  maintainWifi();
   reportWifiState();
   if (WiFi.status() == WL_CONNECTED) {
     connectMqtt();

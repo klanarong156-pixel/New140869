@@ -141,6 +141,11 @@ class MqttHandler {
       this.dispatch('mqtt:reconnecting', true);
       return;
     }
+    if (message.type === 'reconnect-scheduled') {
+      this.connecting = true;
+      this.dispatch('mqtt:reconnecting', { delay: Number(message.delay) || 0 });
+      return;
+    }
     if (message.type === 'credentials-required') {
       this.connecting = false;
       this.dispatch('mqtt:credentials-required', { configured: false });
