@@ -68,6 +68,8 @@ bool mqttConfigReported = false;
 bool otaHttpRestartPending = false;
 unsigned long otaHttpRestartAt = 0;
 bool otaUploadFailed = false;
+bool otaUploadCompleted = false;
+size_t otaUploadBytes = 0;
 bool wifiStateKnown = false, lastWifiConnected = false;
 bool wifiResetPressed = false;
 uint32_t wifiResetStartedAt = 0;
@@ -1366,9 +1368,19 @@ void otaHttpUpload() {
   HTTPUpload &upload = otaServer.upload();
   if (upload.status == UPLOAD_FILE_START) {
     otaUploadFailed = false;
-    Serial.printf("OTA HTTP: START %s\n", upload.filename.c_str());
-    telegramNotify(String("เริ่มอัปเดตเฟิร์มแวร์ผ่าน HTTP OTA โดยไฟล์ ") +
-                   upload.filename);
+    otaUploadCompleted = false;
+    otaUploadBytes = 0;
+    otaHttpRestartPending = false;
+    Serial.printf("OTA HTTP: START %s, heap=%u\n", upload.filename.c_str(),
+                  ESP.getFreeHeap());
+    // Stop MQTT/TLS before opening the flash writer. The OTA request is the
+    // priority path, and retaining a live TLS session wastes scarce ESP8266
+    // heap while the multipart stream is being received.
+    mqtt.disconnect();
+    tls.stop();
+    // Do not make a second HTTPS request to Telegram while the firmware
+    // stream is being received. That extra TLS allocation can starve the
+    // ESP8266 heap and interrupt a large multipart upload.
     uint32_t maxSketchSpace =
         (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
     if (!Update.begin(maxSketchSpace, U_FLASH)) {
@@ -1376,24 +1388,34 @@ void otaHttpUpload() {
       Update.printError(Serial);
     }
   } else if (upload.status == UPLOAD_FILE_WRITE) {
-    if (!otaUploadFailed &&
-        Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-      otaUploadFailed = true;
-      Update.printError(Serial);
+    if (!otaUploadFailed) {
+      size_t written = Update.write(upload.buf, upload.currentSize);
+      if (written != upload.currentSize) {
+        otaUploadFailed = true;
+        Update.printError(Serial);
+      } else {
+        otaUploadBytes += written;
+      }
     }
   } else if (upload.status == UPLOAD_FILE_END) {
-    if (!otaUploadFailed && Update.end(true)) {
+    bool completeSize = upload.totalSize > 0 &&
+                        upload.totalSize == otaUploadBytes;
+    if (!otaUploadFailed && completeSize && Update.end(true)) {
+      otaUploadCompleted = true;
       Serial.printf("OTA HTTP: END (%u bytes)\n", upload.totalSize);
-      telegramNotify(String("อัปเดตเฟิร์มแวร์ผ่าน HTTP OTA สำเร็จ ขนาด ") +
-                     upload.totalSize + " bytes; อุปกรณ์กำลังรีสตาร์ต");
     } else {
+      otaUploadCompleted = false;
+      if (!completeSize)
+        Serial.printf("OTA HTTP: SIZE MISMATCH total=%u written=%u\n",
+                      upload.totalSize, (unsigned)otaUploadBytes);
       Update.printError(Serial);
-      telegramNotify(F("อัปเดตเฟิร์มแวร์ผ่าน HTTP OTA ล้มเหลว"));
+      Serial.println(F("OTA HTTP: FINALIZE FAILED"));
     }
   } else if (upload.status == UPLOAD_FILE_ABORTED) {
     Update.end();
+    otaUploadCompleted = false;
+    otaUploadFailed = true;
     Serial.println(F("OTA HTTP: ABORTED"));
-    telegramNotify(F("การอัปเดตเฟิร์มแวร์ผ่าน HTTP OTA ถูกยกเลิก"));
   }
   yield();
 }
@@ -1425,14 +1447,16 @@ void setupOtaHttpServer() {
       []() {
         if (!otaHttpAuthorized())
           return;
-        bool ok = !Update.hasError();
+        bool ok = otaUploadCompleted && !otaUploadFailed && !Update.hasError();
         otaHttpCors();
+        otaServer.sendHeader("Connection", "close");
         otaServer.send(ok ? 200 : 500, "text/plain; charset=utf-8",
                        ok ? "Update complete. Device is restarting."
                           : "Update failed: firmware write error.");
         if (ok) {
+          // Give the HTTP response time to leave the socket before reboot.
           otaHttpRestartPending = true;
-          otaHttpRestartAt = millis() + 1000UL;
+          otaHttpRestartAt = millis() + 1500UL;
         }
       },
       otaHttpUpload);
