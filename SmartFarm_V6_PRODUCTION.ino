@@ -21,7 +21,7 @@
 #include <WiFiUdp.h>
 #include <Wire.h>
 
-#define SMARTFARM_VERSION "V7.1.0-REMINDER"
+#define SMARTFARM_VERSION "V7.1.0-FIELD-STABILITY"
 #define MQTT_SERVER "650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud"
 #define MQTT_PORT 8883
 #define MQTT_BASE "smartfarm"
@@ -61,7 +61,10 @@ DHT dht(DHT_PIN, DHT11);
 bool fsReady = false, rtcAvailable = false, rtcTimeValid = false;
 uint32_t lastRtcSync = 0, lastMqttAttempt = 0, lastSensor = 0,
          lastHeartbeat = 0, lastSchedule = 0, lastMqttDiagnostic = 0,
-         lastWifiReconnect = 0;
+         lastWifiReconnect = 0, lastSensorValidAt = 0;
+uint32_t sensorReadCount = 0, sensorFaultCount = 0;
+uint32_t wifiReconnectRequests = 0, mqttConnectAttempts = 0,
+         mqttConnectFailures = 0;
 uint8_t mqttAuthFailures = 0;
 bool mqttPortalOpened = false;
 bool mqttConfigReported = false;
@@ -72,6 +75,7 @@ bool otaUploadCompleted = false;
 size_t otaUploadBytes = 0;
 bool wifiStateKnown = false, lastWifiConnected = false;
 bool wifiResetPressed = false;
+bool otaUpdateInProgress = false;
 uint32_t wifiResetStartedAt = 0;
 
 char mqttUser[64] = "";
@@ -113,7 +117,7 @@ String urlEncode(const String &value) {
   return out;
 }
 
-bool telegramNotify(const String &message) {
+bool telegramNotifyNow(const String &message) {
   if (WiFi.status() != WL_CONNECTED || !telegramBotToken[0] ||
       !telegramChatId[0])
     return false;
@@ -162,6 +166,49 @@ bool telegramNotify(const String &message) {
   return false;
 }
 
+// Relay, Wi-Fi and MQTT events are queued so a Telegram HTTPS request cannot
+// run inside a relay command or MQTT callback. Reminder/test operations still
+// use telegramNotifyNow() because their result is part of the existing reply.
+struct TelegramQueueItem {
+  String message;
+  uint8_t attempts;
+};
+static const uint8_t TELEGRAM_QUEUE_SIZE = 4;
+TelegramQueueItem telegramQueue[TELEGRAM_QUEUE_SIZE];
+uint8_t telegramQueueHead = 0, telegramQueueTail = 0, telegramQueueCount = 0;
+uint32_t lastTelegramAttempt = 0;
+
+bool queueTelegram(const String &message) {
+  if (!telegramBotToken[0] || !telegramChatId[0] || !message.length())
+    return false;
+  if (telegramQueueCount >= TELEGRAM_QUEUE_SIZE) {
+    Serial.println(F("Telegram queue full; dropping non-critical event"));
+    return false;
+  }
+  telegramQueue[telegramQueueTail].message = message;
+  telegramQueue[telegramQueueTail].attempts = 0;
+  telegramQueueTail = (telegramQueueTail + 1) % TELEGRAM_QUEUE_SIZE;
+  telegramQueueCount++;
+  return true;
+}
+
+void processTelegramQueue() {
+  if (otaUpdateInProgress || !telegramQueueCount ||
+      WiFi.status() != WL_CONNECTED || !telegramBotToken[0] ||
+      !telegramChatId[0])
+    return;
+  if ((uint32_t)(millis() - lastTelegramAttempt) < 15000UL)
+    return;
+  lastTelegramAttempt = millis();
+  TelegramQueueItem &item = telegramQueue[telegramQueueHead];
+  if (telegramNotifyNow(item.message) || ++item.attempts >= 2) {
+    item.message = "";
+    item.attempts = 0;
+    telegramQueueHead = (telegramQueueHead + 1) % TELEGRAM_QUEUE_SIZE;
+    telegramQueueCount--;
+  }
+}
+
 void reportWifiState() {
   bool connected = WiFi.status() == WL_CONNECTED;
   if (!wifiStateKnown) {
@@ -175,8 +222,8 @@ void reportWifiState() {
   if (connected) {
     Serial.print(F("WiFi: reconnected, IP: "));
     Serial.println(WiFi.localIP());
-    telegramNotify(String("WiFi กลับมาเชื่อมต่อสำเร็จ IP=") +
-                   WiFi.localIP().toString());
+    queueTelegram(String("WiFi กลับมาเชื่อมต่อสำเร็จ IP=") +
+                  WiFi.localIP().toString());
   } else {
     Serial.println(F("WiFi: disconnected"));
     // Drop stale MQTT/TLS state immediately. The next Wi-Fi recovery can
@@ -193,6 +240,7 @@ void maintainWifi() {
   if ((uint32_t)(millis() - lastWifiReconnect) < WIFI_RECONNECT_INTERVAL_MS)
     return;
   lastWifiReconnect = millis();
+  wifiReconnectRequests++;
   Serial.println(F("WiFi: reconnect requested"));
   WiFi.reconnect();
 }
@@ -391,14 +439,32 @@ void relaySetRaw(uint8_t i, bool on) {
     }
   }
   if (wasOn != on)
-    telegramNotify(String("รีเลย์ ") + relayNames[i] + (on ? " เปิด" : " ปิด"));
+    queueTelegram(String("รีเลย์ ") + relayNames[i] + (on ? " เปิด" : " ปิด"));
 }
+
+void enterOtaSafeState() {
+  otaUpdateInProgress = true;
+  for (uint8_t i = 0; i < RELAY_COUNT; i++) {
+    clearRelayTimer(i);
+    digitalWrite(relayPins[i], RELAY_OFF);
+  }
+  pumpStartedAt = 0;
+  pumpSafetyLatched = false;
+  Serial.println(F("OTA: all relays forced OFF for firmware update"));
+}
+
+void leaveOtaSafeState() {
+  otaUpdateInProgress = false;
+  pumpSafetyLatched = false;
+  Serial.println(F("OTA: safe state released after failed/aborted update"));
+}
+
 void forcePumpOff(const char *reason) {
   relaySetRaw(0, false);
   pumpSafetyLatched = true;
   String r = reason ? reason : "unknown";
   Serial.printf("PUMP SAFETY OFF: %s\n", r.c_str());
-  telegramNotify(String("แจ้งเตือนความปลอดภัยปั๊ม: ปิดปั๊มอัตโนมัติ (เหตุผล: ") + r + ")");
+  queueTelegram(String("แจ้งเตือนความปลอดภัยปั๊ม: ปิดปั๊มอัตโนมัติ (เหตุผล: ") + r + ")");
 }
 void relaySet(uint8_t i, bool on) {
   if (!on)
@@ -730,7 +796,7 @@ bool handleReminderMessage(const String &message) {
     return true;
   }
   if (strcmp(op, "test") == 0) {
-    bool sent = telegramNotify(F("ทดสอบ Telegram reminder จาก ESP8266 สำเร็จ"));
+    bool sent =     telegramNotifyNow(F("ทดสอบ Telegram reminder จาก ESP8266 สำเร็จ"));
     publishReminderStatus(sent ? "test_sent" : "test_failed");
     return sent;
   }
@@ -843,7 +909,7 @@ void runReminderTask(uint8_t index, const String &today, bool overdue) {
     message += "\nรายละเอียด: ";
     message += reminder.note;
   }
-  if (telegramNotify(message)) {
+  if (telegramNotifyNow(message)) {
     if (reminder.repeatEveryDays > 0) {
       String nextDue = reminderDateAfterDays(reminder.dueDate, reminder.repeatEveryDays);
       strlcpy(reminder.dueDate, nextDue.c_str(), sizeof(reminder.dueDate));
@@ -1078,7 +1144,7 @@ void openMqttSetupPortal() {
     strlcpy(deviceName, pName.getValue(), sizeof(deviceName));
     saveSecrets();
     Serial.println(F("MQTT CONFIG: credentials saved"));
-    telegramNotify(F("บันทึกการตั้งค่าอุปกรณ์และ Telegram สำเร็จ"));
+    queueTelegram(F("บันทึกการตั้งค่าอุปกรณ์และ Telegram สำเร็จ"));
   } else
     Serial.println(F("MQTT CONFIG: portal timeout/failed"));
   mqttAuthFailures = 0;
@@ -1109,7 +1175,7 @@ bool handleTelegramConfig(const String &message) {
   strlcpy(telegramChatId, chatId, sizeof(telegramChatId));
   saveSecrets();
   publishTelegramStatus();
-  telegramNotify(F("บันทึกการตั้งค่า Telegram จากแดชบอร์ดสำเร็จ"));
+  queueTelegram(F("บันทึกการตั้งค่า Telegram จากแดชบอร์ดสำเร็จ"));
   return true;
 }
 
@@ -1138,7 +1204,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     return;
   }
   if (t == MQTT_BASE "/config/telegram/test") {
-    telegramNotify(F("ทดสอบ Telegram จากแดชบอร์ดสำเร็จ"));
+    telegramNotifyNow(F("ทดสอบ Telegram จากแดชบอร์ดสำเร็จ"));
     publishTelegramStatus();
     return;
   }
@@ -1219,8 +1285,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     if (clockIsValid()) applyAutoState(currentMinutes());
     publishScheduleStatus((uint8_t)r);
     publishRelayStatus((uint8_t)r);
-    telegramNotify(String("อัปเดตตารางเวลาของรีเลย์ ") + relayNames[r] +
-                   " จากคำสั่ง MQTT");
+    queueTelegram(String("อัปเดตตารางเวลาของรีเลย์ ") + relayNames[r] +
+                  " จากคำสั่ง MQTT");
     return;
   }
 }
@@ -1267,6 +1333,7 @@ void connectMqtt() {
   if ((uint32_t)(millis() - lastMqttAttempt) < MQTT_RECONNECT_MS)
     return;
   lastMqttAttempt = millis();
+  mqttConnectAttempts++;
   String cid = String(deviceName) + "-" + String(ESP.getChipId(), HEX);
   Serial.print(F("MQTT: Connecting to "));
   Serial.print(MQTT_SERVER);
@@ -1290,13 +1357,14 @@ void connectMqtt() {
     publishTelegramStatus();
     publishReminderStatus("online");
     Serial.println(F("MQTT: Connected"));
-    telegramNotify(F("เชื่อมต่อ MQTT สำเร็จ"));
+    queueTelegram(F("เชื่อมต่อ MQTT สำเร็จ"));
     Serial.printf("MQTT: Subscribe relay=%s timer=%s schedule=%s telegram=%s/%s reminder=%s\n",
                   s1 ? "OK" : "FAIL", sTimer ? "OK" : "FAIL",
                   s3 ? "OK" : "FAIL", s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL",
                   s6 ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
+    mqttConnectFailures++;
     Serial.printf("MQTT: Connect FAILED state=%d (%s), heap=%u\n", state,
                   mqttStateName(state), ESP.getFreeHeap());
     // A failed BearSSL handshake can retain socket state. Release it before
@@ -1329,7 +1397,7 @@ void connectMqtt() {
     if (state == MQTT_CONNECT_BAD_CREDENTIALS ||
         state == MQTT_CONNECT_UNAUTHORIZED) {
       mqttAuthFailures++;
-      telegramNotify(
+      queueTelegram(
           String("MQTT เชื่อมต่อไม่สำเร็จ: credentials/authorization ผิด (ครั้งที่ ") +
           mqttAuthFailures + ")");
       if (mqttAuthFailures >= MQTT_AUTH_FAIL_LIMIT) {
@@ -1383,9 +1451,11 @@ void otaHttpUpload() {
     // ESP8266 heap and interrupt a large multipart upload.
     uint32_t maxSketchSpace =
         (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+    enterOtaSafeState();
     if (!Update.begin(maxSketchSpace, U_FLASH)) {
       otaUploadFailed = true;
       Update.printError(Serial);
+      leaveOtaSafeState();
     }
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     if (!otaUploadFailed) {
@@ -1410,11 +1480,13 @@ void otaHttpUpload() {
                       upload.totalSize, (unsigned)otaUploadBytes);
       Update.printError(Serial);
       Serial.println(F("OTA HTTP: FINALIZE FAILED"));
+      leaveOtaSafeState();
     }
   } else if (upload.status == UPLOAD_FILE_ABORTED) {
     Update.end();
     otaUploadCompleted = false;
     otaUploadFailed = true;
+    leaveOtaSafeState();
     Serial.println(F("OTA HTTP: ABORTED"));
   }
   yield();
@@ -1436,8 +1508,10 @@ void setupOtaHttpServer() {
     page += SMARTFARM_VERSION;
     page += F("</p><p>Device: ");
     page += deviceName;
-    page += F("</p><form method='POST' action='/update' "
-              "enctype='multipart/form-data'><input type='file' "
+    page += F("</p><p>ก่อนเขียนเฟิร์มแวร์ ระบบจะปิดรีเลย์ทั้งหมดชั่วคราว "
+              "การอัปโหลดที่ล้มเหลวจะไม่รีบูตอุปกรณ์ และจะคืนการทำงานปกติ "
+              "ควรมีอุปกรณ์ตัดไฟฉุกเฉินภายนอกสำหรับโหลดจริง</p><form method='POST' "
+              "action='/update' enctype='multipart/form-data'><input type='file' "
               "name='firmware' accept='.bin' required><br><button "
               "type='submit'>Upload firmware</button></form></html>");
     otaServer.send(200, "text/html; charset=utf-8", page);
@@ -1448,6 +1522,7 @@ void setupOtaHttpServer() {
         if (!otaHttpAuthorized())
           return;
         bool ok = otaUploadCompleted && !otaUploadFailed && !Update.hasError();
+        if (!ok) leaveOtaSafeState();
         otaHttpCors();
         otaServer.sendHeader("Connection", "close");
         otaServer.send(ok ? 200 : 500, "text/plain; charset=utf-8",
@@ -1607,16 +1682,18 @@ void setup() {
   applyAutoState(currentMinutes());
   ArduinoOTA.setHostname(deviceName);
   ArduinoOTA.onStart([]() {
+    enterOtaSafeState();
     Serial.println(F("OTA: START"));
-    telegramNotify(F("เริ่มอัปเดตเฟิร์มแวร์ผ่าน ArduinoOTA"));
+    queueTelegram(F("เริ่มอัปเดตเฟิร์มแวร์ผ่าน ArduinoOTA"));
   });
   ArduinoOTA.onEnd([]() {
     Serial.println(F("OTA: END"));
-    telegramNotify(F("อัปเดตเฟิร์มแวร์ผ่าน ArduinoOTA สำเร็จ"));
+    queueTelegram(F("อัปเดตเฟิร์มแวร์ผ่าน ArduinoOTA สำเร็จ"));
   });
   ArduinoOTA.onError([](ota_error_t e) {
     Serial.printf("OTA: ERROR %u\n", e);
-    telegramNotify(String("ArduinoOTA ล้มเหลว รหัสข้อผิดพลาด ") + e);
+    leaveOtaSafeState();
+    queueTelegram(String("ArduinoOTA ล้มเหลว รหัสข้อผิดพลาด ") + e);
   });
   if (otaPass[0]) {
     ArduinoOTA.setPassword(otaPass);
@@ -1634,8 +1711,8 @@ void setup() {
   Serial.println((mqttUser[0] && mqttPass[0]) ? F("PRESENT") : F("MISSING"));
   Serial.print(F("Boot complete, heap: "));
   Serial.println(ESP.getFreeHeap());
-  telegramNotify(String("อุปกรณ์บูตสำเร็จ IP=") + WiFi.localIP().toString() +
-                 " firmware=" + SMARTFARM_VERSION);
+  queueTelegram(String("อุปกรณ์บูตสำเร็จ IP=") + WiFi.localIP().toString() +
+                " firmware=" + SMARTFARM_VERSION);
 }
 
 void runSafety() {
@@ -1649,6 +1726,7 @@ void runSafety() {
   // การหลุด MQTT ต้องไม่ตัดการรดน้ำอัตโนมัติที่เก็บไว้ใน ESP8266
 }
 void runSchedules() {
+  if (otaUpdateInProgress) return;
   if ((uint32_t)(millis() - lastSchedule) < SCHEDULE_INTERVAL_MS)
     return;
   lastSchedule = millis();
@@ -1659,19 +1737,36 @@ void runSchedules() {
 void publishHeartbeat() {
   if (!mqtt.connected())
     return;
-  StaticJsonDocument<384> d;
+  StaticJsonDocument<512> d;
   d["online"] = true;
   d["firmware"] = SMARTFARM_VERSION;
   d["heap"] = ESP.getFreeHeap();
+  d["heapMaxBlock"] = ESP.getMaxFreeBlockSize();
+  d["heapFrag"] = ESP.getHeapFragmentation();
   d["rssi"] = WiFi.RSSI();
+  d["uptimeSec"] = millis() / 1000UL;
+  d["resetReason"] = ESP.getResetReason();
+  d["wifiReconnects"] = wifiReconnectRequests;
+  d["mqttConnects"] = mqttConnectAttempts;
+  d["mqttFailures"] = mqttConnectFailures;
   d["pumpSafeLock"] = pumpSafetyLatched;
+  d["pumpRuntimeSec"] = relayOn(0) && pumpStartedAt
+                             ? (millis() - pumpStartedAt) / 1000UL
+                             : 0;
   String iso = rtcIso();
   bool rtcNowValid = rtcAvailable && rtcTimeValid && iso.length();
   d["clockValid"] = rtcNowValid || ntp.getEpochTime() >= 1704067200UL;
   d["rtc"] = rtcNowValid;
+  d["sensorReads"] = sensorReadCount;
+  d["sensorFaults"] = sensorFaultCount;
+  d["sensorAgeSec"] = lastSensorValidAt
+                           ? (millis() - lastSensorValidAt) / 1000UL
+                           : 0;
+  d["sensorOk"] = lastSensorValidAt &&
+                  (uint32_t)(millis() - lastSensorValidAt) <= 90000UL;
   if (iso.length())
     d["time"] = iso;
-  char out[384];
+  char out[512];
   serializeJson(d, out, sizeof(out));
   mqtt.publish(MQTT_BASE "/device/status", out, false);
 }
@@ -1700,6 +1795,13 @@ void loop() {
   if ((uint32_t)(millis() - lastSensor) >= SENSOR_INTERVAL_MS) {
     lastSensor = millis();
     float h = dht.readHumidity(), c = dht.readTemperature();
+    sensorReadCount++;
+    if (!isnan(h) && !isnan(c)) {
+      lastSensorValidAt = millis();
+    } else {
+      sensorFaultCount++;
+      Serial.printf("DHT11: invalid reading #%lu\n", (unsigned long)sensorFaultCount);
+    }
     if (mqtt.connected() && !isnan(h) && !isnan(c)) {
       StaticJsonDocument<160> d;
       d["temperature"] = c;
@@ -1713,5 +1815,6 @@ void loop() {
     lastHeartbeat = millis();
     publishHeartbeat();
   }
+  processTelegramQueue();
   yield();
 }

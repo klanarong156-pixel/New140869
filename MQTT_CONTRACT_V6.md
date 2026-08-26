@@ -55,9 +55,11 @@ Example task payload:
 
 ## Mode and safety behavior
 
-A direct relay command received while AUTO is active first changes firmware mode to MANUAL. A command that explicitly changes mode from AUTO to MANUAL turns every relay OFF before publishing the fresh mode and relay statuses. In AUTO, a pump that reaches its 30-minute continuous runtime limit remains safety-latched OFF until the current schedule window ends. In MANUAL, a running pump is forced OFF after 60 seconds without MQTT.
+A direct relay command received while AUTO is active first changes firmware mode to MANUAL. A command that explicitly changes mode from AUTO to MANUAL turns every relay OFF before publishing the fresh mode and relay statuses. The pump has **no forced 30-minute continuous-runtime cutoff** and no automatic MQTT-loss cutoff; in AUTO it follows the locally stored schedule, while direct commands and timer/`UNLIMITED` behavior remain controlled by the existing relay topics. A finite timer turns the selected relay OFF when that explicitly requested countdown expires, and `CANCEL` clears it.
 
-The firmware publishes an online heartbeat including version, free heap, RSSI, mode, pump safety lock and RTC validity. The dashboard treats the device as offline after 25 seconds without a heartbeat or presence update. Browser MQTT connectivity alone does not determine ESP8266 online status.
+Before HTTP or ArduinoOTA firmware writing starts, the firmware forces all relays OFF and pauses schedule application. A failed or aborted update does not reboot the device and releases the temporary OTA safe state. This software state is not a replacement for a physical E-stop, contactor, float switch, pressure switch or thermal overload on a real pump circuit.
+
+The firmware publishes an online heartbeat including version, free heap, heap fragmentation/max block, RSSI, uptime, reset reason, pump safety lock/runtime, RTC validity, DHT11 age/fault counters and Wi-Fi/MQTT reconnect counters. The dashboard treats the device as offline after 25 seconds without a heartbeat or presence update. Browser MQTT connectivity alone does not determine ESP8266 online status.
 
 ## Credentials and boundaries
 
