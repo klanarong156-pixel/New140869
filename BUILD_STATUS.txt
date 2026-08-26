@@ -3,7 +3,8 @@ Smart Farm V7.0 build and validation status
 The most recent historical CI evidence in this repository predates the V7.0 source changes. It confirmed that the previous ESP8266 source compiled successfully, but it is not evidence that the modified V7.0 firmware compiles or behaves correctly.
 
 Current source changes requiring validation
-- Firmware version string is now V7.1.0-REMINDER with bounded recurrence, plot labels and quiet-hour scheduler settings.
+- Firmware version string is now V7.1.0-FIELD-STABILITY with bounded recurrence, plot labels, quiet-hour scheduler settings and field diagnostics.
+- Field-stability patch adds bounded Telegram event queue, additive heartbeat diagnostics and an OTA safe state that forces all relays OFF while firmware is being written; reminder/test messages retain their existing synchronous result behavior.
 - Switching from AUTO to MANUAL explicitly turns all relays OFF before accepting individual manual commands.
 - Dashboard MQTT credentials were removed from source and must now be supplied by the operator in the browser.
 - Dashboard pin-map content was aligned to the current firmware: DHT11=D2, DS3231 SDA=D3, DS3231 SCL=D4, relays D5–D8.
@@ -14,10 +15,11 @@ Required validation before production use
 3. Verify MQTT connect, retained relay/mode/schedule statuses, and DHT11 heartbeat.
 4. Verify all four schedule slots for every relay in AUTO mode, including an overnight slot.
 5. Verify a switch from AUTO to MANUAL turns every relay OFF and publishes their statuses.
-6. Verify pump safety timeout and the 60-second MANUAL MQTT-loss cutoff on real hardware.
-7. Verify OTA with a stable power supply and the configured OTA password.
+6. Verify that the pump follows the saved schedule and explicit relay/timer commands without an unrequested 30-minute or MQTT-loss cutoff; verify `CANCEL`, finite timer and `UNLIMITED` separately.
+7. Verify OTA with a stable power supply and the configured OTA password. Confirm all relays go OFF before writing, a failed upload does not reboot, and a successful upload reboots only after the HTTP response completes.
+8. Verify Emergency Stop from the Dashboard, then test a separately wired physical E-stop/contactor with the real pump load.
 
-The connection-stable firmware compile profile is 49% global RAM (39,476/80,192 bytes), 94% IRAM (62,099/65,536 bytes) and 52% flash (545,812/1,048,576 bytes). IRAM headroom remains limited; avoid adding large firmware arrays or history buffers. The RTC path validates every `rtc.now()` result and verifies the read-back value after `rtc.adjust()`. The HTTP OTA path starts Update with max sketch space and responds to Private Network Access preflight. Wi-Fi recovery now requests reconnect at a bounded interval and clears stale MQTT/TLS state on Wi-Fi loss; the SharedWorker owns exponential MQTT reconnect backoff.
+The connection-stable firmware compile profile is 49% global RAM (39,476/80,192 bytes), 94% IRAM (62,099/65,536 bytes) and 52% flash (545,812/1,048,576 bytes). IRAM headroom remains limited; avoid adding large firmware arrays or history buffers. The RTC path validates every `rtc.now()` result and verifies the read-back value after `rtc.adjust()`. The HTTP OTA path starts Update with max sketch space, forces relays OFF during the update and responds to Private Network Access preflight. Wi-Fi recovery now requests reconnect at a bounded interval and clears stale MQTT/TLS state on Wi-Fi loss; the SharedWorker owns exponential MQTT reconnect backoff. Telegram relay/Wi-Fi/MQTT/OTA events use a four-entry bounded queue with a 15-second send interval so callbacks do not perform HTTPS inline; reminder/test result semantics remain unchanged. No 30-minute pump ceiling or automatic MQTT-loss pump cutoff is implemented.
 
 
 Latest V7 CI verification
@@ -32,3 +34,5 @@ Latest V7 CI verification
 - Previous OTA-hardened local artifact: `SmartFarm_V7.1.0-OTA-HARDENED.bin`, SHA-256 `b6c4674f20e51ca38f85452a0dc18ec4eb7178fe37105ab4fada56c8f5f77dac`.
 - Latest connection-stable local artifact: `SmartFarm_V7.1.0-CONNECTION-STABLE.bin`, SHA-256 `ab4ab7232f511c56c0e0188afc1c40db69e7ad38889eec98310db223c98e3331`.
 - Latest OTA reboot-fix local artifact: `SmartFarm_V7.1.0-OTA-REBOOT-FIX.bin`, SHA-256 `30ae95d0e744ae52f479f41177a6d650648a8622afce321a283ee7bd38e394f6`. It stops MQTT/TLS and Telegram side effects before streaming, verifies total upload bytes against written bytes, sends the HTTP response with Connection close, and delays reboot by 1500 ms after a successful finalize.
+- Latest field-stability local artifact: `SmartFarm_V7.1.0-FIELD-STABILITY.bin`, 591,968 bytes, SHA-256 `92bf3db1efd3765c0193e76a2790ea72fcae4ee689fce85ca20bc3be16d32398`.
+- Field-stability compile profile: 39,564/80,192 bytes global RAM (49%), 62,099/65,536 bytes IRAM (94%) and 549,268/1,048,576 bytes flash (52%).

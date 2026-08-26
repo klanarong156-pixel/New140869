@@ -27,11 +27,13 @@ Automation and safety
 - Crop management supports up to eight crop tasks on the ESP8266, up to eight named plots in the browser/Firebase layer, lead-time settings, completion, one-day snooze, recurring tasks and optional daily overdue reminders.
 - Telegram quiet hours are stored as scheduler settings on the ESP8266; reminders are deferred during the quiet window and retried after it when the task remains eligible.
 - Switching from AUTO to MANUAL turns all relays OFF first; the operator can then issue individual MANUAL commands.
-- Pump maximum continuous runtime is 30 minutes.
-- In MANUAL, a running pump is forced OFF after 60 seconds without MQTT.
+- ปั๊มทำงานตามตารางที่บันทึกใน ESP8266 หรือคำสั่งเปิด/ปิดและ timer ที่ผู้ใช้ส่งมา ระบบ **ไม่มี hard cutoff 30 นาที** และ MQTT หลุดจะไม่ตัดตารางรดน้ำที่ทำงานใน ESP8266 โดยอัตโนมัติ
+- Timer แบบกำหนดเวลาและ `UNLIMITED` เป็นตัวเลือกที่ผู้ใช้สั่งเอง ไม่ใช่เพดาน runtime ของปั๊ม; การกด Emergency Stop ใน Dashboard จะส่งคำสั่ง OFF ให้รีเลย์ทั้ง 4 จุด
+- ระหว่าง OTA ระบบจะบังคับรีเลย์ทั้งหมดเป็น OFF ก่อนเขียน Flash; หากอัปโหลดล้มเหลวจะไม่รีบูต และคืนการทำงานปกติ
 - All relays initialize OFF at boot.
 - Dashboard Rain Protection blocks selecting AUTO when Open-Meteo reports rain risk. This is a dashboard-level safeguard; the ESP8266 cannot evaluate web weather data while offline, so field hardware safety limits remain essential.
-- Emergency Stop is an additive dashboard action that sends the existing OFF relay commands to all four relay identifiers. It does not change the relay topic or firmware contract.
+- Emergency Stop is an additive dashboard action that sends the existing OFF relay commands to all four relay identifiers. It does not change the relay topic or firmware contract, and it is **not** a physical emergency disconnect.
+- สำหรับปั๊มจริงควรติดตั้ง physical E-stop/contactor, ลูกลอย, pressure switch หรือ thermal overload ตามวงจรไฟฟ้า โดยต้องทดสอบกับผู้รับผิดชอบหน้างาน.
 
 Time
 - DS3231 is the preferred local clock when present and valid.
@@ -55,10 +57,11 @@ Security
 - Browser backup/export intentionally excludes passwords, tokens, secrets and credential-like keys. Import restores non-secret local data and, when the user is authenticated, the crop/analytics records to the user-scoped Firebase paths.
 - Firebase rules protect user-scoped profile/finance data and root roles.
 - HiveMQ ACLs should be configured for broker-level authorization.
-- Firmware currently uses TLS transport with certificate verification disabled through setInsecure(); pinning or a trust-anchor configuration is a recommended production hardening follow-up.
+- Firmware MQTT และ Telegram ยังคงใช้ TLS transport ตามระบบเดิม; MQTT certificate verification ยังเป็นงาน hardening แยกต่างหากและไม่ได้เปลี่ยนในชุดนี้ เพื่อไม่กระทบ broker, credential flow หรือความเสถียรภาคสนาม.
+- Heartbeat เพิ่มข้อมูลวิเคราะห์แบบ additive ได้แก่ reset reason, heap fragmentation, sensor age/fault count, pump runtime ที่กำลังเกิดขึ้น และจำนวน reconnect; ข้อมูลเหล่านี้ใช้เฝ้าระวังเท่านั้น ไม่สั่งตัดปั๊มอัตโนมัติ.
 
 Build and validation
 - Arduino IDE target: NodeMCU 1.0 (ESP-12E Module), esp8266:esp8266:nodemcuv2.
 - Compile the firmware after every change and upload the resulting binary only after a successful build.
 - A successful build proves compilation only; physical Wi-Fi, MQTT, DHT11, DS3231 and relay/pump behavior must be tested on the real NodeMCU.
-- Use Serial Monitor at 115200 baud. The firmware prints reset diagnostics at boot.
+- Use Serial Monitor at 115200 baud. The firmware prints reset diagnostics at boot. ก่อนใช้โหลดจริง ให้ทดสอบด้วย LED/รีเลย์เปล่าและตรวจ physical E-stop แยกจากคำสั่ง MQTT.

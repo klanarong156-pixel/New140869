@@ -250,9 +250,22 @@
     setText('systemRssiDetail', Number.isFinite(Number(device.rssi)) ? `${Number(device.rssi)} dBm` : 'รอข้อมูล');
     setText('systemFirmwareDetail', device.firmware || 'รอข้อมูล');
     const heap = device.freeHeap ?? device.heap;
+    const frag = Number(device.heapFrag);
+    const heapText = Number.isFinite(Number(heap)) ? `${Number(heap)} bytes` : 'รอข้อมูล';
+    setText('systemHeapDetail', Number.isFinite(frag) ? `${heapText} · แตกตัว ${frag}%` : heapText);
     const rtcOk = device.rtcValid === true || device.clockValid === true || device.rtc === true;
-    setText('systemHeapDetail', Number.isFinite(Number(heap)) ? `${Number(heap)} bytes` : 'รอข้อมูล');
-    setText('systemRtcDetail', rtcOk ? 'เวลาถูกต้อง' : 'รอตรวจสอบ');
+    setText('systemRtcDetail', rtcOk ? (device.rtc === true ? 'RTC ถูกต้อง' : 'NTP fallback') : 'รอตรวจสอบ');
+    const sensorAge = Number(device.sensorAgeSec);
+    const sensorFaults = Number(device.sensorFaults) || 0;
+    const sensorOk = device.sensorOk === true || (Number.isFinite(sensorAge) && sensorAge <= 90);
+    setText('systemSensorDetail', sensorOk ? `ปกติ · ${Math.max(0, Math.round(sensorAge))} วินาทีที่แล้ว` : `ขัดข้อง · ผิดพลาด ${sensorFaults} ครั้ง`);
+    const pumpRuntime = Number(device.pumpRuntimeSec);
+    setText('systemPumpDetail', device.pumpSafeLock === true ? 'ล็อกเพื่อความปลอดภัย' : (Number.isFinite(pumpRuntime) && pumpRuntime > 0 ? `กำลังทำงาน ${Math.floor(pumpRuntime / 60)} นาที ${pumpRuntime % 60} วินาที` : 'ปิดอยู่'));
+    const wifiReconnects = Number(device.wifiReconnects) || 0;
+    const mqttConnects = Number(device.mqttConnects) || 0;
+    const mqttFailures = Number(device.mqttFailures) || 0;
+    const resetReason = device.resetReason ? String(device.resetReason).slice(0, 26) : 'ยังไม่ทราบ';
+    setText('systemReconnectDetail', `${resetReason} · Wi‑Fi ${wifiReconnects} · MQTT ${mqttConnects}/${mqttFailures}`);
     setText('systemLastSeen', state.lastSeenAt ? formatTime(state.lastSeenAt) : 'ยังไม่มี heartbeat');
     setText('analyticsUpdatedAt', state.sensors.length ? formatTime(state.sensors.at(-1).at) : 'ยังไม่มีข้อมูล');
   }

@@ -46,6 +46,10 @@ const schedulePage = read('schedule.html');
 const settings = read('settings.html');
 const firmware = read('SmartFarm_V6_PRODUCTION.ino');
 const sw = read('sw.js');
+const readme = read('README.txt');
+const buildStatus = read('BUILD_STATUS.txt');
+const mqttContract = read('MQTT_CONTRACT_V6.md');
+const mqttContractHtml = read('MQTT_CONTRACT_V6.html');
 
 const checks = [
   ['HiveMQ WSS endpoint is configured', /wss:\/\/[^"']+:8884\/mqtt/.test(cfg)],
@@ -86,6 +90,13 @@ const checks = [
   ['Firmware OTA finalizes before delayed reboot', /otaUploadCompleted/.test(firmware) && /Update\.end\(true\)/.test(firmware) && /Connection", "close"/.test(firmware) && /otaHttpRestartAt = millis\(\) \+ 1500UL/.test(firmware)],
   ['Firmware OTA frees MQTT/TLS before upload stream', /mqtt\.disconnect\(\);/.test(firmware) && /tls\.stop\(\);/.test(firmware) && /OTA HTTP: START/.test(firmware)],
   ['Firmware OTA rejects truncated upload before reboot', /completeSize/.test(firmware) && /upload\.totalSize == otaUploadBytes/.test(firmware) && /SIZE MISMATCH/.test(firmware)],
+  ['Firmware OTA forces relays OFF and pauses schedules', /enterOtaSafeState/.test(firmware) && /otaUpdateInProgress/.test(firmware) && /if \(otaUpdateInProgress\) return/.test(firmware)],
+  ['Firmware does not impose a pump 30-minute or MQTT-loss cutoff', /ไม่มีเพดานเวลาทำงานแบบ 30 นาที/.test(firmware) && /การหลุด MQTT ต้องไม่ตัด/.test(firmware) && !/60-second.*MQTT-loss/.test(firmware)],
+  ['Firmware queues event Telegram notifications', /telegramQueue/.test(firmware) && /processTelegramQueue/.test(firmware) && /lastTelegramAttempt/.test(firmware)],
+  ['Firmware heartbeat includes field diagnostics', /heapMaxBlock/.test(firmware) && /heapFrag/.test(firmware) && /sensorFaults/.test(firmware) && /pumpRuntimeSec/.test(firmware) && /resetReason/.test(firmware)],
+  ['Dashboard renders field diagnostics', /systemSensorDetail/.test(analytics) && /systemPumpDetail/.test(analytics) && /systemReconnectDetail/.test(analytics) && /farm-analytics\.js\?v=2/.test(index)],
+  ['Dashboard distinguishes MQTT stop from physical E-stop', /ไม่ใช่อุปกรณ์ตัดไฟฉุกเฉินทางกายภาพ/.test(index) && /E-stop/.test(schedulePage)],
+  ['Documentation matches no pump hard cutoff policy', /ไม่มี hard cutoff 30 นาที/.test(readme) && /no forced 30-minute.*cutoff/.test(mqttContract) && /No 30-minute pump ceiling/.test(buildStatus) && /no forced 30-minute.*cutoff/.test(mqttContractHtml)],
   ['Firmware schedule parser accepts slots/on/off', /d\["slots"\]/.test(firmware) && /o\["on"\]/.test(firmware) && /o\["off"\]/.test(firmware)],
   ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
   ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /farm-tools\.js/.test(sw) && /farm-clock\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw)],

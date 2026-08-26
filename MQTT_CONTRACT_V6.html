@@ -95,9 +95,11 @@
   <li>Online/LWT: <code class="language-plaintext highlighter-rouge">smartfarm/status/online</code></li>
   <li>Payload: retained <code class="language-plaintext highlighter-rouge">true</code> while connected; broker LWT publishes retained <code class="language-plaintext highlighter-rouge">false</code> after an unexpected disconnect.</li>
   <li>Runtime heartbeat: <code class="language-plaintext highlighter-rouge">smartfarm/device/status</code> every 10 seconds while MQTT is connected.</li>
-  <li>Heartbeat includes firmware version, free heap, RSSI, mode, pump safety lock, RTC validity and time when available.</li>
+  <li>Heartbeat includes firmware version, free heap, heap fragmentation/max block, RSSI, uptime, reset reason, pump safety lock/runtime, RTC validity, DHT11 age/fault counters and Wi-Fi/MQTT reconnect counters.</li>
   <li>Dashboard considers the device offline after 25 seconds without a heartbeat/presence event.</li>
   <li>Browser MQTT disconnect does not by itself declare the ESP offline; ESP presence is determined from device messages.</li>
+<li>Before HTTP or ArduinoOTA firmware writing starts, all relays are forced OFF and schedule application pauses. A failed or aborted update does not reboot the device.</li>
+  <li>The pump has no forced 30-minute runtime cutoff and no automatic MQTT-loss cutoff; a physical E-stop or protective switching hardware is still required for a real pump circuit.</li>
 </ul>
 
 <h2 id="sensor">Sensor</h2>
