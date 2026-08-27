@@ -48,6 +48,11 @@ jobs:
           test "$(file icon-512.png | grep -c '512 x 512')" -eq 1
       - name: Check whitespace
         run: git diff --check
+      - name: Setup Java 21 for Firebase emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
       - name: Validate Firebase Realtime Database rules
         shell: bash
         run: |
