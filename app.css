@@ -983,3 +983,19 @@ code { color:#4f8358; background:#edf6eb; }
   .compact-ui .card.pad { padding:12px; }
   .compact-ui .notice { padding:9px 10px; }
 }
+
+/* Focused schedule flow: show only the controls needed to set and save a time. */
+.compact-ui .kicker { display:none; }
+.compact-ui .step-number { display:none; }
+.compact-ui .schedule-picker .step-label { margin-bottom:8px; }
+.compact-ui .schedule-picker .step-title { font-size:16px; font-weight:800; }
+.compact-ui .schedule-builder .section-head { align-items:center; }
+.compact-ui .schedule-builder .section-head .tag { font-size:10px; }
+.compact-ui .slot-toggle span { font-size:12px; font-weight:700; }
+.compact-ui .schedule-summary { margin-top:8px; font-size:11px; }
+.compact-ui .schedule-actions { margin-top:10px; }
+@media (max-width:640px) {
+  .compact-ui .schedule-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .compact-ui .schedule-picker .step-title { font-size:15px; }
+  .compact-ui .slot-card { padding:12px; }
+}
