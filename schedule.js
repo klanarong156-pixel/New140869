@@ -24,11 +24,15 @@
   }
 
   function currentSlots() {
-    return slots().map(index => ({
-      enabled: Boolean($(`slotEnable${index}`)?.checked),
-      on: $(`slotOn${index}`)?.value || '00:00',
-      off: $(`slotOff${index}`)?.value || '00:00'
-    }));
+    return slots().map(index => {
+      const on = $(`slotOn${index}`)?.value || '00:00';
+      const off = $(`slotOff${index}`)?.value || '00:00';
+      return {
+        enabled: timeToMinutes(on) >= 0 && timeToMinutes(off) >= 0 && on !== off,
+        on,
+        off
+      };
+    });
   }
 
   function timeToMinutes(value) {
@@ -53,10 +57,8 @@
 
   function writeSlots(value) {
     normalizeSlots(value).forEach((slot, index) => {
-      const enable = $(`slotEnable${index}`);
       const on = $(`slotOn${index}`);
       const off = $(`slotOff${index}`);
-      if (enable) enable.checked = slot.enabled;
       if (on) on.value = slot.on;
       if (off) off.value = slot.off;
     });
@@ -228,7 +230,7 @@
   function bind() {
     document.querySelectorAll('[data-schedule-relay]').forEach(button => button.addEventListener('click', () => switchSchedTab(button.dataset.scheduleRelay)));
     document.querySelectorAll('[data-quick-schedule]').forEach(button => button.addEventListener('click', () => applyQuickSchedule(button.dataset.quickSchedule)));
-    slots().forEach(index => ['slotEnable', 'slotOn', 'slotOff'].forEach(prefix => $(`${prefix}${index}`)?.addEventListener('change', updateSummary)));
+    slots().forEach(index => ['slotOn', 'slotOff'].forEach(prefix => $(`${prefix}${index}`)?.addEventListener('change', updateSummary)));
     writeSlots(cache[activeRelay] || { slots: emptySlots() });
     switchSchedTab(activeRelay);
     bindCropCycle();
