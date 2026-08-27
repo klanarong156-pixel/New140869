@@ -9,6 +9,10 @@
         ".validate": "newData.hasChildren(['role']) && newData.child('role').isString() && (newData.child('role').val() === 'admin' || newData.child('role').val() === 'user') && (!newData.hasChild('email') || (newData.child('email').isString() && newData.child('email').val().length <= 254)) && (!newData.hasChild('createdAt') || (newData.child('createdAt').isString() && newData.child('createdAt').val().length <= 40)) && (!newData.hasChild('updatedAt') || (newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40))"
       }
     },
+    "userManagementAudit": {
+      ".read": false,
+      ".write": false
+    },
     "users": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
