@@ -9,6 +9,7 @@ let connectionCredentials = null;
 let reconnectTimer = null;
 let reconnectAttempt = 0;
 let lastDeviceStatus = null;
+const lastScheduleStatuses = new Map();
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
 
@@ -100,6 +101,8 @@ function connect(force = false) {
     if (client !== nextClient) return;
     const payload = message.toString();
     if (topic === 'smartfarm/device/status') lastDeviceStatus = payload;
+    if (topic.startsWith('smartfarm/schedule/') && topic.endsWith('/status'))
+      lastScheduleStatuses.set(topic, payload);
     broadcast({ type: 'message', topic, payload });
   });
   nextClient.on('close', () => {
@@ -131,6 +134,7 @@ self.onconnect = event => {
       connectionCredentials = message.credentials || connectionCredentials;
       connect(Boolean(message.force));
       if (lastDeviceStatus) send(port, { type: 'message', topic: 'smartfarm/device/status', payload: lastDeviceStatus });
+      lastScheduleStatuses.forEach((payload, topic) => send(port, { type: 'message', topic, payload }));
       if (client?.connected) send(port, { type: 'connect' });
       return;
     }

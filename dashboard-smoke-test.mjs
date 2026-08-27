@@ -74,6 +74,7 @@ const checks = [
   ['SharedWorker keeps one MQTT connection across pages', /new SharedWorker/.test(handler) && /mqtt-shared-worker\.js/.test(handler) && /importScripts\('mqtt\.min\.js/.test(worker)],
   ['SharedWorker owns bounded reconnect backoff', /RECONNECT_BASE_MS/.test(worker) && /RECONNECT_MAX_MS/.test(worker) && /reconnectPeriod: 0/.test(worker) && /scheduleReconnect/.test(worker)],
   ['SharedWorker replays latest device heartbeat', /lastDeviceStatus/.test(worker) && /smartfarm\/device\/status/.test(worker) && /type: 'message'/.test(worker)],
+  ['SharedWorker replays latest schedule status', /lastScheduleStatuses/.test(worker) && /smartfarm\/schedule\//.test(worker) && /forEach\(\(payload, topic\)/.test(worker)],
   ['Current app binds relay controls', /\[data-relay-toggle\]/.test(app)],
   ['Unlimited timer command is supported', /seconds === 'UNLIMITED'/.test(app) && /UNLIMITED/.test(firmware)],
   ['Schedule payload uses slots/on/off schema', /return \{ slots: data \}/.test(schedule) && /JSON\.stringify\(payload\)/.test(schedule)],
@@ -132,7 +133,7 @@ const checks = [
   ['User management audit is server-only', /"userManagementAudit"/.test(rules) && /"\.read": false/.test(rules) && /"\.write": false/.test(rules)],
   ['Firebase rules twin is identical', rules === databaseRules],
   ['Active JavaScript has no HTML injection sinks', !/innerHTML|outerHTML|document\\.write|insertAdjacentHTML/.test(activeJs)],
-  ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-1/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
+  ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-2/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
   ['Dashboard loads latest stylesheet cache version', /app\.css\?v=17/.test(index) && /app\.css\?v=13/.test(schedulePage) && /app\.css\?v=13/.test(settings)],
 ];
 
