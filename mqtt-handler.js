@@ -363,6 +363,17 @@ class MqttHandler {
       }
       return;
     }
+    if (topic === this.config.topics.emergencyStatus) {
+      try {
+        const emergency = JSON.parse(value);
+        APP_STATE.emergencyLock = Boolean(emergency.active);
+        this.markDeviceSeen('emergency-status');
+        this.dispatch('emergency:status', emergency);
+      } catch (_) {
+        this.dispatch('emergency:status', { active: false, source: 'invalid-status' });
+      }
+      return;
+    }
     if (topic === this.config.topics.telegramStatus) {
       try {
         this.dispatch('telegram:status', JSON.parse(value));

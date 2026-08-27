@@ -6,16 +6,57 @@
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('roles').child(auth.uid).child('role').val() === 'admin')",
         ".write": "auth != null && (root.child('roles').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $uid && !data.exists() && newData.child('role').val() === 'user'))",
-        ".validate": "newData.hasChildren(['role']) && (newData.child('role').val() === 'admin' || newData.child('role').val() === 'user')"
+        ".validate": "newData.hasChildren(['role']) && newData.child('role').isString() && (newData.child('role').val() === 'admin' || newData.child('role').val() === 'user') && (!newData.hasChild('email') || (newData.child('email').isString() && newData.child('email').val().length <= 254)) && (!newData.hasChild('createdAt') || (newData.child('createdAt').isString() && newData.child('createdAt').val().length <= 40)) && (!newData.hasChild('updatedAt') || (newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40))"
       }
     },
     "users": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
+        "profile": {
+          ".validate": "newData.hasChildren(['displayName', 'farmName']) && newData.child('displayName').isString() && newData.child('displayName').val().length > 0 && newData.child('displayName').val().length <= 80 && newData.child('farmName').isString() && newData.child('farmName').val().length > 0 && newData.child('farmName').val().length <= 120 && (!newData.hasChild('updatedAt') || (newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40)) && (!newData.hasChild('createdAt') || (newData.child('createdAt').isString() && newData.child('createdAt').val().length <= 40))"
+        },
         "finance": {
           "$item": {
-            ".validate": "newData.hasChildren(['id','type','item','amount','createdAt']) && (newData.child('type').val() === 'income' || newData.child('type').val() === 'expense' || newData.child('type').val() === 'pending') && newData.child('amount').isNumber() && newData.child('amount').val() >= 0"
+            ".validate": "newData.hasChildren(['id', 'type', 'item', 'amount', 'createdAt']) && newData.child('id').isString() && newData.child('id').val().length > 0 && newData.child('id').val().length <= 64 && newData.child('type').isString() && (newData.child('type').val() === 'income' || newData.child('type').val() === 'expense' || newData.child('type').val() === 'pending') && newData.child('item').isString() && newData.child('item').val().length > 0 && newData.child('item').val().length <= 140 && newData.child('amount').isNumber() && newData.child('amount').val() > 0 && newData.child('amount').val() < 1000000000 && newData.child('createdAt').isString() && newData.child('createdAt').val().length <= 40 && (!newData.hasChild('category') || (newData.child('category').isString() && newData.child('category').val().length <= 80))"
+          }
+        },
+        "farm": {
+          "cropCycle": {
+            ".validate": "newData.hasChildren(['crop', 'startDate', 'updatedAt']) && newData.child('crop').isString() && newData.child('crop').val().length > 0 && newData.child('crop').val().length <= 100 && newData.child('startDate').isString() && newData.child('startDate').val().length === 10 && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40"
+          },
+          "cropPlots": {
+            "$index": {
+              ".validate": "newData.hasChildren(['id', 'name', 'crop', 'startDate', 'status', 'notes', 'updatedAt']) && newData.child('id').isString() && newData.child('id').val().length > 0 && newData.child('id').val().length <= 32 && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 50 && newData.child('crop').isString() && newData.child('crop').val().length > 0 && newData.child('crop').val().length <= 60 && newData.child('startDate').isString() && newData.child('startDate').val().length === 10 && newData.child('status').isString() && (newData.child('status').val() === 'active' || newData.child('status').val() === 'paused' || newData.child('status').val() === 'archived') && newData.child('notes').isString() && newData.child('notes').val().length <= 120 && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40"
+            }
+          },
+          "cropReminders": {
+            ".validate": "newData.hasChildren(['enabled', 'repeatDaily', 'quietStart', 'quietEnd', 'leadDays', 'hour', 'minute', 'items']) && newData.child('enabled').isBoolean() && newData.child('repeatDaily').isBoolean() && newData.child('quietStart').isString() && newData.child('quietStart').val().length === 5 && newData.child('quietEnd').isString() && newData.child('quietEnd').val().length === 5 && newData.child('leadDays').isNumber() && newData.child('leadDays').val() >= 0 && newData.child('leadDays').val() <= 7 && newData.child('hour').isNumber() && newData.child('hour').val() >= 0 && newData.child('hour').val() <= 23 && newData.child('minute').isNumber() && newData.child('minute').val() >= 0 && newData.child('minute').val() <= 59",
+            "items": {
+              "$index": {
+                ".validate": "newData.hasChildren(['id', 'title', 'due', 'note', 'plotId', 'repeatEveryDays', 'leadDays', 'enabled', 'done', 'lastSentDate']) && newData.child('id').isString() && newData.child('id').val().length > 0 && newData.child('id').val().length <= 31 && newData.child('title').isString() && newData.child('title').val().length > 0 && newData.child('title').val().length <= 70 && newData.child('due').isString() && newData.child('due').val().length === 10 && newData.child('note').isString() && newData.child('note').val().length <= 120 && newData.child('plotId').isString() && newData.child('plotId').val().length <= 32 && newData.child('repeatEveryDays').isNumber() && newData.child('repeatEveryDays').val() >= 0 && newData.child('repeatEveryDays').val() <= 30 && newData.child('leadDays').isNumber() && newData.child('leadDays').val() >= 0 && newData.child('leadDays').val() <= 7 && newData.child('enabled').isBoolean() && newData.child('done').isBoolean() && newData.child('lastSentDate').isString() && newData.child('lastSentDate').val().length <= 10"
+              }
+            }
+          },
+          "analytics": {
+            ".validate": "newData.hasChildren(['sensors', 'relayEvents', 'deviceEvents', 'lastSeenAt', 'updatedAt']) && newData.child('lastSeenAt').isNumber() && newData.child('lastSeenAt').val() >= 0 && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40",
+            "sensors": {
+              "$index": {
+                ".validate": "newData.hasChildren(['type', 'value', 'at']) && newData.child('type').isString() && (newData.child('type').val() === 'temperature' || newData.child('type').val() === 'humidity') && newData.child('value').isNumber() && newData.child('at').isString() && newData.child('at').val().length <= 40"
+              }
+            },
+            "relayEvents": {
+              "$index": {
+                ".validate": "newData.hasChildren(['relay', 'on', 'at']) && newData.child('relay').isString() && (newData.child('relay').val() === 'pump' || newData.child('relay').val() === 'zone1' || newData.child('relay').val() === 'lighthome' || newData.child('relay').val() === 'lightsala') && newData.child('on').isBoolean() && newData.child('at').isString() && newData.child('at').val().length <= 40"
+              }
+            },
+            "deviceEvents": {
+              "$index": {
+                ".validate": "newData.hasChildren(['type', 'detail', 'at']) && newData.child('type').isString() && newData.child('type').val().length <= 60 && newData.child('at').isString() && newData.child('at').val().length <= 40"
+              }
+            },
+            "lastSeenAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 40" }
           }
         }
       }

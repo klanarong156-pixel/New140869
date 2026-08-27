@@ -5,6 +5,8 @@
   const $$ = selector => Array.from(document.querySelectorAll(selector));
   const relayLabel = relay => window.RELAY_NAMES?.[relay] || relay;
   const relayTimers = Object.create(null);
+  const MAX_TIMER_MINUTES = 71582;
+  const MAX_TIMER_SECONDS = MAX_TIMER_MINUTES * 60;
 
   function formatCountdown(seconds) {
     const total = Math.max(0, Math.floor(Number(seconds) || 0));
@@ -30,8 +32,12 @@
     const icons = { success: '✓', warning: '!', error: '×', info: 'i' };
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<b aria-hidden="true">${icons[type] || icons.info}</b><span></span>`;
-    toast.querySelector('span').textContent = message;
+      const icon = document.createElement('b');
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = icons[type] || icons.info;
+      const messageNode = document.createElement('span');
+      messageNode.textContent = message;
+      toast.append(icon, messageNode);
     stack.appendChild(toast);
     window.setTimeout(() => toast.remove(), 4400);
   }
@@ -42,7 +48,8 @@
       element.classList.toggle('offline', !connected);
       element.classList.toggle('warning', !connected && Boolean(text));
       const label = text || (connected ? 'MQTT เชื่อมต่อ' : 'MQTT ยังไม่เชื่อมต่อ');
-      element.innerHTML = `<i></i>${label}`;
+      const indicator = document.createElement('i');
+      element.replaceChildren(indicator, document.createTextNode(label));
     });
     setText('mqttStatusText', text || (connected ? 'เชื่อมต่อกับ HiveMQ Cloud แล้ว' : 'ยังไม่ได้เชื่อมต่อ MQTT'));
   }
@@ -51,7 +58,8 @@
     $$('[data-device-status]').forEach(element => {
       element.classList.toggle('online', Boolean(online));
       element.classList.toggle('offline', !online);
-      element.innerHTML = `<i></i>ESP8266 ${online ? 'ออนไลน์' : 'ออฟไลน์'}`;
+      const indicator = document.createElement('i');
+      element.replaceChildren(indicator, document.createTextNode(`ESP8266 ${online ? 'ออนไลน์' : 'ออฟไลน์'}`));
     });
     $$('[data-device-online-text]').forEach(element => { element.textContent = online ? 'ออนไลน์' : 'ออฟไลน์'; });
     $$('[data-device-online-card]').forEach(card => card.classList.toggle('active', Boolean(online)));
@@ -104,8 +112,13 @@
     const handler = window.mqttHandler;
     const topic = window.MQTT_CONFIG?.topics?.relayTimerSet?.(relay);
     if (!handler?.publish || !topic) return false;
-          const payload = seconds === 'UNLIMITED' ? 'UNLIMITED' : String(Math.max(0, Math.floor(Number(seconds) || 0)));
-      const sent = handler.publish(topic, payload);
+    const numericSeconds = Number(seconds);
+    if (seconds !== 'UNLIMITED' && (!Number.isInteger(numericSeconds) || numericSeconds < 0 || numericSeconds > MAX_TIMER_SECONDS)) {
+      showToast(`timer ต้องอยู่ระหว่าง 1–${MAX_TIMER_MINUTES.toLocaleString('th-TH')} นาที หรือเลือกไม่จำกัดเวลา`, 'warning');
+      return false;
+    }
+    const payload = seconds === 'UNLIMITED' ? 'UNLIMITED' : String(numericSeconds);
+    const sent = handler.publish(topic, payload);
 
     if (!sent) {
       showToast(window.APP_STATE?.mqttConnected ? 'ส่งคำสั่งไม่สำเร็จ กรุณาลองใหม่' : 'MQTT ยังไม่เชื่อมต่อ กรุณารอให้สถานะออนไลน์ก่อน', 'warning');
@@ -115,6 +128,16 @@
     if (seconds > 0 || seconds === 'UNLIMITED') renderRelay(relay, true);
     showToast(seconds > 0 || seconds === 'UNLIMITED' ? `${relayLabel(relay)}: เปิดแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาและปิดรีเลย์แล้ว`, 'success');
     return true;
+  }
+
+  function renderEmergency(active, source = '') {
+    const label = active ? `EMERGENCY STOP ACTIVE${source ? ` · ${source}` : ''}` : 'Emergency Stop ปกติ';
+    $$('[data-emergency-status]').forEach(element => {
+      element.textContent = label;
+      element.classList.toggle('danger', Boolean(active));
+      element.classList.toggle('success', !active);
+    });
+    setText('systemEmergencyDetail', label);
   }
 
   function renderSensor(type, value) {
@@ -137,8 +160,8 @@
         if (sent) renderRelay(relay, true);
         return sent;
       }
-      if (!Number.isInteger(minutes) || minutes < 1 || minutes > 525600) {
-        showToast('กรุณาตั้งเวลา 1–525600 นาที หรือเลือกไม่จำกัดเวลา ก่อนกดเปิดรีเลย์', 'warning');
+      if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_TIMER_MINUTES) {
+        showToast('กรุณาตั้งเวลา 1–71,582 นาที หรือเลือกไม่จำกัดเวลา ก่อนกดเปิดรีเลย์', 'warning');
         return false;
       }
       const sent = commandRelayTimer(relay, minutes * 60);
@@ -163,35 +186,89 @@
     const overlay = document.createElement('div');
     overlay.id = 'mqttSetupModal';
     overlay.className = 'modal-overlay';
-    overlay.innerHTML = `
-      <div class="modal-card card" role="dialog" aria-modal="true" aria-labelledby="mqttSetupTitle">
-        <div class="modal-head"><div><p class="kicker">SECURE CONNECTION</p><h2 id="mqttSetupTitle">ตั้งค่าการเชื่อมต่อ MQTT</h2></div><button type="button" class="btn ghost small" data-close-mqtt aria-label="ปิด">ปิด</button></div>
-        <p class="helper">ข้อมูลจะเก็บไว้ในเบราว์เซอร์นี้เท่านั้น และไม่ถูกบันทึกในซอร์สโค้ด</p>
-        <form id="mqttSetupForm" class="form-grid modal-form">
-          <div class="field full"><label for="mqttUsername">MQTT username</label><input id="mqttUsername" required autocomplete="username" value=""></div>
-          <div class="field full"><label for="mqttPassword">MQTT password</label><input id="mqttPassword" required type="password" autocomplete="current-password" value=""></div>
-          <label class="check-inline field full"><input id="mqttRemember" type="checkbox" ${credentials.remember ? 'checked' : ''}><span>จดจำบนอุปกรณ์นี้</span></label>
-          <div class="btn-row field full"><button class="btn primary" type="submit">บันทึกและเชื่อมต่อ</button><button class="btn secondary" type="button" data-close-mqtt>ยกเลิก</button></div>
-        </form>
-      </div>`;
+    const card = document.createElement('div');
+    card.className = 'modal-card card';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    card.setAttribute('aria-labelledby', 'mqttSetupTitle');
+    const head = document.createElement('div');
+    head.className = 'modal-head';
+    const heading = document.createElement('div');
+    const kicker = document.createElement('p');
+    kicker.className = 'kicker';
+    kicker.textContent = 'SECURE CONNECTION';
+    const title = document.createElement('h2');
+    title.id = 'mqttSetupTitle';
+    title.textContent = 'ตั้งค่าการเชื่อมต่อ MQTT';
+    heading.append(kicker, title);
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'btn ghost small';
+    closeButton.dataset.closeMqtt = '';
+    closeButton.setAttribute('aria-label', 'ปิด');
+    closeButton.textContent = 'ปิด';
+    head.append(heading, closeButton);
+    const helper = document.createElement('p');
+    helper.className = 'helper';
+    helper.textContent = 'ข้อมูลจะเก็บไว้ในเบราว์เซอร์นี้เท่านั้น และไม่ถูกบันทึกในซอร์สโค้ด';
+    const form = document.createElement('form');
+    form.id = 'mqttSetupForm';
+    form.className = 'form-grid modal-form';
+    const field = (labelText, id, type, autocomplete) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'field full';
+      const label = document.createElement('label');
+      label.htmlFor = id;
+      label.textContent = labelText;
+      const input = document.createElement('input');
+      input.id = id;
+      input.required = true;
+      input.type = type;
+      input.autocomplete = autocomplete;
+      wrapper.append(label, input);
+      return { wrapper, input };
+    };
+    const username = field('MQTT username', 'mqttUsername', 'text', 'username');
+    const password = field('MQTT password', 'mqttPassword', 'password', 'current-password');
+    const rememberLabel = document.createElement('label');
+    rememberLabel.className = 'check-inline field full';
+    const remember = document.createElement('input');
+    remember.id = 'mqttRemember';
+    remember.type = 'checkbox';
+    remember.checked = Boolean(credentials.remember);
+    const rememberText = document.createElement('span');
+    rememberText.textContent = 'จดจำบนอุปกรณ์นี้';
+    rememberLabel.append(remember, rememberText);
+    const buttons = document.createElement('div');
+    buttons.className = 'btn-row field full';
+    const submit = document.createElement('button');
+    submit.className = 'btn primary';
+    submit.type = 'submit';
+    submit.textContent = 'บันทึกและเชื่อมต่อ';
+    const cancel = document.createElement('button');
+    cancel.className = 'btn secondary';
+    cancel.type = 'button';
+    cancel.dataset.closeMqtt = '';
+    cancel.textContent = 'ยกเลิก';
+    buttons.append(submit, cancel);
+    form.append(username.wrapper, password.wrapper, rememberLabel, buttons);
+    card.append(head, helper, form);
+    overlay.append(card);
     document.body.appendChild(overlay);
     const close = () => overlay.remove();
     overlay.querySelectorAll('[data-close-mqtt]').forEach(button => button.addEventListener('click', close));
     overlay.addEventListener('click', event => { if (event.target === overlay) close(); });
-    overlay.querySelector('#mqttSetupForm').addEventListener('submit', event => {
+    form.addEventListener('submit', event => {
       event.preventDefault();
       try {
-        const user = overlay.querySelector('#mqttUsername').value;
-        const pass = overlay.querySelector('#mqttPassword').value;
-        const remember = overlay.querySelector('#mqttRemember').checked;
-        window.mqttHandler.setCredentials(user, pass, remember);
+        window.mqttHandler.setCredentials(username.input.value, password.input.value, remember.checked);
         close();
         showToast('บันทึกบัญชี MQTT แล้ว กำลังเชื่อมต่อ', 'success');
       } catch (error) {
         showToast(error.message || 'ตั้งค่า MQTT ไม่สำเร็จ', 'error');
       }
     });
-    overlay.querySelector('#mqttUsername').focus();
+    username.input.focus();
   }
 
   function bindControls() {
@@ -210,8 +287,8 @@
         commandRelayTimer(relay, 'UNLIMITED');
         return;
       }
-      if (!Number.isInteger(minutes) || minutes < 1 || minutes > 525600) {
-        showToast('กรุณาตั้งเวลา 1–525600 นาที หรือเลือกไม่จำกัดเวลา', 'warning');
+      if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_TIMER_MINUTES) {
+        showToast('กรุณาตั้งเวลา 1–71,582 นาที หรือเลือกไม่จำกัดเวลา', 'warning');
         return;
       }
       commandRelayTimer(relay, minutes * 60);
@@ -260,11 +337,16 @@
       if (relay) renderRelayTimer(relay, active, remaining, unlimited);
     });
     window.addEventListener('sensor:data', event => renderSensor(event.detail?.type, event.detail?.value));
+    window.addEventListener('emergency:status', event => {
+      const detail = event.detail || {};
+      renderEmergency(Boolean(detail.active), String(detail.source || ''));
+    });
     window.addEventListener('device:data', event => {
       const device = event.detail || {};
       if (device.firmware) setText('deviceFirmware', device.firmware);
       if (Number.isFinite(Number(device.rssi))) setText('deviceRssi', `${Number(device.rssi)} dBm`);
       if (typeof device.online === 'boolean') renderDevice(device.online);
+      if (typeof device.emergencyLock === 'boolean') renderEmergency(device.emergencyLock, device.emergencySource || '');
     });
     window.addEventListener('mqtt:credentials-required', event => {
       if (event.detail?.forPublish || event.detail?.manual) openMqttSetup();
@@ -280,6 +362,7 @@
   function renderInitialState() {
     renderMqtt(Boolean(window.APP_STATE?.mqttConnected));
     renderDevice(Boolean(window.APP_STATE?.espOnline));
+    renderEmergency(Boolean(window.APP_STATE?.emergencyLock));
     Object.entries(window.APP_STATE?.relays || {}).forEach(([relay, on]) => renderRelay(relay, on));
   }
 

@@ -227,30 +227,54 @@
   function renderList() {
     const list = $('reminderList');
     if (!list) return;
-    list.innerHTML = '';
+    list.replaceChildren();
     if (!state.items.length) {
-      list.innerHTML = '<div class="notice"><span>🌱</span><span>ยังไม่มีงาน เพิ่มงานแรก เช่น “ใส่ปุ๋ยครั้งที่ 2” ได้เลย</span></div>';
+      const notice = document.createElement('div');
+      notice.className = 'notice';
+      const icon = document.createElement('span');
+      icon.textContent = '🌱';
+      const message = document.createElement('span');
+      message.textContent = 'ยังไม่มีงาน เพิ่มงานแรก เช่น “ใส่ปุ๋ยครั้งที่ 2” ได้เลย';
+      notice.append(icon, message);
+      list.append(notice);
       return;
     }
     [...state.items].sort((a, b) => a.due.localeCompare(b.due)).forEach(item => {
       const delta = dateDelta(item.due);
       const article = document.createElement('article');
       article.className = `reminder-item ${item.done ? 'is-done' : delta < 0 ? 'is-overdue' : delta <= 1 ? 'is-soon' : ''}`;
-      article.innerHTML = `<div class="reminder-item-icon">${item.done ? '✓' : delta < 0 ? '!' : '◷'}</div><div class="reminder-item-main"><strong></strong><small></small><div class="reminder-item-actions"></div></div><span class="reminder-item-date"></span>`;
-      article.querySelector('strong').textContent = `${relativeDate(item.due)} · ${item.title}`;
+      const icon = document.createElement('div');
+      icon.className = 'reminder-item-icon';
+      icon.textContent = item.done ? '✓' : delta < 0 ? '!' : '◷';
+      const main = document.createElement('div');
+      main.className = 'reminder-item-main';
+      const title = document.createElement('strong');
+      title.textContent = `${relativeDate(item.due)} · ${item.title}`;
+      const detail = document.createElement('small');
       const plot = window.cropPlots?.find?.(item.plotId);
-      article.querySelector('small').textContent = `${formatDate(item.due)} · ${plot ? `${plot.name} · ` : ''}${item.note || 'ไม่มีหมายเหตุ'} · ${item.repeatEveryDays ? `ทำซ้ำทุก ${item.repeatEveryDays} วัน · ` : ''}เตือน ${item.leadDays} วันล่วงหน้า เวลา ${reminderTime()}`;
-      article.querySelector('.reminder-item-date').textContent = item.done ? 'เสร็จแล้ว' : item.enabled ? 'เปิดเตือน' : 'ปิดเตือน';
-      const actions = article.querySelector('.reminder-item-actions');
+      detail.textContent = `${formatDate(item.due)} · ${plot ? `${plot.name} · ` : ''}${item.note || 'ไม่มีหมายเหตุ'} · ${item.repeatEveryDays ? `ทำซ้ำทุก ${item.repeatEveryDays} วัน · ` : ''}เตือน ${item.leadDays} วันล่วงหน้า เวลา ${reminderTime()}`;
+      const actions = document.createElement('div');
+      actions.className = 'reminder-item-actions';
+      main.append(title, detail, actions);
+      const status = document.createElement('span');
+      status.className = 'reminder-item-date';
+      status.textContent = item.done ? 'เสร็จแล้ว' : item.enabled ? 'เปิดเตือน' : 'ปิดเตือน';
+      const addAction = (action, label) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.reminderAction = action;
+        button.dataset.reminderId = item.id;
+        button.textContent = label;
+        actions.append(button);
+      };
       if (!item.done) {
-        const done = document.createElement('button'); done.type = 'button'; done.dataset.reminderAction = 'done'; done.dataset.reminderId = item.id; done.textContent = 'ทำเสร็จแล้ว'; actions.append(done);
-        if (delta < 0) {
-          const snooze = document.createElement('button'); snooze.type = 'button'; snooze.dataset.reminderAction = 'snooze'; snooze.dataset.reminderId = item.id; snooze.textContent = 'เลื่อน 1 วัน'; actions.append(snooze);
-        }
+        addAction('done', 'ทำเสร็จแล้ว');
+        if (delta < 0) addAction('snooze', 'เลื่อน 1 วัน');
       }
-      const edit = document.createElement('button'); edit.type = 'button'; edit.dataset.reminderAction = 'edit'; edit.dataset.reminderId = item.id; edit.textContent = 'แก้ไข'; actions.append(edit);
-      const toggle = document.createElement('button'); toggle.type = 'button'; toggle.dataset.reminderAction = 'toggle'; toggle.dataset.reminderId = item.id; toggle.textContent = item.enabled ? 'ปิดเตือน' : 'เปิดเตือน'; actions.append(toggle);
-      const remove = document.createElement('button'); remove.type = 'button'; remove.dataset.reminderAction = 'delete'; remove.dataset.reminderId = item.id; remove.textContent = 'ลบ'; actions.append(remove);
+      addAction('edit', 'แก้ไข');
+      addAction('toggle', item.enabled ? 'ปิดเตือน' : 'เปิดเตือน');
+      addAction('delete', 'ลบ');
+      article.append(icon, main, status);
       list.append(article);
     });
   }

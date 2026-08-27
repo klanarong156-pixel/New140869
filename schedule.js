@@ -146,9 +146,17 @@
     const summary = $('cropCycleSummary');
     if (!summary) return;
     const age = window.cropCycle?.age(data) || 0;
-    summary.innerHTML = '<span>🌱</span><span><strong></strong><br><small></small></span>';
-    summary.querySelector('strong').textContent = data.crop ? `${data.crop} · ปลูกมาแล้ว ${age} วัน` : 'ยังไม่ได้บันทึกรอบปลูก';
-    summary.querySelector('small').textContent = data.startDate ? `วันที่ปลูก ${formatCropDate(data.startDate)}` : 'กรอกชื่อพืชและวันที่ปลูกเพื่อเริ่มนับวัน';
+    summary.replaceChildren();
+    const icon = document.createElement('span');
+    icon.textContent = '🌱';
+    const content = document.createElement('span');
+    const title = document.createElement('strong');
+    title.textContent = data.crop ? `${data.crop} · ปลูกมาแล้ว ${age} วัน` : 'ยังไม่ได้บันทึกรอบปลูก';
+    const lineBreak = document.createElement('br');
+    const detail = document.createElement('small');
+    detail.textContent = data.startDate ? `วันที่ปลูก ${formatCropDate(data.startDate)}` : 'กรอกชื่อพืชและวันที่ปลูกเพื่อเริ่มนับวัน';
+    content.append(title, lineBreak, detail);
+    summary.append(icon, content);
   }
 
   async function loadCropCycle() {

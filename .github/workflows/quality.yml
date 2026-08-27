@@ -27,6 +27,10 @@ jobs:
           set -euo pipefail
           for file in *.js *.mjs; do node --check "$file"; done
           for file in *.json; do node -e "JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'))" "$file"; done
+      - name: Run Smart Farm contract checks
+        run: |
+          node dashboard-smoke-test.mjs
+          python3 tools/mqtt_contract_audit.py
       - name: Validate referenced local assets
         shell: bash
         run: |
@@ -44,6 +48,19 @@ jobs:
           test "$(file icon-512.png | grep -c '512 x 512')" -eq 1
       - name: Check whitespace
         run: git diff --check
+      - name: Validate Firebase Realtime Database rules
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/smartfarm-firebase-rules
+          cp firebase.rules.json /tmp/smartfarm-firebase-rules/firebase.rules.json
+          cat > /tmp/smartfarm-firebase-rules/firebase.json <<'EOF'
+          {
+            "database": { "rules": "firebase.rules.json" },
+            "emulators": { "database": { "port": 9000 } }
+          }
+          EOF
+          (cd /tmp/smartfarm-firebase-rules && npx --yes firebase-tools@15.28.1 emulators:exec --only database --project smart-farm-platfor "echo FIREBASE_RULES_PARSED")
 
   firmware-build:
     name: ESP8266 firmware build

@@ -18,7 +18,9 @@ const MQTT_CONFIG = Object.freeze({
     telegramTest: 'smartfarm/config/telegram/test',
     telegramStatus: 'smartfarm/config/telegram/status',
     reminderSet: 'smartfarm/reminder/set',
-    reminderStatus: 'smartfarm/reminder/status'
+    reminderStatus: 'smartfarm/reminder/status',
+    emergencySet: 'smartfarm/emergency/set',
+    emergencyStatus: 'smartfarm/emergency/status'
   }),
   allowedSubscribeTopics: Object.freeze([
     'smartfarm/relay/+/status',
@@ -28,7 +30,8 @@ const MQTT_CONFIG = Object.freeze({
     'smartfarm/device/status',
     'smartfarm/config/telegram/status',
     'smartfarm/schedule/+/status',
-    'smartfarm/reminder/status'
+    'smartfarm/reminder/status',
+    'smartfarm/emergency/status'
   ]),
   deviceHeartbeatTimeoutMs: 25000
 });
@@ -56,7 +59,8 @@ const APP_STATE = {
   espOnline: false,
   espLastSeen: 0,
   espStatusSource: 'none',
-  relays: { pump: false, zone1: false, lighthome: false, lightsala: false }
+  relays: { pump: false, zone1: false, lighthome: false, lightsala: false },
+  emergencyLock: false
 };
 
 window.MQTT_CONFIG = MQTT_CONFIG;

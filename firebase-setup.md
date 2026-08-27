@@ -1,4 +1,4 @@
-# Firebase V6.0 Production Safe setup
+# Firebase V7.1 Security Setup · สวนลุงนะ Smart Farm
 
 ## 1. Firebase Console
 1. Open Firebase Console and select project `smart-farm-platfor`.
@@ -49,5 +49,5 @@ For production security, configure HiveMQ ACLs/credentials so each client can on
 - Verify admin can manage roles.
 - Verify ESP8266 and dashboard use the same MQTT contract.
 - Test all four schedule slots independently for every relay.
-- Test pump 30-minute safety and MQTT-loss cut-off before unattended 24/7 operation.
+- ทดสอบว่าปั๊มทำงานตามตาราง/คำสั่งที่ผู้ใช้เลือก โดยไม่มี hard cutoff 30 นาทีหรือ MQTT-loss cutoff ที่ไม่ได้สั่ง และติดตั้ง physical E-stop/contactor แยกต่างหากก่อนใช้งานจริง
 - Do not commit Firebase service-account keys, MQTT passwords, OTA passwords or private keys.

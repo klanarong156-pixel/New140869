@@ -97,7 +97,7 @@
   }
 
   function emergencyStop() {
-    if (!window.confirm('ปิดรีเลย์ทุกจุดทันทีหรือไม่?')) return false;
+    if (!window.confirm('ปิดรีเลย์ทุกจุดและล็อกการเปิดซ้ำจนกว่าจะกดปลดล็อกหรือไม่?')) return false;
     const handler = window.mqttHandler;
     const topics = window.MQTT_CONFIG?.topics;
     if (!handler?.publish || !topics?.relaySet) {
@@ -106,9 +106,23 @@
       return false;
     }
     let sent = 0;
+    if (topics.emergencySet) handler.publish(topics.emergencySet, 'EMERGENCY_STOP');
     RELAYS.forEach(relay => { if (handler.publish(topics.relaySet(relay), 'OFF')) sent += 1; });
-    notify(sent === RELAYS.length ? 'ส่งคำสั่งหยุดรีเลย์ทุกจุดแล้ว' : `ส่งคำสั่งหยุดแล้ว ${sent}/${RELAYS.length} จุด`, sent === RELAYS.length ? 'success' : 'warning');
+    notify(sent === RELAYS.length ? 'หยุดและล็อกรีเลย์ทุกจุดแล้ว' : `ส่งคำสั่งหยุดแล้ว ${sent}/${RELAYS.length} จุด`, sent === RELAYS.length ? 'success' : 'warning');
     return sent > 0;
+  }
+
+  function resetEmergencyStop() {
+    if (!window.confirm('ปลดล็อก Emergency Stop และอนุญาตให้ตาราง/คำสั่งเปิดรีเลย์อีกครั้งหรือไม่?')) return false;
+    const handler = window.mqttHandler;
+    const topic = window.MQTT_CONFIG?.topics?.emergencySet;
+    if (!handler?.publish || !topic) {
+      notify('ระบบรุ่นนี้ยังไม่รองรับการปลดล็อก Emergency Stop ผ่าน MQTT', 'warning');
+      return false;
+    }
+    const sent = handler.publish(topic, 'EMERGENCY_RESET');
+    notify(sent ? 'ส่งคำสั่งปลดล็อกแล้ว ระบบจะกลับตามตารางเมื่อได้รับคำยืนยันจาก ESP8266' : 'ส่งคำสั่งปลดล็อกไม่สำเร็จ', sent ? 'success' : 'warning');
+    return sent;
   }
 
   function bind() {
@@ -117,7 +131,8 @@
     document.querySelectorAll('[data-system-export]').forEach(button => button.addEventListener('click', exportAll));
     document.querySelectorAll('[data-system-import]').forEach(input => input.addEventListener('change', event => importAll(event.target.files?.[0])));
     document.querySelectorAll('[data-emergency-stop]').forEach(button => button.addEventListener('click', emergencyStop));
-    window.farmTools = { exportAll, importAll, emergencyStop, getMode, renderMode };
+    document.querySelectorAll('[data-emergency-reset]').forEach(button => button.addEventListener('click', resetEmergencyStop));
+    window.farmTools = { exportAll, importAll, emergencyStop, resetEmergencyStop, getMode, renderMode };
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);

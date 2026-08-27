@@ -286,9 +286,14 @@ uint32_t relayTimerUntil[RELAY_COUNT] = {};
 bool relayTimerUnlimited[RELAY_COUNT] = {};
 uint32_t lastTimerStatus = 0;
 bool pumpSafetyLatched = false;
+bool emergencyLock = false;
+uint32_t emergencyTimestamp = 0;
+char emergencySource[24] = "";
+static const uint32_t MAX_TIMER_SECONDS = 4294967UL;
 
 void relaySet(uint8_t i, bool on);
 void publishRelayStatus(uint8_t i);
+void publishEmergencyStatus();
 
 void clearRelayTimer(uint8_t i) {
   if (i < RELAY_COUNT) {
@@ -315,21 +320,24 @@ void publishRelayTimerStatus(uint8_t i) {
   String t = String(MQTT_BASE) + "/relay/" + relayNames[i] + "/timer/status";
   mqtt.publish(t.c_str(), out, true);
 }
-void startRelayTimer(uint8_t i, uint32_t seconds, bool unlimited = false) {
-  if (i >= RELAY_COUNT)
-    return;
+bool startRelayTimer(uint8_t i, uint32_t seconds, bool unlimited = false) {
+  if (i >= RELAY_COUNT || (!unlimited && seconds > MAX_TIMER_SECONDS))
+    return false;
   if (!seconds && !unlimited) {
     clearRelayTimer(i);
     relaySet(i, false);
     publishRelayStatus(i);
     publishRelayTimerStatus(i);
-    return;
+    return true;
   }
+  if (emergencyLock || otaUpdateInProgress)
+    return false;
   relayTimerUnlimited[i] = unlimited;
   relayTimerUntil[i] = unlimited ? 0 : millis() + seconds * 1000UL;
   relaySet((uint8_t)i, true);
   publishRelayStatus(i);
   publishRelayTimerStatus(i);
+  return true;
 }
 void runRelayTimers() {
   bool statusDue = (uint32_t)(millis() - lastTimerStatus) >= 1000UL;
@@ -357,6 +365,20 @@ void runRelayTimers() {
   }
 }
 
+bool parseTimerSeconds(const String &value, uint32_t &seconds) {
+  if (!value.length()) return false;
+  uint32_t parsed = 0;
+  for (size_t index = 0; index < value.length(); index++) {
+    char c = value[index];
+    if (c < '0' || c > '9') return false;
+    uint32_t digit = (uint32_t)(c - '0');
+    if (parsed > (MAX_TIMER_SECONDS - digit) / 10UL) return false;
+    parsed = parsed * 10UL + digit;
+  }
+  if (parsed == 0) return false;
+  seconds = parsed;
+  return true;
+}
 bool validHM(uint8_t h, uint8_t m) { return h < 24 && m < 60; }
 bool parseHM(const char *s, uint8_t &h, uint8_t &m) {
   int a, b;
@@ -459,14 +481,11 @@ void leaveOtaSafeState() {
   Serial.println(F("OTA: safe state released after failed/aborted update"));
 }
 
-void forcePumpOff(const char *reason) {
-  relaySetRaw(0, false);
-  pumpSafetyLatched = true;
-  String r = reason ? reason : "unknown";
-  Serial.printf("PUMP SAFETY OFF: %s\n", r.c_str());
-  queueTelegram(String("แจ้งเตือนความปลอดภัยปั๊ม: ปิดปั๊มอัตโนมัติ (เหตุผล: ") + r + ")");
-}
 void relaySet(uint8_t i, bool on) {
+  if (i >= RELAY_COUNT)
+    return;
+  if (on && (emergencyLock || otaUpdateInProgress))
+    return;
   if (!on)
     clearRelayTimer(i);
   if (i != 0) {
@@ -1090,6 +1109,40 @@ void publishScheduleStatus(uint8_t r) {
   String t = String(MQTT_BASE) + "/schedule/" + relayNames[r] + "/status";
   mqtt.publish(t.c_str(), out, true);
 }
+void publishEmergencyStatus() {
+  if (!mqtt.connected())
+    return;
+  StaticJsonDocument<192> d;
+  d["active"] = emergencyLock;
+  d["source"] = emergencySource;
+  d["timestamp"] = emergencyTimestamp / 1000UL;
+  String iso = rtcIso();
+  if (iso.length()) d["time"] = iso;
+  char out[192];
+  serializeJson(d, out, sizeof(out));
+  mqtt.publish(MQTT_BASE "/emergency/status", out, true);
+}
+void engageEmergencyStop(const char *source) {
+  emergencyLock = true;
+  emergencyTimestamp = millis();
+  strlcpy(emergencySource, source && source[0] ? source : "unknown", sizeof(emergencySource));
+  for (uint8_t i = 0; i < RELAY_COUNT; i++) {
+    clearRelayTimer(i);
+    relaySetRaw(i, false);
+  }
+  Serial.printf("EMERGENCY STOP: active source=%s\n", emergencySource);
+  queueTelegram(String("หยุดฉุกเฉินทำงาน source=") + emergencySource);
+  publishStatus();
+}
+void resetEmergencyStop(const char *source) {
+  emergencyLock = false;
+  emergencyTimestamp = millis();
+  strlcpy(emergencySource, source && source[0] ? source : "reset", sizeof(emergencySource));
+  Serial.printf("EMERGENCY STOP: reset source=%s\n", emergencySource);
+  if (clockIsValid()) applyAutoState(currentMinutes());
+  publishStatus();
+  queueTelegram(String("ปลดล็อกหยุดฉุกเฉิน source=") + emergencySource);
+}
 void publishStatus() {
   if (!mqtt.connected())
     return;
@@ -1098,8 +1151,13 @@ void publishStatus() {
     publishRelayTimerStatus(i);
     publishScheduleStatus(i);
   }
+  publishEmergencyStatus();
 }
 void applyAutoState(uint16_t now) {
+  if (emergencyLock || otaUpdateInProgress) {
+    for (uint8_t i = 0; i < RELAY_COUNT; i++) relaySetRaw(i, false);
+    return;
+  }
   if (!clockIsValid()) return;
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     if (!relayHasSchedule(i)) continue;
@@ -1198,6 +1256,15 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     Serial.printf("MQTT RX: topic=%s payload=%s\\n", t.c_str(), logMsg.c_str());
   }
 
+  if (t == MQTT_BASE "/emergency/set") {
+    if (msg.equalsIgnoreCase("STOP") || msg.equalsIgnoreCase("EMERGENCY_STOP"))
+      engageEmergencyStop("mqtt");
+    else if (msg.equalsIgnoreCase("RESET") || msg.equalsIgnoreCase("EMERGENCY_RESET"))
+      resetEmergencyStop("mqtt");
+    else
+      Serial.println(F("Emergency: invalid payload"));
+    return;
+  }
   if (t == MQTT_BASE "/config/telegram/set") {
     if (!handleTelegramConfig(msg))
       Serial.println(F("Telegram CONFIG: invalid payload"));
@@ -1224,12 +1291,15 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     if (i < 0)
       return;
     bool unlimited = msg.equalsIgnoreCase("UNLIMITED");
-    uint32_t seconds = (msg.equalsIgnoreCase("CANCEL") || unlimited)
-                           ? 0
-                           : strtoul(msg.c_str(), nullptr, 10);
+    uint32_t seconds = 0;
+    bool valid = unlimited || msg.equalsIgnoreCase("CANCEL") || parseTimerSeconds(msg, seconds);
+    if (!valid || !startRelayTimer((uint8_t)i, seconds, unlimited)) {
+      Serial.printf("MQTT TIMER: rejected relay=%s payload=%s\\n", n.c_str(), msg.c_str());
+      publishRelayTimerStatus((uint8_t)i);
+      return;
+    }
     Serial.printf("MQTT TIMER: relay=%s seconds=%lu unlimited=%s\\n", n.c_str(),
                   (unsigned long)seconds, unlimited ? "true" : "false");
-    startRelayTimer((uint8_t)i, seconds, unlimited);
     Serial.printf("MQTT TIMER: relay=%s state=%s\\n", n.c_str(),
                   relayOn((uint8_t)i) ? "ON" : "OFF");
     return;
@@ -1353,6 +1423,7 @@ void connectMqtt() {
     bool s4 = mqtt.subscribe(MQTT_BASE "/config/telegram/set");
     bool s5 = mqtt.subscribe(MQTT_BASE "/config/telegram/test");
     bool s6 = mqtt.subscribe(MQTT_BASE "/reminder/set");
+    bool s7 = mqtt.subscribe(MQTT_BASE "/emergency/set");
     publishStatus();
     publishTelegramStatus();
     publishReminderStatus("online");
@@ -1362,6 +1433,7 @@ void connectMqtt() {
                   s1 ? "OK" : "FAIL", sTimer ? "OK" : "FAIL",
                   s3 ? "OK" : "FAIL", s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL",
                   s6 ? "OK" : "FAIL");
+    Serial.printf("MQTT: Subscribe emergency=%s\\n", s7 ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
     mqttConnectFailures++;
@@ -1750,6 +1822,8 @@ void publishHeartbeat() {
   d["mqttConnects"] = mqttConnectAttempts;
   d["mqttFailures"] = mqttConnectFailures;
   d["pumpSafeLock"] = pumpSafetyLatched;
+  d["emergencyLock"] = emergencyLock;
+  d["emergencySource"] = emergencySource;
   d["pumpRuntimeSec"] = relayOn(0) && pumpStartedAt
                              ? (millis() - pumpStartedAt) / 1000UL
                              : 0;

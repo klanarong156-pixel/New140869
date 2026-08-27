@@ -1,19 +1,21 @@
-SMART FARM LUNGNA V7.0
+SMART FARM LUNGNA V7.1 FIELD STABILITY
 
-Dashboard: V7.0 modern farm UI
-MQTT Contract: unchanged topic contract; credential handling redesigned
-Firebase Auth/Roles: account, profile, finance and admin-role flow restored
-Firmware: V7.0.0-PRODUCTION-HARDENED
+Dashboard: V7.1 Soft Nature PWA with simple/advanced health views
+MQTT Contract: existing broker/WSS, credential flow and relay/schedule topics preserved; additive emergency latch status is documented
+Firebase Auth/Roles: per-user profile, finance, crop, reminder and analytics paths with admin role management
+Firmware: V7.1.0-FIELD-STABILITY
 Hardware map: DHT11 D2; DS3231 D3/D4; relays D5–D8; soil sensor A0 reserved
-PWA cache: smartfarm-v7-app-1
+Pump policy: no forced 30-minute runtime cutoff and no automatic MQTT-loss cutoff; schedule/manual/timer behavior follows the operator's explicit command
+Timer boundary: finite values up to 4,294,967 seconds (about 71,582 minutes); `UNLIMITED` intentionally has no expiry; invalid overflow values are rejected
+Emergency: `EMERGENCY_STOP` turns all relays OFF, cancels timers and blocks ON until `EMERGENCY_RESET`; software latch is not a physical E-stop
+PWA cache: smartfarm-v7.1-field-stability-1
 
-V7 verification status
-- JavaScript and JSON syntax: checked locally.
-- Dashboard responsive rendering and Open-Meteo data: checked in browser.
-- MQTT relay, schedule, Firebase live operations and ESP8266 firmware: require authorized credentials and physical hardware validation before release.
+V7.1 verification status
+- JavaScript and JSON syntax, MQTT contract audit and dashboard smoke tests are required locally before release.
+- Dashboard responsive rendering, access guards and Open-Meteo advisory behavior are checked from source; live Firebase/MQTT requires authorized credentials.
+- OTA forces relays OFF only during firmware writing; incomplete upload must not reboot. Physical OTA, relay, sensor, RTC, Wi-Fi, MQTT and Telegram tests remain required.
 
 CI release evidence
-- Quality workflow run 31807405341 passed on commit 7cedf18.
-- Web syntax/assets checks passed.
-- ESP8266 firmware build passed and produced SmartFarm-V7-ESP8266-BIN.
-- Physical hardware verification remains required before field deployment.
+- The current release artifact must be generated from the exact source after local Arduino CLI compile passes.
+- GitHub quality and Pages deployment must pass for the release commit.
+- Physical hardware verification remains required before connecting a real pump load.

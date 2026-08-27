@@ -1,4 +1,4 @@
-# Smart Farm Real-time MQTT over WebSocket
+# Smart Farm V7.1 Real-time MQTT over WebSocket
 
 ระบบภายนอกสามารถรับข้อมูลจาก Smart Farm แบบ Real-time ได้โดยเชื่อมต่อ MQTT broker ผ่าน Secure WebSocket โดยตรง ไม่ต้องมี API server เพิ่มเติม และไม่ต้องเปิดพอร์ตเข้าหา ESP8266
 
@@ -22,7 +22,7 @@
 | `smartfarm/sensor/dht11` | อุณหภูมิและความชื้น | JSON เช่น `{"temperature":30.2,"humidity":65.0}` |
 | `smartfarm/status/online` | สถานะการเชื่อมต่ออุปกรณ์ | `true` หรือ `false`; retained/LWT |
 | `smartfarm/device/status` | Heartbeat และข้อมูลอุปกรณ์ | JSON; ส่งเป็นระยะ |
-| `smartfarm/mode/status` | โหมดการทำงาน | `AUTO` หรือ `MANUAL`; retained |
+| `smartfarm/emergency/status` | Emergency latch | JSON `active`, `source`, `timestamp`; retained |
 | `smartfarm/schedule/+/status` | ตารางเวลาของแต่ละรีเลย์ | JSON; retained |
 | `smartfarm/config/telegram/status` | สถานะการตั้งค่า Telegram | JSON; ไม่ใช่ secret token |
 
@@ -51,7 +51,7 @@
     'smartfarm/sensor/dht11',
     'smartfarm/status/online',
     'smartfarm/device/status',
-    'smartfarm/mode/status',
+    'smartfarm/emergency/status',
     'smartfarm/schedule/+/status',
     'smartfarm/config/telegram/status'
   ];

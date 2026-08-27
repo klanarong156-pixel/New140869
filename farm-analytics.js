@@ -237,10 +237,22 @@
     if (!list) return;
     const names = window.RELAY_NAMES || { pump: 'ปั๊มน้ำ', zone1: 'โซน 1', lighthome: 'ไฟบ้าน', lightsala: 'ไฟศาลา' };
     const stats = relayStats();
-    list.innerHTML = Object.keys(names).map(relay => {
+    list.replaceChildren();
+    Object.keys(names).forEach(relay => {
       const item = stats[relay] || { count: 0, minutes: 0 };
-      return `<div class="relay-stat-row"><span><strong>${names[relay]}</strong><small>${item.count} ครั้งใน 24 ชม.</small></span><b>${Math.round(item.minutes)} นาที</b></div>`;
-    }).join('');
+      const row = document.createElement('div');
+      row.className = 'relay-stat-row';
+      const label = document.createElement('span');
+      const title = document.createElement('strong');
+      title.textContent = names[relay];
+      const count = document.createElement('small');
+      count.textContent = `${item.count} ครั้งใน 24 ชม.`;
+      label.append(title, count);
+      const minutes = document.createElement('b');
+      minutes.textContent = `${Math.round(item.minutes)} นาที`;
+      row.append(label, minutes);
+      list.append(row);
+    });
   }
 
   function renderSystem() {
@@ -251,8 +263,10 @@
     setText('systemFirmwareDetail', device.firmware || 'รอข้อมูล');
     const heap = device.freeHeap ?? device.heap;
     const frag = Number(device.heapFrag);
+    const heapMaxBlock = Number(device.heapMaxBlock);
     const heapText = Number.isFinite(Number(heap)) ? `${Number(heap)} bytes` : 'รอข้อมูล';
-    setText('systemHeapDetail', Number.isFinite(frag) ? `${heapText} · แตกตัว ${frag}%` : heapText);
+    const blockText = Number.isFinite(heapMaxBlock) ? ` · บล็อกใหญ่สุด ${heapMaxBlock}` : '';
+    setText('systemHeapDetail', Number.isFinite(frag) ? `${heapText}${blockText} · แตกตัว ${frag}%` : `${heapText}${blockText}`);
     const rtcOk = device.rtcValid === true || device.clockValid === true || device.rtc === true;
     setText('systemRtcDetail', rtcOk ? (device.rtc === true ? 'RTC ถูกต้อง' : 'NTP fallback') : 'รอตรวจสอบ');
     const sensorAge = Number(device.sensorAgeSec);
@@ -261,6 +275,7 @@
     setText('systemSensorDetail', sensorOk ? `ปกติ · ${Math.max(0, Math.round(sensorAge))} วินาทีที่แล้ว` : `ขัดข้อง · ผิดพลาด ${sensorFaults} ครั้ง`);
     const pumpRuntime = Number(device.pumpRuntimeSec);
     setText('systemPumpDetail', device.pumpSafeLock === true ? 'ล็อกเพื่อความปลอดภัย' : (Number.isFinite(pumpRuntime) && pumpRuntime > 0 ? `กำลังทำงาน ${Math.floor(pumpRuntime / 60)} นาที ${pumpRuntime % 60} วินาที` : 'ปิดอยู่'));
+    setText('systemEmergencyDetail', device.emergencyLock === true ? `EMERGENCY STOP ACTIVE${device.emergencySource ? ` · ${String(device.emergencySource).slice(0, 24)}` : ''}` : 'ปกติ');
     const wifiReconnects = Number(device.wifiReconnects) || 0;
     const mqttConnects = Number(device.mqttConnects) || 0;
     const mqttFailures = Number(device.mqttFailures) || 0;
@@ -290,6 +305,7 @@
       renderAll();
     });
     window.addEventListener('esp:status', event => { state.esp = Boolean(event.detail?.online); state.lastSeenAt = Date.now(); renderSystem(); });
+    window.addEventListener('emergency:status', event => { state.lastDevice = { ...(state.lastDevice || {}), ...(event.detail || {}) }; renderSystem(); });
     window.addEventListener('mqtt:connected', event => { state.mqtt = Boolean(event.detail); renderSystem(); });
     window.addEventListener('mqtt:connecting', () => { state.mqtt = false; renderSystem(); });
     window.addEventListener('mqtt:reconnecting', () => { state.mqtt = false; renderSystem(); });

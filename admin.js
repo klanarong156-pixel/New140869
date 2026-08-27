@@ -12,7 +12,7 @@
   async function loadRoles() {
     setStatus('กำลังโหลดรายชื่อผู้ใช้…');
     const body = $('roleRows');
-    body.innerHTML = '';
+    body.replaceChildren();
     try {
       const roles = await FirebaseRoot.get('roles') || {};
       const entries = Object.entries(roles).sort(([, a], [, b]) => String(a.email || '').localeCompare(String(b.email || '')));

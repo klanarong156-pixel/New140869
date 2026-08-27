@@ -1,4 +1,4 @@
-สวนลุงนะ Smart Farm V7.0
+สวนลุงนะ Smart Farm V7.1 Field Stability
 
 Architecture
 - Dashboard: static Progressive Web App for GitHub Pages.
@@ -19,20 +19,19 @@ Hardware pin map — source of truth: SmartFarm_V6_PRODUCTION.ino
 - A0 is reserved; no soil sensor is installed.
 
 Automation and safety
-- MANUAL and AUTO modes are available.
+- Firmware ไม่มี active MANUAL/AUTO topic; ตารางทำงานใน ESP8266 เมื่อ clock ใช้งานได้ ส่วน relay/timer เป็นคำสั่งโดยตรงตาม topic เดิม
 - Four independent schedule slots are stored locally for each relay.
-- Schedules execute locally in AUTO even if MQTT is temporarily unavailable.
+- Schedules execute locally when the clock is valid even if MQTT is temporarily unavailable.
 - Crop reminders are stored on ESP8266 and can send Telegram messages at a configured time even when the Dashboard is closed.
 - The Dashboard has Simple and Advanced modes. Simple mode focuses on today’s controls and tasks; Advanced mode adds system health, 24-hour telemetry chart, relay runtime statistics and backup tools.
 - Crop management supports up to eight crop tasks on the ESP8266, up to eight named plots in the browser/Firebase layer, lead-time settings, completion, one-day snooze, recurring tasks and optional daily overdue reminders.
 - Telegram quiet hours are stored as scheduler settings on the ESP8266; reminders are deferred during the quiet window and retried after it when the task remains eligible.
-- Switching from AUTO to MANUAL turns all relays OFF first; the operator can then issue individual MANUAL commands.
 - ปั๊มทำงานตามตารางที่บันทึกใน ESP8266 หรือคำสั่งเปิด/ปิดและ timer ที่ผู้ใช้ส่งมา ระบบ **ไม่มี hard cutoff 30 นาที** และ MQTT หลุดจะไม่ตัดตารางรดน้ำที่ทำงานใน ESP8266 โดยอัตโนมัติ
-- Timer แบบกำหนดเวลาและ `UNLIMITED` เป็นตัวเลือกที่ผู้ใช้สั่งเอง ไม่ใช่เพดาน runtime ของปั๊ม; การกด Emergency Stop ใน Dashboard จะส่งคำสั่ง OFF ให้รีเลย์ทั้ง 4 จุด
+- Timer แบบกำหนดเวลารองรับสูงสุด 71,582 นาทีต่อคำสั่งจากข้อจำกัดทางเทคนิคของ `millis()` และ `UNLIMITED` เป็นตัวเลือกที่ผู้ใช้สั่งเอง ไม่มี hard cutoff runtime ของปั๊ม; Emergency Stop จะปิดรีเลย์ ยกเลิก timer และล็อกการเปิดซ้ำจนกว่าจะปลดล็อก
 - ระหว่าง OTA ระบบจะบังคับรีเลย์ทั้งหมดเป็น OFF ก่อนเขียน Flash; หากอัปโหลดล้มเหลวจะไม่รีบูต และคืนการทำงานปกติ
 - All relays initialize OFF at boot.
-- Dashboard Rain Protection blocks selecting AUTO when Open-Meteo reports rain risk. This is a dashboard-level safeguard; the ESP8266 cannot evaluate web weather data while offline, so field hardware safety limits remain essential.
-- Emergency Stop is an additive dashboard action that sends the existing OFF relay commands to all four relay identifiers. It does not change the relay topic or firmware contract, and it is **not** a physical emergency disconnect.
+- Dashboard Rain Protection เป็นเพียง advisory จาก Open-Meteo; ESP8266 ไม่ใช้ weather API เป็นตัวสั่งปั๊ม และ safety ทางกายภาพยังจำเป็น
+- Emergency Stop ใช้ topic เพิ่มเติม `smartfarm/emergency/set` เพื่อทำ latch และยังส่งคำสั่ง OFF ของ relay เดิมทั้งสี่จุดเพื่อ backward compatibility; มัน **ไม่ใช่** physical emergency disconnect
 - สำหรับปั๊มจริงควรติดตั้ง physical E-stop/contactor, ลูกลอย, pressure switch หรือ thermal overload ตามวงจรไฟฟ้า โดยต้องทดสอบกับผู้รับผิดชอบหน้างาน.
 
 Time
@@ -42,7 +41,7 @@ Time
 
 MQTT topics
 - smartfarm/relay/{relay}/set and /status
-- smartfarm/mode/set and /status
+- smartfarm/emergency/set and /status (`EMERGENCY_STOP` / `EMERGENCY_RESET`)
 - smartfarm/schedule/{relay}/set and /status
 - smartfarm/status/online
 - smartfarm/device/status

@@ -14,13 +14,15 @@
     const amount = Number(item?.amount);
     if (!TYPES.has(type)) throw new Error('ประเภทรายการไม่ถูกต้อง');
     if (!label) throw new Error('กรุณาระบุชื่อรายการ');
-    if (!Number.isFinite(amount) || amount < 0) throw new Error('จำนวนเงินต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป');
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('จำนวนเงินต้องมากกว่า 0 และเป็นตัวเลขปกติ');
+    const roundedAmount = Math.round((amount + Number.EPSILON) * 100) / 100;
+    if (!Number.isFinite(roundedAmount) || roundedAmount <= 0) throw new Error('จำนวนเงินต้องมีทศนิยมไม่เกิน 2 ตำแหน่ง');
     return {
       id: item.id || generateFinanceId(),
       type,
       item: label.slice(0, 140),
       category: String(item.category || '').trim().slice(0, 80),
-      amount,
+      amount: roundedAmount,
       createdAt: item.createdAt || new Date().toISOString()
     };
   }

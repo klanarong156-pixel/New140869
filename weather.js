@@ -108,13 +108,19 @@
     if (location) location.textContent = `${WEATHER_CONFIG.latitude}, ${WEATHER_CONFIG.longitude} • UTM ${WEATHER_CONFIG.utm}`;
     const forecast = $('forecast7');
     if (forecast) {
-      forecast.innerHTML = '';
+      forecast.replaceChildren();
       const daily = data.daily || {};
+      const numberText = (value, digits = 0, suffix = '') => Number.isFinite(Number(value)) ? `${Number(value).toFixed(digits)}${suffix}` : `--${suffix}`;
+      const addLine = (parent, tagName, text) => { const node = document.createElement(tagName); node.textContent = text; parent.appendChild(node); };
       (daily.time || []).forEach((day, index) => {
         const item = document.createElement('article');
         item.className = 'forecast-day';
         const date = new Date(`${day}T12:00:00${WEATHER_CONFIG.timezoneOffset}`);
-        item.innerHTML = `<b>${date.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', timeZone: WEATHER_CONFIG.timezone })}</b><span>${weatherText(daily.weather_code?.[index])}</span><span>🌡️ ${Number(daily.temperature_2m_min?.[index]).toFixed(0)}–${Number(daily.temperature_2m_max?.[index]).toFixed(0)}°C</span><span>☔ ${Number(daily.precipitation_probability_max?.[index]).toFixed(0)}%</span><span>💧 ${Number(daily.precipitation_sum?.[index]).toFixed(1)} mm</span>`;
+        addLine(item, 'b', date.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', timeZone: WEATHER_CONFIG.timezone }));
+        addLine(item, 'span', weatherText(daily.weather_code?.[index]));
+        addLine(item, 'span', `อุณหภูมิ ${numberText(daily.temperature_2m_min?.[index])}–${numberText(daily.temperature_2m_max?.[index])}°C`);
+        addLine(item, 'span', `โอกาสฝน ${numberText(daily.precipitation_probability_max?.[index])}%`);
+        addLine(item, 'span', `ปริมาณฝน ${numberText(daily.precipitation_sum?.[index], 1)} mm`);
         forecast.appendChild(item);
       });
     }

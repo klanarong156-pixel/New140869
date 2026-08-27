@@ -57,6 +57,10 @@
   };
 
   function boot() {
+    if (document.body?.dataset.adminRequired === 'true') {
+      window.requireAdmin();
+      return;
+    }
     if (document.body?.dataset.authRequired === 'true') init();
   }
 

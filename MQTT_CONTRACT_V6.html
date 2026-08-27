@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="th">
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>NewFarm V6.2 MQTT Contract | smartfarm7.0</title>
+<title>สวนลุงนะ Smart Farm V7.1 MQTT Contract</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="NewFarm V6.2 MQTT Contract" />
+<meta property="og:title" content="สวนลุงนะ Smart Farm V7.1 MQTT Contract" />
 <meta property="og:locale" content="en_US" />
-<link rel="canonical" href="https://klanarong156-pixel.github.io/smartfarm7.0/MQTT_CONTRACT_V6.html" />
-<meta property="og:url" content="https://klanarong156-pixel.github.io/smartfarm7.0/MQTT_CONTRACT_V6.html" />
-<meta property="og:site_name" content="smartfarm7.0" />
+<link rel="canonical" href="https://klanarong156-pixel.github.io/New140869/MQTT_CONTRACT_V6.html" />
+<meta property="og:url" content="https://klanarong156-pixel.github.io/New140869/MQTT_CONTRACT_V6.html" />
+<meta property="og:site_name" content="สวนลุงนะ Smart Farm" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="NewFarm V6.2 MQTT Contract" />
+<meta property="twitter:title" content="สวนลุงนะ Smart Farm V7.1 MQTT Contract" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","headline":"NewFarm V6.2 MQTT Contract","url":"https://klanarong156-pixel.github.io/smartfarm7.0/MQTT_CONTRACT_V6.html"}</script>
+{"@context":"https://schema.org","@type":"WebPage","headline":"สวนลุงนะ Smart Farm V7.1 MQTT Contract","url":"https://klanarong156-pixel.github.io/New140869/MQTT_CONTRACT_V6.html"}</script>
 <!-- End Jekyll SEO tag -->
 
     <link rel="stylesheet" href="app.css?v=13">
@@ -35,12 +35,12 @@
   <body>
     <div class="container-lg px-3 my-5 markdown-body">
       
-      <h1><a href="https://klanarong156-pixel.github.io/smartfarm7.0/">smartfarm7.0</a></h1>
+      <h1><a href="https://klanarong156-pixel.github.io/New140869/">สวนลุงนะ Smart Farm</a></h1>
       
 
-      <h1 id="newfarm-v62-mqtt-contract">NewFarm V6.2 MQTT Contract</h1>
+      <h1 id="smartfarm-v71-mqtt-contract">สวนลุงนะ Smart Farm V7.1 MQTT Contract</h1>
 
-<p>This is the active MQTT contract for the V7.0.0 Production Hardened firmware and V7 web app.</p>
+<p>This is the active MQTT contract for Firmware <code>V7.1.0-FIELD-STABILITY</code> and the V7.1 web app. The MQTT broker/WSS endpoint, credential flow and existing relay/schedule topics remain unchanged.</p>
 
 <h2 id="relay">Relay</h2>
 <ul>
@@ -52,12 +52,11 @@
 
 <p>Relay IDs: <code class="language-plaintext highlighter-rouge">pump</code>, <code class="language-plaintext highlighter-rouge">zone1</code>, <code class="language-plaintext highlighter-rouge">lighthome</code>, <code class="language-plaintext highlighter-rouge">lightsala</code>.</p>
 
-<h2 id="mode">Mode</h2>
+<h2 id="control-semantics">Control semantics</h2>
 <ul>
-  <li>Command: <code class="language-plaintext highlighter-rouge">smartfarm/mode/set</code></li>
-  <li>Status: <code class="language-plaintext highlighter-rouge">smartfarm/mode/status</code></li>
-  <li>Payload: <code class="language-plaintext highlighter-rouge">MANUAL</code> or <code class="language-plaintext highlighter-rouge">AUTO</code></li>
-  <li>A manual relay command received by firmware exits AUTO first, so firmware remains authoritative.</li>
+  <li>Firmware has no active <code class="language-plaintext highlighter-rouge">smartfarm/mode/set</code> or <code class="language-plaintext highlighter-rouge">smartfarm/mode/status</code> topic. Do not publish mode commands.</li>
+  <li>Schedules run locally on the ESP8266 from the four-slot schedule topics. Direct relay commands and timers use the existing relay topics.</li>
+  <li>Emergency latch uses the additive command topic <code class="language-plaintext highlighter-rouge">smartfarm/emergency/set</code> with <code>EMERGENCY_STOP</code> or <code>EMERGENCY_RESET</code>; status is retained on <code>smartfarm/emergency/status</code>.</li>
 </ul>
 
 <h2 id="four-independent-schedules-per-relay">Four independent schedules per relay</h2>
@@ -69,7 +68,15 @@
   <li><code class="language-plaintext highlighter-rouge">DELETE</code> clears all four slots for that relay.</li>
   <li>Status: <code class="language-plaintext highlighter-rouge">smartfarm/schedule/{relay}/status</code></li>
   <li>Status payload: <code class="language-plaintext highlighter-rouge">{ "slots": [ ...up to 4 slots... ] }</code></li>
-  <li>Schedules are stored in ESP8266 LittleFS and continue locally in AUTO when MQTT is temporarily unavailable.</li>
+  <li>Schedules are stored in ESP8266 LittleFS and continue locally when MQTT is temporarily unavailable.</li>
+</ul>
+
+<h2 id="timer">Relay countdown timer</h2>
+<ul>
+  <li>Command: <code>smartfarm/relay/{relay}/timer/set</code> (non-retained).</li>
+  <li>Payload: integer seconds from <code>1</code> to <code>4294967</code> (about 71,582 minutes), <code>UNLIMITED</code>, <code>0</code> or <code>CANCEL</code>.</li>
+  <li>Finite timers turn the selected relay OFF when the explicitly requested countdown expires. Values beyond the technical <code>millis()</code> range are rejected; this is not a 30-minute pump policy.</li>
+  <li>Status: <code>smartfarm/relay/{relay}/timer/status</code> with retained JSON such as <code>{ "active": true, "unlimited": false, "remaining": 120 }</code>.</li>
 </ul>
 
 <h2 id="telegram">Telegram configuration</h2>
@@ -95,7 +102,7 @@
   <li>Online/LWT: <code class="language-plaintext highlighter-rouge">smartfarm/status/online</code></li>
   <li>Payload: retained <code class="language-plaintext highlighter-rouge">true</code> while connected; broker LWT publishes retained <code class="language-plaintext highlighter-rouge">false</code> after an unexpected disconnect.</li>
   <li>Runtime heartbeat: <code class="language-plaintext highlighter-rouge">smartfarm/device/status</code> every 10 seconds while MQTT is connected.</li>
-  <li>Heartbeat includes firmware version, free heap, heap fragmentation/max block, RSSI, uptime, reset reason, pump safety lock/runtime, RTC validity, DHT11 age/fault counters and Wi-Fi/MQTT reconnect counters.</li>
+  <li>Heartbeat includes firmware version, free heap, heap fragmentation/max block, RSSI, uptime, reset reason, pump safety lock/runtime, emergency lock/source, RTC validity, DHT11 age/fault counters and Wi-Fi/MQTT reconnect counters.</li>
   <li>Dashboard considers the device offline after 25 seconds without a heartbeat/presence event.</li>
   <li>Browser MQTT disconnect does not by itself declare the ESP offline; ESP presence is determined from device messages.</li>
 <li>Before HTTP or ArduinoOTA firmware writing starts, all relays are forced OFF and schedule application pauses. A failed or aborted update does not reboot the device.</li>
@@ -118,19 +125,19 @@
   <li>NTP is used to synchronize DS3231 when Wi-Fi is available; periodic sync interval is 6 hours.</li>
 </ul>
 
-<h2 id="pump-safety">Pump safety</h2>
+<h2 id="pump-safety">Pump and emergency safety</h2>
 <ul>
-  <li>Maximum continuous pump runtime: 30 minutes.</li>
-  <li>In AUTO, reaching the limit latches the pump OFF until the active schedule window ends.</li>
-  <li>In MANUAL, reaching the limit latches the pump OFF until a new explicit ON command.</li>
-  <li>In MANUAL, if MQTT remains disconnected for 60 seconds while the pump is running, the pump is forced OFF.</li>
-  <li>ESP8266 boots with all four relays OFF.</li>
+  <li>There is no forced 30-minute pump runtime cutoff and no automatic MQTT-loss cutoff.</li>
+  <li>The pump follows the locally stored schedule or the explicit relay/timer command selected by the operator.</li>
+  <li><code>EMERGENCY_STOP</code> turns all relays OFF, cancels timers and blocks schedule/manual/timer ON until <code>EMERGENCY_RESET</code>.</li>
+  <li>HTTP/ArduinoOTA forces all relays OFF only during the firmware update. ESP8266 boots with all four relays OFF.</li>
+  <li>The software emergency latch is not a physical E-stop; a real pump circuit requires independent protective hardware.</li>
 </ul>
 
 <h2 id="browser-mqtt-credentials">Browser MQTT credentials</h2>
 <ul>
   <li>Username/password are not committed to source control.</li>
-  <li>V6.2 remembers credentials in the browser’s local storage when the user selects the remember option; otherwise they remain session-only.</li>
+  <li>V7.1 remembers credentials in the browser’s local storage when the user selects the remember option; otherwise they remain session-only.</li>
   <li>Invalid broker credentials clear the saved browser credentials and reopen the setup dialog.</li>
   <li>Commands issued during a short MQTT reconnect window are queued for up to 30 seconds and then discarded.</li>
   <li>A static GitHub Pages client cannot keep a shared MQTT credential secret from the browser; HiveMQ ACLs should be configured for broker-level authorization.</li>

@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="th">
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Firebase V6.0 Production Safe setup | smartfarm7.0</title>
+<title>Firebase V7.1 Security Setup | สวนลุงนะ Smart Farm</title>
 <meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="Firebase V6.0 Production Safe setup" />
+<meta property="og:title" content="Firebase V7.1 Security Setup | สวนลุงนะ Smart Farm" />
 <meta property="og:locale" content="en_US" />
-<link rel="canonical" href="https://klanarong156-pixel.github.io/smartfarm7.0/firebase-setup.html" />
-<meta property="og:url" content="https://klanarong156-pixel.github.io/smartfarm7.0/firebase-setup.html" />
-<meta property="og:site_name" content="smartfarm7.0" />
+<link rel="canonical" href="https://klanarong156-pixel.github.io/New140869/firebase-setup.html" />
+<meta property="og:url" content="https://klanarong156-pixel.github.io/New140869/firebase-setup.html" />
+<meta property="og:site_name" content="สวนลุงนะ Smart Farm" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Firebase V6.0 Production Safe setup" />
+<meta property="twitter:title" content="Firebase V7.1 Security Setup | สวนลุงนะ Smart Farm" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","headline":"Firebase V6.0 Production Safe setup","url":"https://klanarong156-pixel.github.io/smartfarm7.0/firebase-setup.html"}</script>
+{"@context":"https://schema.org","@type":"WebPage","headline":"Firebase V7.1 Security Setup | สวนลุงนะ Smart Farm","url":"https://klanarong156-pixel.github.io/New140869/firebase-setup.html"}</script>
 <!-- End Jekyll SEO tag -->
 
     <link rel="stylesheet" href="app.css?v=13">
@@ -32,13 +32,13 @@
 <!-- end custom head snippets -->
 
   </head>
-  <body>
+  <body data-auth-required="true" data-admin-required="true">
     <div class="container-lg px-3 my-5 markdown-body">
       
-      <h1><a href="https://klanarong156-pixel.github.io/smartfarm7.0/">smartfarm7.0</a></h1>
+      <h1><a href="https://klanarong156-pixel.github.io/New140869/">สวนลุงนะ Smart Farm</a></h1>
       
 
-      <h1 id="firebase-v60-production-safe-setup">Firebase V6.0 Production Safe setup</h1>
+      <h1 id="firebase-v71-security-setup">Firebase V7.1 Security Setup</h1>
 
 <h2 id="1-firebase-console">1. Firebase Console</h2>
 <ol>
@@ -95,7 +95,7 @@ roles/
   <li>Verify admin can manage roles.</li>
   <li>Verify ESP8266 and dashboard use the same MQTT contract.</li>
   <li>Test all four schedule slots independently for every relay.</li>
-  <li>Test pump 30-minute safety and MQTT-loss cut-off before unattended 24/7 operation.</li>
+  <li>ทดสอบว่าปั๊มทำงานตามตาราง/คำสั่งที่ผู้ใช้เลือก โดยไม่มี hard cutoff 30 นาทีหรือ MQTT-loss cutoff ที่ไม่ได้สั่ง; ติดตั้งและทดสอบ physical E-stop/contactor แยกต่างหาก.</li>
   <li>Do not commit Firebase service-account keys, MQTT passwords, OTA passwords or private keys.</li>
 </ul>
 
@@ -104,5 +104,7 @@ roles/
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
     <script>anchors.add();</script>
+    <script src="firebase.js?v=9"></script>
+    <script src="access.js?v=10"></script>
   </body>
 </html>

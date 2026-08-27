@@ -22,15 +22,18 @@
     const body = $('accountFinanceRows');
     const empty = $('accountFinanceEmpty');
     if (!body || !empty) return;
-    body.innerHTML = '';
+    body.replaceChildren();
     empty.classList.toggle('hidden', financeItems.length > 0);
     financeItems.forEach(item => {
       const meta = typeMeta[item.type] || typeMeta.expense;
       const row = document.createElement('tr');
-      row.innerHTML = `<td>${formatDate(item.createdAt)}</td><td><span class="tag ${meta.className}">${meta.label}</span></td><td><strong></strong></td><td><span class="finance-amount ${item.type}"></span></td><td><button class="btn danger small" type="button">ลบ</button></td>`;
-      row.querySelector('strong').textContent = item.item;
-      row.querySelector('.finance-amount').textContent = `${meta.sign} ${formatter.format(item.amount)}`;
-      row.querySelector('button').addEventListener('click', () => removeFinance(item.id, item.item));
+      const dateCell = document.createElement('td'); dateCell.textContent = formatDate(item.createdAt);
+      const typeCell = document.createElement('td');
+      const tag = document.createElement('span'); tag.className = `tag ${meta.className}`; tag.textContent = meta.label; typeCell.appendChild(tag);
+      const itemCell = document.createElement('td'); const itemName = document.createElement('strong'); itemName.textContent = item.item; itemCell.appendChild(itemName);
+      const amountCell = document.createElement('td'); const amount = document.createElement('span'); amount.className = `finance-amount ${item.type}`; amount.textContent = `${meta.sign} ${formatter.format(item.amount)}`; amountCell.appendChild(amount);
+      const actionCell = document.createElement('td'); const deleteButton = document.createElement('button'); deleteButton.className = 'btn danger small'; deleteButton.type = 'button'; deleteButton.textContent = 'ลบ'; deleteButton.addEventListener('click', () => removeFinance(item.id, item.item)); actionCell.appendChild(deleteButton);
+      row.append(dateCell, typeCell, itemCell, amountCell, actionCell);
       body.appendChild(row);
     });
     setText('accountFinanceStatus', financeItems.length ? `${financeItems.length} รายการ · ข้อมูลล่าสุดจากบัญชีนี้` : 'ยังไม่มีรายการการเงิน');

@@ -1,4 +1,4 @@
-// SmartFarm V6.0 - Firebase Auth + Realtime Database
+// Smart Farm V7.1 - Firebase Auth + Realtime Database
 // Firebase = persistent storage. MQTT = real-time transport.
 
 const FIREBASE_CONFIG = Object.freeze({

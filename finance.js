@@ -31,16 +31,38 @@
     const body = $('financeRows');
     const empty = $('financeEmpty');
     if (!body || !empty) return;
-    body.innerHTML = '';
+    body.replaceChildren();
     empty.classList.toggle('hidden', items.length > 0);
     items.forEach(item => {
       const meta = typeMeta[item.type] || typeMeta.expense;
       const row = document.createElement('tr');
-      row.innerHTML = `<td>${formatDate(item.createdAt)}</td><td><span class="tag ${meta.className}">${meta.label}</span></td><td class="finance-category"></td><td><strong></strong></td><td><span class="finance-amount ${item.type}"></span></td><td><button class="btn danger small" type="button">ลบ</button></td>`;
-      row.querySelector('.finance-category').textContent = item.category || (item.type === 'income' ? '—' : 'ไม่ระบุ');
-      row.querySelector('strong').textContent = item.item;
-      row.querySelector('.finance-amount').textContent = `${meta.sign} ${formatter.format(item.amount)}`;
-      row.querySelector('button').addEventListener('click', () => remove(item.id, item.item));
+      const dateCell = document.createElement('td');
+      dateCell.textContent = formatDate(item.createdAt);
+      const typeCell = document.createElement('td');
+      const tag = document.createElement('span');
+      tag.className = `tag ${meta.className}`;
+      tag.textContent = meta.label;
+      typeCell.appendChild(tag);
+      const categoryCell = document.createElement('td');
+      categoryCell.className = 'finance-category';
+      categoryCell.textContent = item.category || (item.type === 'income' ? '—' : 'ไม่ระบุ');
+      const itemCell = document.createElement('td');
+      const itemName = document.createElement('strong');
+      itemName.textContent = item.item;
+      itemCell.appendChild(itemName);
+      const amountCell = document.createElement('td');
+      const amount = document.createElement('span');
+      amount.className = `finance-amount ${item.type}`;
+      amount.textContent = `${meta.sign} ${formatter.format(item.amount)}`;
+      amountCell.appendChild(amount);
+      const actionCell = document.createElement('td');
+      const deleteButton = document.createElement('button');
+      deleteButton.className = 'btn danger small';
+      deleteButton.type = 'button';
+      deleteButton.textContent = 'ลบ';
+      deleteButton.addEventListener('click', () => remove(item.id, item.item));
+      actionCell.appendChild(deleteButton);
+      row.append(dateCell, typeCell, categoryCell, itemCell, amountCell, actionCell);
       body.appendChild(row);
     });
   }
@@ -97,10 +119,48 @@
       window.showToast?.('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต pop-up แล้วลองใหม่', 'warning');
       return;
     }
+    const doc = printable.document;
+    doc.open();
+    doc.documentElement.lang = 'th';
+    const meta = doc.createElement('meta');
+    meta.setAttribute('charset', 'utf-8');
+    const title = doc.createElement('title');
+    title.textContent = 'รายงานการเงิน · สวนลุงนะ';
+    const style = doc.createElement('style');
+    style.textContent = 'body{font-family:Tahoma,sans-serif;color:#17251b;padding:30px}h1{margin-bottom:4px}p{color:#56675b}table{border-collapse:collapse;width:100%;margin-top:20px}th,td{padding:10px;border-bottom:1px solid #d9e4dc;text-align:left}th{background:#eff7f1}.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}.box{background:#f3f8f4;padding:12px;border-radius:8px}.box b{display:block;font-size:18px}@media print{body{padding:0}}';
+    doc.head.append(meta, title, style);
+    const body = doc.body;
+    const heading = doc.createElement('h1');
+    heading.textContent = 'รายงานการเงินฟาร์ม';
+    const printedAt = doc.createElement('p');
+    printedAt.textContent = `สวนลุงนะ Smart Farm · พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}`;
     const totals = summary();
-    const rows = items.map(item => `<tr><td>${formatDate(item.createdAt)}</td><td>${typeMeta[item.type]?.label || item.type}</td><td>${(item.category || (item.type === 'income' ? '—' : 'ไม่ระบุ')).replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]))}</td><td>${item.item.replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]))}</td><td style="text-align:right">${formatter.format(item.amount)}</td></tr>`).join('');
-    printable.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><title>รายงานการเงิน · สวนลุงนะ</title><style>body{font-family:Tahoma,sans-serif;color:#17251b;padding:30px}h1{margin-bottom:4px}p{color:#56675b}table{border-collapse:collapse;width:100%;margin-top:20px}th,td{padding:10px;border-bottom:1px solid #d9e4dc;text-align:left}th{background:#eff7f1}.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}.box{background:#f3f8f4;padding:12px;border-radius:8px}.box b{display:block;font-size:18px}@media print{body{padding:0}}</style></head><body><h1>รายงานการเงินฟาร์ม</h1><p>สวนลุงนะ Smart Farm · พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}</p><div class="totals"><div class="box">รายรับ<b>${formatter.format(totals.income)}</b></div><div class="box">รายจ่าย<b>${formatter.format(totals.expense)}</b></div><div class="box">ค้างซื้อ<b>${formatter.format(totals.pending)}</b></div><div class="box">กำไรสุทธิ<b>${formatter.format(totals.profit)}</b></div></div><table><thead><tr><th>วันที่</th><th>ประเภท</th><th>หมวดต้นทุน</th><th>รายการ</th><th style="text-align:right">จำนวนเงิน</th></tr></thead><tbody>${rows || '<tr><td colspan="5">ไม่มีข้อมูล</td></tr>'}</tbody></table><script>window.onload=()=>window.print();<\/script></body></html>`);
-    printable.document.close();
+    const totalsBox = doc.createElement('div');
+    totalsBox.className = 'totals';
+    [['รายรับ', totals.income], ['รายจ่าย', totals.expense], ['ค้างซื้อ', totals.pending], ['กำไรสุทธิ', totals.profit]].forEach(([label, value]) => {
+      const box = doc.createElement('div'); box.className = 'box';
+      const name = doc.createElement('span'); name.textContent = label;
+      const valueNode = doc.createElement('b'); valueNode.textContent = formatter.format(value);
+      box.append(name, valueNode); totalsBox.appendChild(box);
+    });
+    const table = doc.createElement('table');
+    const headRow = doc.createElement('tr');
+    ['วันที่', 'ประเภท', 'หมวดต้นทุน', 'รายการ', 'จำนวนเงิน'].forEach(label => { const th = doc.createElement('th'); th.textContent = label; headRow.appendChild(th); });
+    const thead = doc.createElement('thead'); thead.appendChild(headRow);
+    const tbody = doc.createElement('tbody');
+    if (!items.length) {
+      const row = doc.createElement('tr'); const cell = doc.createElement('td'); cell.colSpan = 5; cell.textContent = 'ไม่มีข้อมูล'; row.appendChild(cell); tbody.appendChild(row);
+    } else {
+      items.forEach(item => {
+        const row = doc.createElement('tr');
+        [formatDate(item.createdAt), typeMeta[item.type]?.label || item.type, item.category || (item.type === 'income' ? '—' : 'ไม่ระบุ'), item.item, formatter.format(item.amount)].forEach(value => { const cell = doc.createElement('td'); cell.textContent = value; row.appendChild(cell); });
+        tbody.appendChild(row);
+      });
+    }
+    table.append(thead, tbody);
+    body.append(heading, printedAt, totalsBox, table);
+    doc.close();
+    printable.setTimeout(() => printable.print(), 100);
   }
 
   function printReport() {

@@ -1,4 +1,6 @@
-# รายงานตรวจสอบและปรับปรุงระบบ Smart Farm
+# รายงานตรวจสอบและปรับปรุงระบบ Smart Farm (Historical)
+
+> รายงานนี้เป็นบันทึกการตรวจรอบก่อนวันที่ 21 สิงหาคม 2026 ไม่ใช่ source of truth ของ Firmware/Dashboard ปัจจุบัน รายละเอียดที่ใช้ปฏิบัติงานให้ยึด `README.txt`, `MQTT_CONTRACT_V6.md`, `HARDWARE_V6.md` และ `BUILD_STATUS.txt` รุ่นล่าสุด โดยเฉพาะเรื่อง timer, emergency latch และขอบเขตความปลอดภัยทางกายภาพ
 
 **โครงการ:** สวนลุงนะ Smart Farm  
 **วันที่ตรวจสอบ:** 21 สิงหาคม 2026  

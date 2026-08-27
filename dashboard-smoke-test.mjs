@@ -16,6 +16,8 @@ const files = [
   'weather.js',
   'auto-weather-guard.js',
   'dashboard-ota.js',
+  'admin.js',
+  'finance.js',
 ];
 for (const file of files) {
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
@@ -50,6 +52,9 @@ const readme = read('README.txt');
 const buildStatus = read('BUILD_STATUS.txt');
 const mqttContract = read('MQTT_CONTRACT_V6.md');
 const mqttContractHtml = read('MQTT_CONTRACT_V6.html');
+const rules = read('firebase.rules.json');
+const databaseRules = read('database.rules.json');
+const activeJs = files.map(read).join('\\n');
 
 const checks = [
   ['HiveMQ WSS endpoint is configured', /wss:\/\/[^"']+:8884\/mqtt/.test(cfg)],
@@ -108,6 +113,11 @@ const checks = [
   ['Weather protection is advisory only', /autoWateringAllowed = !blocked/.test(weather) && !/data-mode|\bAUTO\b|\bMANUAL\b/.test(guard)],
   ['No new mode MQTT contract introduced', !/modeSet|mode\/set|data-mode|\bAUTO\b|\bMANUAL\b/.test(cfg + handler + app + schedule + index + schedulePage + settings + firmware)],
   ['Emergency stop uses existing relay OFF commands', /data-emergency-stop/.test(index) && /relaySet\(relay\), 'OFF'/.test(tools)],
+  ['Emergency latch has reset/status UI', /data-emergency-reset/.test(index) && /data-emergency-status/.test(index) && /emergency:status/.test(app)],
+  ['Firebase rules cover user-scoped domains', /users/.test(rules) && /profile/.test(rules) && /finance/.test(rules) && /cropCycle/.test(rules) && /cropPlots/.test(rules) && /cropReminders/.test(rules) && /analytics/.test(rules) && /amount.*> 0/.test(rules)],
+  ['Firebase rules twin is identical', rules === databaseRules],
+  ['Active JavaScript has no HTML injection sinks', !/innerHTML|outerHTML|document\\.write|insertAdjacentHTML/.test(activeJs)],
+  ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-1/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
   ['Dashboard loads latest stylesheet cache version', /app\.css\?v=15/.test(index) && /app\.css\?v=13/.test(schedulePage) && /app\.css\?v=13/.test(settings)],
 ];
 
