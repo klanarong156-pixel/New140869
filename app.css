@@ -1088,3 +1088,14 @@ select option { color: #123d2b; background: #ffffff; }
   body { background: linear-gradient(160deg, #f7f4e9 0%, #e8f1e5 100%); }
   .card { box-shadow: 0 8px 22px rgba(56,91,60,.08); }
 }
+
+/* Ivory Forest hard refresh: unmistakable light page theme */
+html, body { background-color: #f7f4e9 !important; }
+body { color: #123d2b !important; background: linear-gradient(145deg, #fbf8ef 0%, #edf4e9 48%, #e2eee0 100%) !important; }
+.app-shell { background: transparent !important; }
+.card, .metric-card, .control-card, .connection-card, .hero, .section > .card { color: #123d2b; }
+.card:not(.control-card), .metric-card { background: #ffffff !important; }
+.control-card { background: #ffffff !important; border-color: rgba(33,134,87,.16); }
+.control-card.active { background: #edf7eb !important; }
+input, select, textarea { color: #123d2b !important; background: #ffffff !important; }
+.bottom-nav { background: rgba(255,255,255,.96) !important; }
