@@ -821,3 +821,64 @@ code { color:#4f8358; background:#edf6eb; }
 .sensor-history-chart[hidden] { display:none; }
 .empty-state { margin:10px 0 2px; padding:18px; border:1px dashed #dbe6d7; border-radius:12px; text-align:center; color:#77887c; background:#f9fcf8; }
 .empty-state[hidden] { display:none; }
+
+
+/* Dashboard compact mode: presentation-only, keeps all existing controls and MQTT behavior. */
+.dashboard-page .app-main { padding-top:18px; }
+.dashboard-page .hero { min-height:176px; grid-template-columns:minmax(0,1.55fr) minmax(180px,.45fr); gap:18px; padding:22px 24px; border-radius:22px; }
+.dashboard-page .hero h1 { font-size:clamp(26px,4vw,38px); }
+.dashboard-page .hero .subtitle { max-width:620px; font-size:13px; line-height:1.42; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+.dashboard-page .hero-meta { gap:7px; margin-top:12px; }
+.dashboard-page .hero-actions { margin-top:12px; }
+.dashboard-page .section { margin-top:16px; }
+.dashboard-page .section-head { margin-bottom:9px; }
+.dashboard-page .section-head .helper { margin-top:5px; font-size:11px; }
+.dashboard-page .grid { gap:12px; }
+.dashboard-page .card.pad { padding:16px; }
+.dashboard-page .metric-card { min-height:104px; padding:14px; }
+.dashboard-page .metric-card strong { font-size:22px; }
+.dashboard-page .metric-card small { margin-top:4px; font-size:10px; }
+.dashboard-page .metric-icon { width:32px; height:32px; font-size:16px; }
+.dashboard-page .control-card { padding:14px; }
+.dashboard-page .control-name { gap:8px; }
+.dashboard-page .control-name .icon { width:34px; height:34px; font-size:17px; }
+.dashboard-page .control-name strong { font-size:15px; }
+.dashboard-page .control-state { margin-top:10px; font-size:12px; }
+.dashboard-page .relay-timer { gap:6px; margin-top:10px; padding-top:10px; }
+.dashboard-page .relay-timer > label { font-size:11px; }
+.dashboard-page .relay-timer [data-timer-status] { font-size:11px; }
+.dashboard-page #cropCycleCard .crop-cycle-summary { min-height:54px; }
+.dashboard-page #weatherBox .forecast-grid { gap:8px; }
+.dashboard-page #systemHealthPanel .health-grid { margin-top:10px; }
+.dashboard-page #analyticsPanel .chart-card { margin-top:14px; }
+@media (max-width:900px) {
+  .dashboard-page .hero { grid-template-columns:1fr; min-height:0; }
+  .dashboard-page .hero-art { display:none; }
+}
+@media (max-width:640px) {
+  .dashboard-page .app-main { width:min(100% - 20px,1180px); padding-top:12px; }
+  .dashboard-page .topbar { width:calc(100% - 20px); min-height:66px; gap:8px; }
+  .dashboard-page .brand { gap:8px; }
+  .dashboard-page .brand-symbol { width:36px; height:36px; flex-basis:36px; border-radius:11px; }
+  .dashboard-page .brand-copy strong { font-size:15px; }
+  .dashboard-page .brand-copy span { font-size:10px; }
+  .dashboard-page .farm-clock { max-width:142px; }
+  .dashboard-page .farm-clock em { display:none; }
+  .dashboard-page .hero { padding:17px; border-radius:18px; }
+  .dashboard-page .hero h1 { font-size:27px; }
+  .dashboard-page .hero .subtitle { font-size:12px; }
+  .dashboard-page .section { margin-top:13px; }
+  .dashboard-page .section-head { gap:8px; }
+  .dashboard-page .section-head h2 { font-size:18px; }
+  .dashboard-page .card.pad { padding:13px; }
+  .dashboard-page .grid.four { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .dashboard-page .metric-card { min-height:91px; padding:12px; }
+  .dashboard-page .metric-card strong { font-size:19px; }
+  .dashboard-page .metric-card .metric-top { font-size:11px; }
+  .dashboard-page .control-card { padding:12px; }
+  .dashboard-page .control-state { min-height:0; margin-top:8px; font-size:11px; }
+  .dashboard-page .relay-timer { margin-top:8px; padding-top:8px; }
+  .dashboard-page #control .section-head-actions { flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+  .dashboard-page #control .section-head-actions .helper { width:100%; text-align:right; }
+  .dashboard-page #cropCycleCard .section-head .tag, .dashboard-page #weatherBox .section-head .tag { display:none; }
+}
