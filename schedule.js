@@ -31,6 +31,26 @@
     }));
   }
 
+  function timeToMinutes(value) {
+    const match = /^(\d{2}):(\d{2})$/.exec(String(value || ''));
+    return match ? Number(match[1]) * 60 + Number(match[2]) : -1;
+  }
+
+  function slotIsOn(slot, minute) {
+    if (!slot.enabled) return false;
+    const on = timeToMinutes(slot.on);
+    const off = timeToMinutes(slot.off);
+    if (on < 0 || off < 0 || on === off) return false;
+    return on < off ? minute >= on && minute < off : minute >= on || minute < off;
+  }
+
+  function slotsOverlap(a, b) {
+    for (let minute = 0; minute < 1440; minute += 1) {
+      if (slotIsOn(a, minute) && slotIsOn(b, minute)) return true;
+    }
+    return false;
+  }
+
   function writeSlots(value) {
     normalizeSlots(value).forEach((slot, index) => {
       const enable = $(`slotEnable${index}`);
@@ -41,6 +61,13 @@
       if (off) off.value = slot.off;
     });
     updateSummary();
+  }
+
+  function setValidation(message) {
+    const box = $('scheduleValidation');
+    if (!box) return;
+    box.textContent = message || '';
+    box.hidden = !message;
   }
 
   function updateSummary() {
@@ -65,11 +92,21 @@
 
   function validate() {
     const data = currentSlots();
+    setValidation('');
     for (let index = 0; index < data.length; index += 1) {
       const slot = data[index];
       if (!slot.enabled) continue;
       if (!/^\d{2}:\d{2}$/.test(slot.on) || !/^\d{2}:\d{2}$/.test(slot.off) || slot.on === slot.off) {
-        throw new Error(`ช่วงที่ ${index + 1} ต้องระบุเวลาเปิดและปิดที่ไม่เท่ากัน`);
+        const message = `ช่วงที่ ${index + 1} ต้องระบุเวลาเปิดและปิดที่ไม่เท่ากัน`;
+        setValidation(message);
+        throw new Error(message);
+      }
+      for (let other = index + 1; other < data.length; other += 1) {
+        if (slotsOverlap(slot, data[other])) {
+          const message = `ช่วงที่ ${index + 1} ชนกับช่วงที่ ${other + 1} กรุณาแก้เวลาให้ไม่ทับกัน`;
+          setValidation(message);
+          throw new Error(message);
+        }
       }
     }
     return { slots: data };
@@ -104,6 +141,7 @@
     }
     cache[activeRelay] = payload;
     updateSummary();
+    setValidation('');
     window.showToast?.(`ส่งตาราง ${relayNames[activeRelay] || activeRelay} ไปยังอุปกรณ์แล้ว`, 'success');
     return true;
   }

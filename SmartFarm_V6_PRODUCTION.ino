@@ -410,6 +410,27 @@ bool relayHasSchedule(uint8_t r) {
     if (schedules[r][s].enabled) return true;
   return false;
 }
+bool schedulesOverlap(const ScheduleSlot &a, const ScheduleSlot &b) {
+  if (!a.enabled || !b.enabled) return false;
+  for (uint16_t minute = 0; minute < 1440; minute++) {
+    if (slotIsOn(a.enabled, a.onH, a.onM, a.offH, a.offM, minute) &&
+        slotIsOn(b.enabled, b.onH, b.onM, b.offH, b.offM, minute))
+      return true;
+  }
+  return false;
+}
+bool scheduleSetValid(const ScheduleSlot *candidate) {
+  for (uint8_t i = 0; i < SLOT_COUNT; i++) {
+    if (candidate[i].enabled &&
+        (!validHM(candidate[i].onH, candidate[i].onM) ||
+         !validHM(candidate[i].offH, candidate[i].offM) ||
+         (candidate[i].onH == candidate[i].offH && candidate[i].onM == candidate[i].offM)))
+      return false;
+    for (uint8_t j = i + 1; j < SLOT_COUNT; j++)
+      if (schedulesOverlap(candidate[i], candidate[j])) return false;
+  }
+  return true;
+}
 bool validRtcDateTime(const DateTime &value) {
   return value.isValid() && value.year() >= 2024 && value.year() <= 2099;
 }
@@ -452,6 +473,8 @@ void relaySetRaw(uint8_t i, bool on) {
   if (i >= RELAY_COUNT)
     return;
   bool wasOn = relayOn(i);
+  if (wasOn == on)
+    return;
   digitalWrite(relayPins[i], on ? RELAY_ON : RELAY_OFF);
   if (i == 0) {
     if (on && !pumpStartedAt)
@@ -569,14 +592,19 @@ void loadConfig() {
     return;
   for (uint8_t r = 0; r < RELAY_COUNT && r < all.size(); r++) {
     JsonArray rs = all[r].as<JsonArray>();
-    if (rs.isNull())
-      continue;
+    if (rs.isNull()) continue;
+    ScheduleSlot candidate[SLOT_COUNT] = {};
     for (uint8_t s = 0; s < SLOT_COUNT && s < rs.size(); s++) {
       JsonObject o = rs[s].as<JsonObject>();
       uint8_t oh = o["onH"] | 0, om = o["onM"] | 0, fh = o["offH"] | 0,
               fm = o["offM"] | 0;
       if (validHM(oh, om) && validHM(fh, fm) && !(oh == fh && om == fm))
-        schedules[r][s] = {bool(o["enabled"] | false), oh, om, fh, fm};
+        candidate[s] = {bool(o["enabled"] | false), oh, om, fh, fm};
+    }
+    if (scheduleSetValid(candidate)) {
+      for (uint8_t s = 0; s < SLOT_COUNT; s++) schedules[r][s] = candidate[s];
+    } else {
+      Serial.printf("Schedule: overlap rejected relay=%s\n", relayNames[r]);
     }
   }
 }
@@ -1139,7 +1167,8 @@ void resetEmergencyStop(const char *source) {
   emergencyTimestamp = millis();
   strlcpy(emergencySource, source && source[0] ? source : "reset", sizeof(emergencySource));
   Serial.printf("EMERGENCY STOP: reset source=%s\n", emergencySource);
-  if (clockIsValid()) applyAutoState(currentMinutes());
+  DateTime resetRtc(2000, 1, 1);
+  if (readRtcNow(resetRtc)) applyAutoState(resetRtc.hour() * 60U + resetRtc.minute());
   publishStatus();
   queueTelegram(String("ปลดล็อกหยุดฉุกเฉิน source=") + emergencySource);
 }
@@ -1161,6 +1190,10 @@ void applyAutoState(uint16_t now) {
   if (!clockIsValid()) return;
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     if (!relayHasSchedule(i)) continue;
+    // Timer/manual command owns the relay until it expires or is cleared.
+    if (relayTimerUnlimited[i] ||
+        (relayTimerUntil[i] && (int32_t)(relayTimerUntil[i] - millis()) > 0))
+      continue;
     bool desired = relayScheduleDesired(i, now);
     if (i == 0) {
       if (!desired) {
@@ -1337,22 +1370,25 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       if (deserializeJson(d, msg))
         return;
       JsonArray slots = d["slots"].as<JsonArray>();
-      if (slots.isNull())
-        return;
-      for (uint8_t s = 0; s < SLOT_COUNT; s++) {
-        schedules[r][s] = {false, 0, 0, 0, 0};
-        if (s >= slots.size())
-          continue;
+      if (slots.isNull()) return;
+      ScheduleSlot candidate[SLOT_COUNT] = {};
+      for (uint8_t s = 0; s < SLOT_COUNT && s < slots.size(); s++) {
         JsonObject o = slots[s].as<JsonObject>();
         uint8_t oh, om, fh, fm;
-        if (!parseHM(o["on"] | "", oh, om) || !parseHM(o["off"] | "", fh, fm) ||
-            (oh == fh && om == fm))
+        if (!parseHM(o["on"] | "", oh, om) || !parseHM(o["off"] | "", fh, fm))
           continue;
-        schedules[r][s] = {bool(o["enabled"] | false), oh, om, fh, fm};
+        candidate[s] = {bool(o["enabled"] | false), oh, om, fh, fm};
       }
+      if (!scheduleSetValid(candidate)) {
+        Serial.printf("Schedule: overlap rejected relay=%s\n", relayNames[r]);
+        queueTelegram(String("ปฏิเสธตารางของรีเลย์ ") + relayNames[r] + " เนื่องจากเวลาชนกัน");
+        return;
+      }
+      for (uint8_t s = 0; s < SLOT_COUNT; s++) schedules[r][s] = candidate[s];
     }
     saveConfig();
-    if (clockIsValid()) applyAutoState(currentMinutes());
+    DateTime scheduleRtc(2000, 1, 1);
+    if (readRtcNow(scheduleRtc)) applyAutoState(scheduleRtc.hour() * 60U + scheduleRtc.minute());
     publishScheduleStatus((uint8_t)r);
     publishRelayStatus((uint8_t)r);
     queueTelegram(String("อัปเดตตารางเวลาของรีเลย์ ") + relayNames[r] +
@@ -1751,7 +1787,8 @@ void setup() {
   mqtt.setBufferSize(768);
   syncRTCFromNTP(true);
   reportClockStatus();
-  applyAutoState(currentMinutes());
+  DateTime bootRtc(2000, 1, 1);
+  if (readRtcNow(bootRtc)) applyAutoState(bootRtc.hour() * 60U + bootRtc.minute());
   ArduinoOTA.setHostname(deviceName);
   ArduinoOTA.onStart([]() {
     enterOtaSafeState();
@@ -1802,8 +1839,10 @@ void runSchedules() {
   if ((uint32_t)(millis() - lastSchedule) < SCHEDULE_INTERVAL_MS)
     return;
   lastSchedule = millis();
-  // ตรวจตารางตามเวลาปัจจุบันโดยอัตโนมัติ
-  if (clockIsValid()) applyAutoState(currentMinutes());
+  // Schedule ต้องใช้ RTC ที่อ่านได้จริง ห้ามใช้ NTP fallback ไปสั่งรีเลย์
+  DateTime now(2000, 1, 1);
+  if (!readRtcNow(now)) return;
+  applyAutoState(now.hour() * 60U + now.minute());
 }
 
 void publishHeartbeat() {
