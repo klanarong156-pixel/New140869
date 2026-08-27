@@ -100,6 +100,7 @@ const checks = [
   ['Firmware queues event Telegram notifications', /telegramQueue/.test(firmware) && /processTelegramQueue/.test(firmware) && /lastTelegramAttempt/.test(firmware)],
   ['Firmware heartbeat includes field diagnostics', /heapMaxBlock/.test(firmware) && /heapFrag/.test(firmware) && /sensorFaults/.test(firmware) && /pumpRuntimeSec/.test(firmware) && /resetReason/.test(firmware)],
   ['Dashboard renders field diagnostics', /systemSensorDetail/.test(analytics) && /systemPumpDetail/.test(analytics) && /systemReconnectDetail/.test(analytics) && /farm-analytics\.js\?v=2/.test(index)],
+  ['Dashboard has realtime MQTT status panel', /data-mqtt-live-panel/.test(index) && /data-mqtt-live-label/.test(index) && /data-mqtt-device-status/.test(index) && /data-mqtt-last-update/.test(index) && /setText\('mqttLiveLabel'/.test(app) && /mqtt:reconnecting/.test(app)],
   ['Dashboard distinguishes MQTT stop from physical E-stop', /ไม่ใช่อุปกรณ์ตัดไฟฉุกเฉินทางกายภาพ/.test(index) && /E-stop/.test(schedulePage)],
   ['Documentation matches no pump hard cutoff policy', /ไม่มี hard cutoff 30 นาที/.test(readme) && /no forced 30-minute.*cutoff/.test(mqttContract) && /No 30-minute pump ceiling/.test(buildStatus) && /no forced 30-minute.*cutoff/.test(mqttContractHtml)],
   ['Firmware schedule parser accepts slots/on/off', /d\["slots"\]/.test(firmware) && /o\["on"\]/.test(firmware) && /o\["off"\]/.test(firmware)],

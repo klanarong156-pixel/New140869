@@ -43,15 +43,25 @@
   }
 
   function renderMqtt(connected, text) {
+    const label = text || (connected ? 'MQTT เชื่อมต่อ' : 'MQTT ยังไม่เชื่อมต่อ');
+    const detail = connected ? 'ช่องทางสั่งงานพร้อมใช้งาน' : (text || 'รอการเชื่อมต่อช่องทางสั่งงาน');
     $$('[data-mqtt-status]').forEach(element => {
       element.classList.toggle('online', Boolean(connected));
-      element.classList.toggle('offline', !connected);
+      element.classList.toggle('offline', !connected && !text);
       element.classList.toggle('warning', !connected && Boolean(text));
-      const label = text || (connected ? 'MQTT เชื่อมต่อ' : 'MQTT ยังไม่เชื่อมต่อ');
       const indicator = document.createElement('i');
       element.replaceChildren(indicator, document.createTextNode(label));
     });
-    setText('mqttStatusText', text || (connected ? 'เชื่อมต่อกับ HiveMQ Cloud แล้ว' : 'ยังไม่ได้เชื่อมต่อ MQTT'));
+    const panel = document.querySelector('[data-mqtt-live-panel]');
+    if (panel) {
+      panel.classList.toggle('online', Boolean(connected));
+      panel.classList.toggle('offline', !connected && !text);
+      panel.classList.toggle('warning', !connected && Boolean(text));
+    }
+    setText('mqttLiveLabel', label);
+    setText('mqttLiveDetail', detail);
+    setText('mqttLastUpdate', new Intl.DateTimeFormat('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date()));
+    setText('mqttStatusText', connected ? 'เชื่อมต่อกับ HiveMQ Cloud แล้ว' : detail);
   }
 
   function renderDevice(online) {
@@ -62,6 +72,7 @@
       element.replaceChildren(indicator, document.createTextNode(`ESP8266 ${online ? 'ออนไลน์' : 'ออฟไลน์'}`));
     });
     $$('[data-device-online-text]').forEach(element => { element.textContent = online ? 'ออนไลน์' : 'ออฟไลน์'; });
+    $$('[data-mqtt-device-status]').forEach(element => { element.textContent = online ? 'ออนไลน์ · heartbeat ล่าสุด' : 'ออฟไลน์ · รอ heartbeat'; });
     $$('[data-device-online-card]').forEach(card => card.classList.toggle('active', Boolean(online)));
   }
 

@@ -882,3 +882,33 @@ code { color:#4f8358; background:#edf6eb; }
   .dashboard-page #control .section-head-actions .helper { width:100%; text-align:right; }
   .dashboard-page #cropCycleCard .section-head .tag, .dashboard-page #weatherBox .section-head .tag { display:none; }
 }
+
+
+/* Realtime MQTT connection panel, presentation-only. */
+.dashboard-page .mqtt-live-panel { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(220px,.75fr) auto; align-items:center; gap:16px; padding:15px 18px; border:1px solid rgba(255,206,115,.32); border-radius:18px; background:linear-gradient(115deg,rgba(86,61,24,.42),rgba(32,34,20,.74)); box-shadow:0 12px 28px rgba(0,0,0,.14); }
+.dashboard-page .mqtt-live-panel.online { border-color:rgba(97,220,145,.44); background:linear-gradient(115deg,rgba(24,83,52,.66),rgba(10,39,25,.78)); }
+.dashboard-page .mqtt-live-panel.warning { border-color:rgba(255,206,115,.52); }
+.dashboard-page .mqtt-live-panel.offline { border-color:rgba(255,129,146,.32); }
+.dashboard-page .mqtt-live-main { display:flex; align-items:center; gap:12px; min-width:0; }
+.dashboard-page .mqtt-live-dot { width:13px; height:13px; flex:0 0 13px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 5px rgba(255,129,146,.14); }
+.dashboard-page .mqtt-live-panel.online .mqtt-live-dot { background:var(--primary); box-shadow:0 0 0 5px rgba(97,220,145,.14); }
+.dashboard-page .mqtt-live-panel.warning .mqtt-live-dot { background:var(--amber); box-shadow:0 0 0 5px rgba(255,206,115,.14); animation:mqttPulse 1.4s ease-in-out infinite; }
+.dashboard-page .mqtt-live-copy .kicker { margin-bottom:3px; font-size:10px; }
+.dashboard-page .mqtt-live-copy h2 { font-size:18px; }
+.dashboard-page .mqtt-live-copy .helper { margin-top:3px; font-size:11px; }
+.dashboard-page .mqtt-live-meta { display:flex; gap:18px; min-width:0; }
+.dashboard-page .mqtt-live-meta div { display:grid; gap:2px; min-width:100px; }
+.dashboard-page .mqtt-live-meta span { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
+.dashboard-page .mqtt-live-meta strong { color:var(--text); font-size:12px; white-space:nowrap; }
+.dashboard-page .mqtt-live-panel.online .mqtt-live-meta strong { color:#b9fbd2; }
+.dashboard-page .mqtt-live-actions { display:flex; gap:7px; }
+.dashboard-page .mqtt-live-actions .btn { min-height:34px; padding:7px 11px; font-size:12px; }
+@keyframes mqttPulse { 50% { opacity:.45; transform:scale(.82); } }
+@media (prefers-reduced-motion: reduce) { .dashboard-page .mqtt-live-panel.warning .mqtt-live-dot { animation:none; } }
+@media (max-width:700px) {
+  .dashboard-page .mqtt-live-panel { grid-template-columns:1fr auto; gap:10px 12px; padding:13px; }
+  .dashboard-page .mqtt-live-meta { grid-column:1 / -1; justify-content:space-between; gap:10px; }
+  .dashboard-page .mqtt-live-meta div { min-width:0; }
+  .dashboard-page .mqtt-live-actions { grid-column:1 / -1; }
+  .dashboard-page .mqtt-live-actions .btn { flex:1; }
+}
