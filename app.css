@@ -950,3 +950,36 @@ code { color:#4f8358; background:#edf6eb; }
   .dashboard-page .mqtt-live-actions { grid-column:2; grid-row:1 / span 2; align-self:center; }
   .dashboard-page .mqtt-live-actions .btn { flex:0 0 auto; }
 }
+
+
+/* Global compact UI: less copy, same controls and data. */
+.compact-ui .subtitle,
+.compact-ui .page-heading > div > .kicker,
+.compact-ui .section-head > div > .kicker { display:none; }
+.compact-ui .page-heading { margin-bottom:12px; }
+.compact-ui .page-heading h1 { margin-bottom:0; }
+.compact-ui .section { margin-top:12px; }
+.compact-ui .section-head { margin-bottom:7px; }
+.compact-ui .section-head .helper { display:none; }
+.compact-ui .card.pad { padding:14px; }
+.compact-ui .notice { padding:10px 12px; }
+.compact-ui .notice > span:last-child { line-height:1.25; }
+.compact-ui .notice strong { margin-bottom:1px; }
+.compact-ui .helper { font-size:10px; }
+.compact-ui .form-grid { gap:10px; }
+.compact-ui .field { gap:5px; }
+.compact-ui footer { margin-top:18px; }
+.compact-ui .mqtt-live-copy .helper,
+.compact-ui #userManagementStatus,
+.compact-ui #scheduleValidation { display:block; }
+.compact-ui .schedule-help,
+.compact-ui .automation-help,
+.compact-ui .long-help { display:none; }
+@media (max-width:640px) {
+  .compact-ui .app-main { padding-top:10px; }
+  .compact-ui .page-heading { gap:8px; }
+  .compact-ui .page-heading h1 { font-size:24px; }
+  .compact-ui .section-head h2 { font-size:17px; }
+  .compact-ui .card.pad { padding:12px; }
+  .compact-ui .notice { padding:9px 10px; }
+}
