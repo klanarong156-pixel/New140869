@@ -912,3 +912,30 @@ code { color:#4f8358; background:#edf6eb; }
   .dashboard-page .mqtt-live-actions { grid-column:1 / -1; }
   .dashboard-page .mqtt-live-actions .btn { flex:1; }
 }
+
+
+/* Subtle MQTT status strip: keeps realtime visibility without visual dominance. */
+.dashboard-page .mqtt-live-panel { display:flex; min-height:50px; grid-template-columns:none; gap:12px; padding:9px 12px; border-color:var(--line); border-radius:13px; background:rgba(255,255,255,.035); box-shadow:none; }
+.dashboard-page .mqtt-live-panel.online { border-color:rgba(97,220,145,.25); background:rgba(53,142,84,.10); }
+.dashboard-page .mqtt-live-panel.warning { border-color:rgba(255,206,115,.30); background:rgba(255,206,115,.06); }
+.dashboard-page .mqtt-live-panel.offline { border-color:rgba(255,129,146,.22); background:rgba(255,129,146,.045); }
+.dashboard-page .mqtt-live-main { flex:1 1 auto; gap:9px; }
+.dashboard-page .mqtt-live-dot { width:9px; height:9px; flex-basis:9px; box-shadow:0 0 0 3px rgba(255,129,146,.10); }
+.dashboard-page .mqtt-live-panel.online .mqtt-live-dot { box-shadow:0 0 0 3px rgba(97,220,145,.10); }
+.dashboard-page .mqtt-live-panel.warning .mqtt-live-dot { box-shadow:0 0 0 3px rgba(255,206,115,.10); }
+.dashboard-page .mqtt-live-copy .kicker { display:none; }
+.dashboard-page .mqtt-live-copy h2 { font-size:13px; letter-spacing:0; }
+.dashboard-page .mqtt-live-copy .helper { display:inline; margin-left:7px; font-size:10px; }
+.dashboard-page .mqtt-live-copy .helper::before { content:'· '; color:var(--muted); }
+.dashboard-page .mqtt-live-meta { flex:0 0 auto; gap:12px; }
+.dashboard-page .mqtt-live-meta div { display:flex; align-items:baseline; gap:4px; min-width:0; }
+.dashboard-page .mqtt-live-meta span { font-size:9px; letter-spacing:.03em; }
+.dashboard-page .mqtt-live-meta strong { font-size:10px; }
+.dashboard-page .mqtt-live-actions { flex:0 0 auto; gap:4px; }
+.dashboard-page .mqtt-live-actions .btn { min-height:28px; padding:5px 8px; font-size:10px; }
+@media (max-width:700px) {
+  .dashboard-page .mqtt-live-panel { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 8px; padding:8px 10px; }
+  .dashboard-page .mqtt-live-meta { grid-column:1; gap:9px; }
+  .dashboard-page .mqtt-live-actions { grid-column:2; grid-row:1 / span 2; align-self:center; }
+  .dashboard-page .mqtt-live-actions .btn { flex:0 0 auto; }
+}
