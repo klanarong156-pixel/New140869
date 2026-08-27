@@ -21,6 +21,8 @@
 #include <WiFiUdp.h>
 #include <Wire.h>
 
+struct ScheduleSlot;
+
 #define SMARTFARM_VERSION "V7.1.0-FIELD-STABILITY"
 #define MQTT_SERVER "650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud"
 #define MQTT_PORT 8883
