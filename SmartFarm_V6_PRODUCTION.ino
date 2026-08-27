@@ -1842,7 +1842,8 @@ void publishHeartbeat() {
     d["time"] = iso;
   char out[512];
   serializeJson(d, out, sizeof(out));
-  mqtt.publish(MQTT_BASE "/device/status", out, false);
+  // Retain the latest heartbeat so a freshly opened dashboard can restore RTC time immediately.
+  mqtt.publish(MQTT_BASE "/device/status", out, true);
 }
 
 void loop() {

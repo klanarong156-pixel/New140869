@@ -8,6 +8,7 @@ let connectionConfig = null;
 let connectionCredentials = null;
 let reconnectTimer = null;
 let reconnectAttempt = 0;
+let lastDeviceStatus = null;
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
 
@@ -96,7 +97,10 @@ function connect(force = false) {
     broadcast({ type: 'connect' });
   });
   nextClient.on('message', (topic, message) => {
-    if (client === nextClient) broadcast({ type: 'message', topic, payload: message.toString() });
+    if (client !== nextClient) return;
+    const payload = message.toString();
+    if (topic === 'smartfarm/device/status') lastDeviceStatus = payload;
+    broadcast({ type: 'message', topic, payload });
   });
   nextClient.on('close', () => {
     if (client !== nextClient) return;
@@ -126,6 +130,7 @@ self.onconnect = event => {
       connectionConfig = message.config || connectionConfig;
       connectionCredentials = message.credentials || connectionCredentials;
       connect(Boolean(message.force));
+      if (lastDeviceStatus) send(port, { type: 'message', topic: 'smartfarm/device/status', payload: lastDeviceStatus });
       if (client?.connected) send(port, { type: 'connect' });
       return;
     }
