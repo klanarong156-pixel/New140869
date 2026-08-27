@@ -13,11 +13,13 @@ const files = [
   'farm-tools.js',
   'farm-clock.js',
   'mqtt-shared-worker.js',
+  'user-management.js',
   'weather.js',
   'auto-weather-guard.js',
   'dashboard-ota.js',
   'admin.js',
   'finance.js',
+  'functions/index.js',
 ];
 for (const file of files) {
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
@@ -54,6 +56,7 @@ const mqttContract = read('MQTT_CONTRACT_V6.md');
 const mqttContractHtml = read('MQTT_CONTRACT_V6.html');
 const rules = read('firebase.rules.json');
 const databaseRules = read('database.rules.json');
+const functions = read('functions/index.js');
 const activeJs = files.map(read).join('\\n');
 
 const checks = [
@@ -103,11 +106,13 @@ const checks = [
   ['Firmware retains latest RTC heartbeat', /device\/status/.test(firmware) && /mqtt\.publish\(MQTT_BASE "\/device\/status", out, true\)/.test(firmware)],
   ['Dashboard renders field diagnostics', /systemSensorDetail/.test(analytics) && /systemPumpDetail/.test(analytics) && /systemReconnectDetail/.test(analytics) && /farm-analytics\.js\?v=2/.test(index)],
   ['Dashboard has realtime MQTT status panel', /data-mqtt-live-panel/.test(index) && /data-mqtt-live-label/.test(index) && /data-mqtt-device-status/.test(index) && /data-mqtt-last-update/.test(index) && /setText\('mqttLiveLabel'/.test(app) && /mqtt:reconnecting/.test(app)],
+  ['User Management page is Admin-only', /data-admin-required=\"true\"/.test(read('admin.html')) && /user-management\.js/.test(read('admin.html')) && /window\.addEventListener\('access:ready'/.test(read('user-management.js'))],
+  ['User Management backend has protected Auth actions', /exports\.listUsers/.test(functions) && /exports\.setUserRole/.test(functions) && /exports\.setUserDisabled/.test(functions) && /exports\.createPasswordResetLink/.test(functions) && /exports\.deleteUser/.test(functions) && /requireAdmin/.test(functions)],
   ['Dashboard distinguishes MQTT stop from physical E-stop', /ไม่ใช่อุปกรณ์ตัดไฟฉุกเฉินทางกายภาพ/.test(index) && /E-stop/.test(schedulePage)],
   ['Documentation matches no pump hard cutoff policy', /ไม่มี hard cutoff 30 นาที/.test(readme) && /no forced 30-minute.*cutoff/.test(mqttContract) && /No 30-minute pump ceiling/.test(buildStatus) && /no forced 30-minute.*cutoff/.test(mqttContractHtml)],
   ['Firmware schedule parser accepts slots/on/off', /d\["slots"\]/.test(firmware) && /o\["on"\]/.test(firmware) && /o\["off"\]/.test(firmware)],
   ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
-  ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /farm-tools\.js/.test(sw) && /farm-clock\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw)],
+  ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /farm-tools\.js/.test(sw) && /farm-clock\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw) && /user-management\.js/.test(sw)],
   ['Dashboard loads OTA controller', /dashboard-ota\.js\?v=/.test(settings) && /otaDashboardForm/.test(ota)],
   ['Dashboard explains MQTT reconnect backoff', /mqtt:reconnecting/.test(app) && /Math\.ceil\(delay \/ 1000\)/.test(app)],
   ['Standalone OTA page targets local HTTP without MQTT', /STANDALONE HTTP OTA/.test(standaloneOta) && /\/api\/status/.test(standaloneOta) && /\/update/.test(standaloneOta) && /credentials: 'omit'/.test(standaloneOta) && !/<script[^>]+src=[^>]*(?:mqtt|firebase)/i.test(standaloneOta)],

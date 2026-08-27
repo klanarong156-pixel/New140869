@@ -2,6 +2,8 @@
 // Firebase = persistent storage. MQTT = real-time transport.
 
 const FIREBASE_CONFIG = Object.freeze({
+  projectId: "smart-farm-platfor",
+  functionsRegion: "us-central1",
   databaseURL: "https://smart-farm-platfor-default-rtdb.asia-southeast1.firebasedatabase.app",
   apiKey: "AIzaSyBFklOdg4RXeXlHfG826DwaKTjf5hV4eHo",
   authDomain: "smart-farm-platfor.firebaseapp.com",

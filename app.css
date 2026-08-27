@@ -933,6 +933,17 @@ code { color:#4f8358; background:#edf6eb; }
 .dashboard-page .mqtt-live-meta strong { font-size:10px; }
 .dashboard-page .mqtt-live-actions { flex:0 0 auto; gap:4px; }
 .dashboard-page .mqtt-live-actions .btn { min-height:28px; padding:5px 8px; font-size:10px; }
+/* User Management */
+.search-field { display:block; max-width:420px; margin-top:16px; color:var(--muted); font-size:12px; font-weight:700; }
+.search-field input { display:block; width:100%; margin-top:7px; }
+.user-table-wrap { overflow-x:auto; }
+.user-table-wrap table { min-width:920px; }
+.user-table-wrap td { vertical-align:middle; }
+.user-table-wrap td strong, .user-table-wrap td small { display:block; }
+.user-table-wrap td small { margin-top:4px; color:var(--muted); font-family:var(--mono); font-size:10px; }
+.user-actions { display:flex; flex-wrap:wrap; gap:6px; min-width:240px; }
+.user-actions .btn { white-space:nowrap; }
+
 @media (max-width:700px) {
   .dashboard-page .mqtt-live-panel { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 8px; padding:8px 10px; }
   .dashboard-page .mqtt-live-meta { grid-column:1; gap:9px; }
