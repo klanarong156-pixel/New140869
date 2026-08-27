@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartfarm-v7.1-field-stability-2';
+const CACHE_NAME = 'smartfarm-v7.1-field-stability-3';
 const APP_SHELL = [
   './', './index.html', './404.html', './auth.html', './schedule.html', './finance.html', './account.html', './settings.html', './admin.html', './ota.html',
   './manifest.json', './app.css', './app.js', './dashboard-ota.js', './config.js', './mqtt-handler.js', './weather.js', './auto-weather-guard.js', './schedule.js', './firebase.js', './access.js', './auth-page.js', './finance-core.js', './finance-firebase.js', './finance.js', './account.js', './admin.js', './crop-reminders.js', './crop-plots.js', './farm-analytics.js', './farm-tools.js', './farm-clock.js', './mqtt-shared-worker.js', './user-management.js', './MQTT_CONTRACT_V6.html', './HARDWARE_V6.html',

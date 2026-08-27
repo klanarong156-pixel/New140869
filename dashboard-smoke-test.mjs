@@ -135,8 +135,8 @@ const checks = [
   ['User management audit is server-only', /"userManagementAudit"/.test(rules) && /"\.read": false/.test(rules) && /"\.write": false/.test(rules)],
   ['Firebase rules twin is identical', rules === databaseRules],
   ['Active JavaScript has no HTML injection sinks', !/innerHTML|outerHTML|document\\.write|insertAdjacentHTML/.test(activeJs)],
-  ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-2/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
-  ['Dashboard loads latest stylesheet cache version', /app\.css\?v=18/.test(index) && /app\.css\?v=18/.test(schedulePage) && /app\.css\?v=18/.test(settings)],
+  ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-3/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
+  ['Dashboard loads latest stylesheet cache version', /app\.css\?v=19/.test(index) && /app\.css\?v=19/.test(schedulePage) && /app\.css\?v=19/.test(settings)],
 ];
 
 let failed = 0;
