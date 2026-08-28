@@ -299,7 +299,7 @@ class MqttHandler {
         this.dispatch('mqtt:credentials-required', { configured: false, forPublish: true });
         return false;
       }
-      const isControlCommand = /^(smartfarm\/relay\/|smartfarm\/mode\/set|smartfarm\/schedule\/|smartfarm\/config\/telegram\/|smartfarm\/reminder\/)/.test(topic);
+      const isControlCommand = /^(smartfarm\/relay\/|smartfarm\/mode\/set|smartfarm\/schedule\/|smartfarm\/config\/telegram\/|smartfarm\/reminder\/|smartfarm\/ai\/alert\/set)/.test(topic);
       if (isControlCommand) {
         this.dispatch('mqtt:command-blocked', { topic, reason: 'not-connected' });
         this.connect();
@@ -391,6 +391,14 @@ class MqttHandler {
         this.dispatch('schedule:status', { relay, schedule });
       } catch (_) {
         this.dispatch('schedule:error', { relay, message: 'ข้อมูลตารางเวลาจากอุปกรณ์ไม่ถูกต้อง' });
+      }
+      return;
+    }
+    if (topic === this.config.topics.aiAlertStatus) {
+      try {
+        this.dispatch('ai:alert-status', JSON.parse(value));
+      } catch (_) {
+        this.dispatch('ai:alert-status', { status: 'invalid' });
       }
       return;
     }

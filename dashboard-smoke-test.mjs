@@ -10,6 +10,7 @@ const files = [
   'crop-reminders.js',
   'crop-plots.js',
   'farm-analytics.js',
+  'ai-farm-advisor.js',
   'farm-tools.js',
   'farm-clock.js',
   'mqtt-shared-worker.js',
@@ -38,6 +39,7 @@ const telegram = read('telegram-settings.js');
 const reminders = read('crop-reminders.js');
 const plots = read('crop-plots.js');
 const analytics = read('farm-analytics.js');
+const aiAdvisor = read('ai-farm-advisor.js');
 const tools = read('farm-tools.js');
 const clock = read('farm-clock.js');
 const worker = read('mqtt-shared-worker.js');
@@ -70,6 +72,7 @@ const checks = [
   ['Schedule topic factory exists', /scheduleSet: relay =>/.test(cfg)],
   ['Telegram topics exist', /telegramSet: 'smartfarm\/config\/telegram\/set'/.test(cfg) && /telegramTest: 'smartfarm\/config\/telegram\/test'/.test(cfg)],
   ['Reminder topics exist', /reminderSet: 'smartfarm\/reminder\/set'/.test(cfg) && /reminderStatus: 'smartfarm\/reminder\/status'/.test(cfg)],
+  ['AI alert topic is isolated from relay commands', /aiAlertSet: 'smartfarm\/ai\/alert\/set'/.test(cfg) && /aiAlertStatus: 'smartfarm\/ai\/alert\/status'/.test(cfg) && /ai\/alert\/set/.test(firmware) && /handleAiAlert/.test(firmware)],
   ['Browser uses current MQTT handler', /new MqttHandler\(MQTT_CONFIG\)/.test(handler)],
   ['SharedWorker keeps one MQTT connection across pages', /new SharedWorker/.test(handler) && /mqtt-shared-worker\.js/.test(handler) && /importScripts\('mqtt\.min\.js/.test(worker)],
   ['SharedWorker owns bounded reconnect backoff', /RECONNECT_BASE_MS/.test(worker) && /RECONNECT_MAX_MS/.test(worker) && /reconnectPeriod: 0/.test(worker) && /scheduleReconnect/.test(worker)],
@@ -87,6 +90,8 @@ const checks = [
   ['Dashboard rejects overlapping schedule slots', /slotsOverlap/.test(schedule) && /ชนกับช่วงที่/.test(schedule) && /scheduleValidation/.test(schedulePage)],
   ['Multiple plot model is bounded and persisted', /MAX_PLOTS = 8/.test(plots) && /farm\/cropPlots/.test(plots) && /textContent/.test(plots)],
   ['Analytics stores real sensor history and renders chart', /sensor:data/.test(analytics) && /sensorHistoryChart/.test(analytics) && /getContext\('2d'\)/.test(analytics) && !/Math\.random/.test(analytics)],
+  ['AI advisor uses real events, persists history and has no relay publisher', /sensor:data/.test(aiAdvisor) && /weather:protection/.test(aiAdvisor) && /farm\/aiAdvisor/.test(aiAdvisor) && /aiAlertSet/.test(aiAdvisor) && !/relaySet|relayTimerSet/.test(aiAdvisor)],
+  ['AI advisor limits duplicate notifications and keeps safety read-only', /AUTO_COOLDOWN_MS/.test(aiAdvisor) && /payload.length > 900/.test(aiAdvisor) && /ไม่สั่งรีเลย์/.test(aiAdvisor)],
   ['Homepage clock uses RTC heartbeat time directly', /device:data/.test(clock) && /device\.time/.test(clock) && /rtc/.test(clock) && /data-farm-time/.test(index) && /data-farm-clock-source/.test(index)],
   ['Backup excludes secrets and supports restore', /SECRET_KEY/.test(tools) && /downloadJson/.test(tools) && /FirebaseDB\.put/.test(tools)],
   ['Firmware uses same broker and base topic', /#define MQTT_SERVER/.test(firmware) && /#define MQTT_BASE "smartfarm"/.test(firmware)],
@@ -94,6 +99,7 @@ const checks = [
   ['Firmware subscribes to relay/timer/schedule topics', /relay\/\+\/set/.test(firmware) && /timer\/set/.test(firmware) && /schedule\/\+\/set/.test(firmware)],
   ['Firmware accepts Telegram topics', /config\/telegram\/set/.test(firmware) && /config\/telegram\/test/.test(firmware)],
   ['Firmware accepts reminder topic and persists reminders', /reminder\/set/.test(firmware) && /smartfarm_reminders\.json/.test(firmware) && /runReminders/.test(firmware)],
+  ['Firmware validates and rate-limits AI Telegram alerts', /validAiSeverity/.test(firmware) && /strlen\(text\) > 420/.test(firmware) && /duplicate/.test(firmware) && /rate_limited/.test(firmware) && /ai\/alert\/set/.test(firmware)],
   ['Firmware deduplicates sent reminders', /lastSentDate/.test(firmware) && /send_failed/.test(firmware)],
   ['Firmware validates every RTC read', /bool validRtcDateTime/.test(firmware) && /DateTime candidate = rtc\.now\(\)/.test(firmware) && /readRtcNow/.test(firmware)],
   ['Firmware verifies RTC read-back after NTP adjust', /rtc\.adjust\(DateTime\(localEpoch\)\)/.test(firmware) && /readBackOk/.test(firmware) && /delta <= 2UL/.test(firmware)],
@@ -124,7 +130,7 @@ const checks = [
   ['All user pages use compact UI mode', /compact-ui/.test(index) && /compact-ui/.test(schedulePage) && /compact-ui/.test(settings) && /compact-ui/.test(read('finance.html')) && /compact-ui/.test(read('account.html')) && /compact-ui/.test(read('admin.html')) && /compact-ui/.test(read('ota.html'))],
   ['Schedule page uses short labels and one save action', /<h1>ตั้งเวลา<\/h1>/.test(schedulePage) && !/slotEnable\d+/.test(schedulePage) && /<label>เปิด<input/.test(schedulePage) && /onclick="saveSchedule\(\)">บันทึก<\/button>/.test(schedulePage)],
   ['Schedule page loads overlap-safe schedule.js', /schedule\.js\?v=10/.test(schedulePage)],
-  ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /farm-tools\.js/.test(sw) && /farm-clock\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw) && /user-management\.js/.test(sw)],
+  ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /ai-farm-advisor\.js/.test(sw) && /farm-tools\.js/.test(sw) && /farm-clock\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw) && /user-management\.js/.test(sw)],
   ['Dashboard loads OTA controller', /dashboard-ota\.js\?v=/.test(settings) && /otaDashboardForm/.test(ota)],
   ['Dashboard explains MQTT reconnect backoff', /mqtt:reconnecting/.test(app) && /Math\.ceil\(delay \/ 1000\)/.test(app)],
   ['Standalone OTA page targets local HTTP without MQTT', /STANDALONE HTTP OTA/.test(standaloneOta) && /\/api\/status/.test(standaloneOta) && /\/update/.test(standaloneOta) && /credentials: 'omit'/.test(standaloneOta) && !/<script[^>]+src=[^>]*(?:mqtt|firebase)/i.test(standaloneOta)],
@@ -139,7 +145,7 @@ const checks = [
   ['User management audit is server-only', /"userManagementAudit"/.test(rules) && /"\.read": false/.test(rules) && /"\.write": false/.test(rules)],
   ['Firebase rules twin is identical', rules === databaseRules],
   ['Active JavaScript has no HTML injection sinks', !/innerHTML|outerHTML|document\\.write|insertAdjacentHTML/.test(activeJs)],
-  ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-5/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
+  ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-6/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
   ['Dashboard loads latest stylesheet cache version', /app\.css\?v=21/.test(index) && /app\.css\?v=21/.test(schedulePage) && /app\.css\?v=21/.test(settings)],
 ];
 

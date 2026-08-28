@@ -32,6 +32,7 @@ jobs:
           node dashboard-smoke-test.mjs
           node schedule-regression-test.mjs
           node firmware-logic-regression-test.mjs
+          node ai-advisor-regression-test.mjs
           python3 tools/mqtt_contract_audit.py
       - name: Validate referenced local assets
         shell: bash

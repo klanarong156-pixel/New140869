@@ -1124,3 +1124,27 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
   #control .section-head-actions .helper { display: none; }
   #control .control-card { padding: 11px; }
 }
+
+/* Smart Farm AI advisor: compact, read-only insights */
+.ai-advisor-panel { border-left: 4px solid var(--forest, #6d9b76); }
+.ai-advisor-panel .section-head { align-items: center; }
+.ai-advisor-panel .section-head h2 { margin-bottom: 2px; }
+.ai-advisor-panel .section-head-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ai-toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--ink, #25352a); font-size: .82rem; white-space: nowrap; }
+.ai-toggle input { accent-color: var(--forest, #6d9b76); }
+.ai-advisor-summary { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid rgba(109,155,118,.22); border-radius: 12px; background: rgba(247,250,244,.78); }
+.ai-advisor-summary strong { display: block; color: var(--ink, #25352a); font-size: .98rem; }
+.ai-advisor-summary .helper { margin: 2px 0 0; }
+.ai-status-dot { width: 10px; height: 10px; flex: 0 0 10px; margin-top: 5px; border-radius: 50%; background: #d7a33d; box-shadow: 0 0 0 4px rgba(215,163,61,.14); }
+.ai-history { display: grid; gap: 6px; margin-top: 8px; }
+.ai-history-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 2px; color: var(--ink, #25352a); font-size: .8rem; border-bottom: 1px solid rgba(37,53,42,.08); }
+.ai-history-row strong { font-weight: 700; }
+.ai-history-row small { color: var(--muted, #6a786d); white-space: nowrap; }
+@media (max-width: 680px) {
+  .ai-advisor-panel .section-head { align-items: flex-start; }
+  .ai-advisor-panel .section-head-actions { justify-content: flex-start; }
+  .ai-history-row { display: block; }
+  .ai-history-row small { display: block; margin-top: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { .ai-advisor-panel * { transition: none !important; }
+}

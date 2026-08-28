@@ -19,6 +19,8 @@ const MQTT_CONFIG = Object.freeze({
     telegramStatus: 'smartfarm/config/telegram/status',
     reminderSet: 'smartfarm/reminder/set',
     reminderStatus: 'smartfarm/reminder/status',
+    aiAlertSet: 'smartfarm/ai/alert/set',
+    aiAlertStatus: 'smartfarm/ai/alert/status',
     emergencySet: 'smartfarm/emergency/set',
     emergencyStatus: 'smartfarm/emergency/status'
   }),
@@ -31,6 +33,7 @@ const MQTT_CONFIG = Object.freeze({
     'smartfarm/config/telegram/status',
     'smartfarm/schedule/+/status',
     'smartfarm/reminder/status',
+    'smartfarm/ai/alert/status',
     'smartfarm/emergency/status'
   ]),
   deviceHeartbeatTimeoutMs: 25000

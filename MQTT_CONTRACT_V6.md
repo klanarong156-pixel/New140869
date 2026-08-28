@@ -13,6 +13,7 @@
 | Telegram configuration | `smartfarm/config/telegram/set` | `smartfarm/config/telegram/status` | JSON `{ "botToken": "...", "chatId": "..." }`; status JSON reports `configured` |
 | Telegram test | `smartfarm/config/telegram/test` | — | any payload triggers a test message |
 | Crop reminder | `smartfarm/reminder/set` | `smartfarm/reminder/status` | JSON operation `settings`, `upsert`, `done`, `snooze`, `delete`, `sync` or `test`; optional recurrence, plot and quiet-hour fields |
+| Farm AI alert | `smartfarm/ai/alert/set` | `smartfarm/ai/alert/status` | JSON `{ "id": "...", "severity": "info|warning|critical", "title": "...", "message": "..." }`; analysis only, never a relay command |
 
 Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay, timer, schedule and emergency status messages are retained by the device so a newly connected dashboard can render the current state.
 
@@ -52,6 +53,10 @@ Example task payload:
 ```
 
 `done` marks a task complete, `snooze` changes its due date, `delete` removes it, `sync` asks for retained reminder status, and `test` sends a test Telegram message. Each task stores `lastSentDate` so the same reminder is not sent twice on the same day. `repeatEveryDays` from 1–30 advances the due date after a successful send, while `plotId` identifies the crop area. `quietStart` and `quietEnd` define a local-time window during which the device does not send reminders. If daily overdue reminders are enabled, an incomplete overdue task is sent once per day after the configured time. The device must have Wi‑Fi, a valid RTC/NTP clock, and Telegram credentials configured; if it was offline at the scheduled time, it can send later on the same day after reconnecting.
+
+## Farm AI alerts
+
+The client-side Smart Farm Rule Engine analyzes sensor, weather, RTC, device heartbeat and relay state only while the dashboard is open. It sends a bounded, non-retained JSON alert through `smartfarm/ai/alert/set`; the firmware validates the severity, identifier and message length, suppresses duplicate IDs for 15 minutes, rate-limits alerts to one per minute, queues the Telegram message, and publishes a non-retained result on `smartfarm/ai/alert/status`. This topic is isolated from every relay and timer topic. The rule engine is advisory and cannot issue `ON`, `OFF`, timer, schedule or emergency commands.
 
 ## Control and safety behavior
 

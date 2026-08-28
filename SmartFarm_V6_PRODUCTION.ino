@@ -1304,6 +1304,62 @@ bool handleTelegramConfig(const String &message) {
   return true;
 }
 
+uint32_t lastAiAlertAt = 0;
+String lastAiAlertId;
+void publishAiAlertStatus(const char *status, const String &id = String()) {
+  if (!mqtt.connected()) return;
+  StaticJsonDocument<192> d;
+  d["status"] = status;
+  if (id.length()) d["id"] = id;
+  d["at"] = millis();
+  char out[192];
+  serializeJson(d, out, sizeof(out));
+  mqtt.publish(MQTT_BASE "/ai/alert/status", out, false);
+}
+bool validAiSeverity(const char *value) {
+  return value && (!strcmp(value, "info") || !strcmp(value, "warning") || !strcmp(value, "critical"));
+}
+bool handleAiAlert(const String &message) {
+  if (message.length() > 900) return false;
+  StaticJsonDocument<768> d;
+  if (deserializeJson(d, message)) {
+    publishAiAlertStatus("rejected");
+    return false;
+  }
+  const char *id = d["id"] | "";
+  const char *severity = d["severity"] | "";
+  const char *title = d["title"] | "";
+  const char *text = d["message"] | "";
+  if (!id[0] || strlen(id) >= 48 || !validAiSeverity(severity) || !title[0] || strlen(title) > 96 || !text[0] || strlen(text) > 420) {
+    publishAiAlertStatus("rejected", String(id));
+    return false;
+  }
+  for (const char *p = text; *p; ++p) {
+    if ((uint8_t)*p < 0x09 || (*p == '\r')) {
+      publishAiAlertStatus("rejected", String(id));
+      return false;
+    }
+  }
+  String alertId(id);
+  if (alertId == lastAiAlertId && (uint32_t)(millis() - lastAiAlertAt) < 900000UL) {
+    publishAiAlertStatus("duplicate", alertId);
+    return true;
+  }
+  if (lastAiAlertAt && (uint32_t)(millis() - lastAiAlertAt) < 60000UL) {
+    publishAiAlertStatus("rate_limited", alertId);
+    return false;
+  }
+  String telegram = String("AI ฟาร์ม · ") + title + "\n" + text;
+  if (!queueTelegram(telegram)) {
+    publishAiAlertStatus("not_queued", alertId);
+    return false;
+  }
+  lastAiAlertId = alertId;
+  lastAiAlertAt = millis();
+  publishAiAlertStatus("queued", alertId);
+  Serial.printf("AI ALERT: queued id=%s severity=%s\n", id, severity);
+  return true;
+}
 void mqttCallback(char *topic, byte *payload, unsigned int len) {
   String t(topic), msg;
   msg.reserve(len + 1);
@@ -1316,7 +1372,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   if (t.startsWith(String(MQTT_BASE) + "/relay/") ||
       t.startsWith(String(MQTT_BASE) + "/schedule/") ||
       t.startsWith(String(MQTT_BASE) + "/config/telegram/") ||
-      t.startsWith(String(MQTT_BASE) + "/reminder/")) {
+      t.startsWith(String(MQTT_BASE) + "/reminder/") ||
+      t.startsWith(String(MQTT_BASE) + "/ai/alert/")) {
     String logMsg = msg;
     if (logMsg.length() > 96)
       logMsg.remove(96);
@@ -1340,6 +1397,10 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   if (t == MQTT_BASE "/config/telegram/test") {
     telegramNotifyNow(F("ทดสอบ Telegram จากแดชบอร์ดสำเร็จ"));
     publishTelegramStatus();
+    return;
+  }
+  if (t == MQTT_BASE "/ai/alert/set") {
+    handleAiAlert(msg);
     return;
   }
   if (t == MQTT_BASE "/reminder/set") {
@@ -1513,16 +1574,17 @@ void connectMqtt() {
     bool s5 = mqtt.subscribe(MQTT_BASE "/config/telegram/test");
     bool s6 = mqtt.subscribe(MQTT_BASE "/reminder/set");
     bool s7 = mqtt.subscribe(MQTT_BASE "/emergency/set");
+    bool s8 = mqtt.subscribe(MQTT_BASE "/ai/alert/set");
     publishStatus();
     publishTelegramStatus();
     publishReminderStatus("online");
+    publishAiAlertStatus("online");
     Serial.println(F("MQTT: Connected"));
     queueTelegram(F("เชื่อมต่อ MQTT สำเร็จ"));
-    Serial.printf("MQTT: Subscribe relay=%s timer=%s schedule=%s telegram=%s/%s reminder=%s\n",
+    Serial.printf("MQTT: Subscribe relay=%s timer=%s schedule=%s telegram=%s/%s reminder=%s emergency=%s ai=%s\n",
                   s1 ? "OK" : "FAIL", sTimer ? "OK" : "FAIL",
                   s3 ? "OK" : "FAIL", s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL",
-                  s6 ? "OK" : "FAIL");
-    Serial.printf("MQTT: Subscribe emergency=%s\\n", s7 ? "OK" : "FAIL");
+                  s6 ? "OK" : "FAIL", s7 ? "OK" : "FAIL", s8 ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
     mqttConnectFailures++;

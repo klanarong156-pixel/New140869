@@ -69,6 +69,12 @@
       <div class="btn-row" style="margin-top:14px"><a id="cropTasksLink" class="btn secondary small" href="schedule.html#crop-reminders">จัดการงานรอบปลูก</a><span id="telegramReminderStatus" class="notice" style="margin:0;padding:7px 9px"><span>⌁</span><span>Telegram reminder</span></span></div>
     </section>
 
+    <section id="aiAdvisorPanel" class="section card pad ai-advisor-panel" aria-labelledby="ai-advisor-title">
+      <div class="section-head"><div><p class="kicker">SMART FARM AI</p><h2 id="ai-advisor-title">ผู้ช่วยวิเคราะห์ฟาร์ม</h2><span id="aiAdvisorMeta" class="helper">ยังไม่มีประวัติ</span></div><div class="section-head-actions"><label class="ai-toggle"><input id="aiAdvisorEnabled" type="checkbox" checked><span>แจ้งเตือน</span></label><button id="aiAdvisorAnalyze" class="btn secondary small" type="button">วิเคราะห์ตอนนี้</button></div></div>
+      <div class="ai-advisor-summary"><span class="ai-status-dot" aria-hidden="true"></span><div><strong id="aiAdvisorStatus">รอข้อมูลเพื่อวิเคราะห์</strong><p id="aiAdvisorDetail" class="helper">Rule Engine จะตรวจ sensor, อากาศ, RTC, อุปกรณ์ และสถานะรีเลย์</p></div></div>
+      <div id="aiAdvisorHistory" class="ai-history" aria-live="polite"></div>
+    </section>
+
     <section id="weatherBox" class="section card pad" aria-labelledby="weather-title">
       <div class="section-head"><div><p class="kicker">OPEN‑METEO · RAIN PROTECTION</p><h2 id="weather-title">อากาศที่ช่วยตัดสินใจ</h2><p id="weatherLocation" class="helper">กำลังเตรียมข้อมูลตำแหน่ง…</p></div><span class="tag">ไม่ใช้ API Key</span></div>
       <div class="weather-grid weather-grid-compact">
@@ -112,7 +118,7 @@
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
   <script src="firebase.js?v=9"></script><script src="mqtt.min.js?v=1"></script>
-  <script src="config.js?v=11"></script><script src="mqtt-handler.js?v=11"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=9"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=10"></script><script src="access.js?v=10"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=3"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=2"></script><script src="farm-tools.js?v=2"></script><script src="farm-clock.js?v=2"></script><script src="weather.js?v=8"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="config.js?v=12"></script><script src="mqtt-handler.js?v=12"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=9"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=10"></script><script src="access.js?v=10"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=3"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=2"></script><script src="ai-farm-advisor.js?v=1"></script><script src="farm-tools.js?v=2"></script><script src="farm-clock.js?v=2"></script><script src="weather.js?v=8"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
