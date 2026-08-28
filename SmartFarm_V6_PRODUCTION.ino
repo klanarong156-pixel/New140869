@@ -567,9 +567,9 @@ bool loadSecrets() {
           sizeof(deviceName));
   return true;
 }
-void saveSecrets() {
+bool saveSecrets() {
   if (!fsReady)
-    return;
+    return false;
   StaticJsonDocument<640> d;
   d["mqttUser"] = mqttUser;
   d["mqttPass"] = mqttPass;
@@ -577,11 +577,13 @@ void saveSecrets() {
   d["telegramBotToken"] = telegramBotToken;
   d["telegramChatId"] = telegramChatId;
   d["deviceName"] = deviceName;
+  if (d.overflowed()) return false;
   File f = LittleFS.open("/smartfarm_secrets.json", "w");
-  if (f) {
-    serializeJson(d, f);
-    f.close();
-  }
+  if (!f) return false;
+  size_t bytes = serializeJson(d, f);
+  f.flush();
+  f.close();
+  return bytes > 0;
 }
 void clearSchedules() {
   for (uint8_t r = 0; r < RELAY_COUNT; r++)
@@ -1267,9 +1269,13 @@ void openMqttSetupPortal() {
             sizeof(telegramBotToken));
     strlcpy(telegramChatId, pTelegramChat.getValue(), sizeof(telegramChatId));
     strlcpy(deviceName, pName.getValue(), sizeof(deviceName));
-    saveSecrets();
-    Serial.println(F("MQTT CONFIG: credentials saved"));
-    queueTelegram(F("บันทึกการตั้งค่าอุปกรณ์และ Telegram สำเร็จ"));
+    if (saveSecrets()) {
+      Serial.println(F("MQTT CONFIG: credentials saved"));
+      queueTelegram(F("บันทึกการตั้งค่าอุปกรณ์และ Telegram สำเร็จ"));
+    } else {
+      Serial.println(F("MQTT CONFIG: credential persistence failed"));
+      queueTelegram(F("บันทึก credential ไม่สำเร็จ กรุณาตรวจ LittleFS"));
+    }
   } else
     Serial.println(F("MQTT CONFIG: portal timeout/failed"));
   mqttAuthFailures = 0;
@@ -1296,9 +1302,19 @@ bool handleTelegramConfig(const String &message) {
   if (!botToken[0] || !chatId[0] || strlen(botToken) >= sizeof(telegramBotToken) ||
       strlen(chatId) >= sizeof(telegramChatId))
     return false;
+  char previousToken[sizeof(telegramBotToken)];
+  char previousChat[sizeof(telegramChatId)];
+  strlcpy(previousToken, telegramBotToken, sizeof(previousToken));
+  strlcpy(previousChat, telegramChatId, sizeof(previousChat));
   strlcpy(telegramBotToken, botToken, sizeof(telegramBotToken));
   strlcpy(telegramChatId, chatId, sizeof(telegramChatId));
-  saveSecrets();
+  if (!saveSecrets()) {
+    strlcpy(telegramBotToken, previousToken, sizeof(telegramBotToken));
+    strlcpy(telegramChatId, previousChat, sizeof(telegramChatId));
+    publishTelegramStatus();
+    Serial.println(F("Telegram CONFIG: persistence failed"));
+    return false;
+  }
   publishTelegramStatus();
   queueTelegram(F("บันทึกการตั้งค่า Telegram จากแดชบอร์ดสำเร็จ"));
   return true;
@@ -1377,7 +1393,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     String logMsg = msg;
     if (logMsg.length() > 96)
       logMsg.remove(96);
-    Serial.printf("MQTT RX: topic=%s payload=%s\\n", t.c_str(), logMsg.c_str());
+    Serial.printf("MQTT RX: topic=%s payload=%s\n", t.c_str(), logMsg.c_str());
   }
 
   if (t == MQTT_BASE "/emergency/set") {
@@ -1422,13 +1438,13 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     uint32_t seconds = 0;
     bool valid = unlimited || msg.equalsIgnoreCase("CANCEL") || parseTimerSeconds(msg, seconds);
     if (!valid || !startRelayTimer((uint8_t)i, seconds, unlimited)) {
-      Serial.printf("MQTT TIMER: rejected relay=%s payload=%s\\n", n.c_str(), msg.c_str());
+      Serial.printf("MQTT TIMER: rejected relay=%s payload=%s\n", n.c_str(), msg.c_str());
       publishRelayTimerStatus((uint8_t)i);
       return;
     }
-    Serial.printf("MQTT TIMER: relay=%s seconds=%lu unlimited=%s\\n", n.c_str(),
+    Serial.printf("MQTT TIMER: relay=%s seconds=%lu unlimited=%s\n", n.c_str(),
                   (unsigned long)seconds, unlimited ? "true" : "false");
-    Serial.printf("MQTT TIMER: relay=%s state=%s\\n", n.c_str(),
+    Serial.printf("MQTT TIMER: relay=%s state=%s\n", n.c_str(),
                   relayOn((uint8_t)i) ? "ON" : "OFF");
     return;
   }
@@ -1442,12 +1458,12 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     else if (msg.equalsIgnoreCase("OFF"))
       relaySet((uint8_t)i, false);
     else {
-      Serial.printf("MQTT RELAY: invalid payload relay=%s payload=%s\\n",
+      Serial.printf("MQTT RELAY: invalid payload relay=%s payload=%s\n",
                     n.c_str(), msg.c_str());
       return;
     }
     publishRelayStatus((uint8_t)i);
-    Serial.printf("MQTT RELAY: relay=%s state=%s\\n", n.c_str(),
+    Serial.printf("MQTT RELAY: relay=%s state=%s\n", n.c_str(),
                   relayOn((uint8_t)i) ? "ON" : "OFF");
     return;
   }
@@ -1853,7 +1869,7 @@ void setupWifi() {
           sizeof(telegramBotToken));
   strlcpy(telegramChatId, pTelegramChat.getValue(), sizeof(telegramChatId));
   strlcpy(deviceName, pName.getValue(), sizeof(deviceName));
-  saveSecrets();
+  if (!saveSecrets()) Serial.println(F("Credential persistence failed after WiFi setup"));
   Serial.print(F("WiFi connected, IP: "));
   Serial.println(WiFi.localIP());
   if (!mqttUser[0] || !mqttPass[0]) {

@@ -42,6 +42,19 @@
               }
             }
           },
+          "aiAdvisor": {
+            ".validate": "newData.child('enabled').isBoolean() && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40",
+            "history": {
+              "$index": {
+                ".validate": "newData.hasChildren(['id', 'at', 'reason', 'findings', 'summary']) && newData.child('id').isString() && newData.child('id').val().length > 0 && newData.child('id').val().length <= 64 && newData.child('at').isString() && newData.child('at').val().length <= 40 && newData.child('reason').isString() && newData.child('reason').val().length <= 24 && newData.child('summary').isString() && newData.child('summary').val().length <= 500",
+                "findings": {
+                  "$finding": {
+                    ".validate": "newData.hasChildren(['id', 'severity', 'title', 'message', 'advice']) && newData.child('id').isString() && newData.child('id').val().length <= 64 && newData.child('severity').isString() && (newData.child('severity').val() === 'info' || newData.child('severity').val() === 'warning' || newData.child('severity').val() === 'critical') && newData.child('title').isString() && newData.child('title').val().length <= 120 && newData.child('message').isString() && newData.child('message').val().length <= 500 && newData.child('advice').isString() && newData.child('advice').val().length <= 500"
+                  }
+                }
+              }
+            }
+          },
           "analytics": {
             ".validate": "newData.hasChildren(['sensors', 'relayEvents', 'deviceEvents', 'lastSeenAt', 'updatedAt']) && newData.child('lastSeenAt').isNumber() && newData.child('lastSeenAt').val() >= 0 && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40",
             "sensors": {
