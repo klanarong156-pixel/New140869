@@ -1099,3 +1099,28 @@ body { color: #123d2b !important; background: linear-gradient(145deg, #fbf8ef 0%
 .control-card.active { background: #edf7eb !important; }
 input, select, textarea { color: #123d2b !important; background: #ffffff !important; }
 .bottom-nav { background: rgba(255,255,255,.96) !important; }
+
+/* Compact control layer v21: keep live controls, remove visual bulk. */
+#control .section-head { margin-bottom: 9px; }
+#control .section-head-actions { gap: 6px; }
+#control .control-card { padding: 13px; border-radius: 18px; }
+#control .control-top { gap: 8px; }
+#control .control-name { gap: 8px; }
+#control .control-name .icon { width: 32px; height: 32px; flex-basis: 32px; border-radius: 10px; font-size: 16px; }
+#control .control-name strong { font-size: 15px; }
+#control .control-state { margin: 7px 0 0; font-size: 12px; }
+#control .relay-timer { gap: 6px; margin-top: 9px; padding: 8px; }
+#control .relay-timer > label { gap: 4px; font-size: 10px; }
+#control .relay-timer > label input { min-height: 34px; padding: 5px 38px 5px 8px; font-size: 14px; }
+#control .input-suffix { right: 8px; bottom: 9px; font-size: 9px; }
+#control .timer-presets { gap: 4px; }
+#control .timer-presets button { min-height: 27px; padding: 3px 5px; border-radius: 8px; font-size: 11px; }
+#control .timer-actions { gap: 5px; }
+#control .timer-actions .btn { min-height: 30px; padding: 5px 7px; font-size: 11px; }
+#control .relay-timer [data-timer-status] { min-height: 16px; padding: 3px 5px; font-size: 10px; }
+@media (max-width: 680px) {
+  #control .section-head { align-items: flex-start; }
+  #control .section-head-actions { flex-wrap: wrap; justify-content: flex-end; }
+  #control .section-head-actions .helper { display: none; }
+  #control .control-card { padding: 11px; }
+}
