@@ -4,6 +4,8 @@
   const relayNames = window.RELAY_NAMES || {};
   const cache = Object.create(null);
   let activeRelay = 'pump';
+  let pendingSchedule = null;
+  const SCHEDULE_PUBLISH_GUARD_MS = 8000;
   const slots = () => [0, 1, 2, 3];
   const $ = id => document.getElementById(id);
 
@@ -15,10 +17,14 @@
     const source = Array.isArray(value?.slots) ? value.slots : Array.isArray(value) ? value : [];
     return slots().map(index => {
       const item = source[index] || {};
+      const on = String(item.on || '');
+      const off = String(item.off || '');
+      const validOn = timeToMinutes(on) >= 0;
+      const validOff = timeToMinutes(off) >= 0;
       return {
-        enabled: Boolean(item.enabled),
-        on: /^\d{2}:\d{2}$/.test(String(item.on || '')) ? item.on : '00:00',
-        off: /^\d{2}:\d{2}$/.test(String(item.off || '')) ? item.off : '00:00'
+        enabled: Boolean(item.enabled) && validOn && validOff && on !== off,
+        on: validOn ? on : '00:00',
+        off: validOff ? off : '00:00'
       };
     });
   }
@@ -28,7 +34,9 @@
       const on = $(`slotOn${index}`)?.value || '00:00';
       const off = $(`slotOff${index}`)?.value || '00:00';
       return {
-        enabled: timeToMinutes(on) >= 0 && timeToMinutes(off) >= 0 && on !== off,
+        // The approved UI has no separate checkbox: any non-empty interval is
+        // validated as a candidate; 00:00–00:00 remains the unused value.
+        enabled: on !== off,
         on,
         off
       };
@@ -37,7 +45,31 @@
 
   function timeToMinutes(value) {
     const match = /^(\d{2}):(\d{2})$/.exec(String(value || ''));
-    return match ? Number(match[1]) * 60 + Number(match[2]) : -1;
+    if (!match) return -1;
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    return hours < 24 && minutes < 60 ? hours * 60 + minutes : -1;
+  }
+
+  function scheduleKey(value) {
+    return JSON.stringify(normalizeSlots(value));
+  }
+
+  function emptyScheduleKey() {
+    return scheduleKey({ slots: emptySlots() });
+  }
+
+  function clearExpiredPending() {
+    if (pendingSchedule && Date.now() - pendingSchedule.startedAt >= SCHEDULE_PUBLISH_GUARD_MS) pendingSchedule = null;
+  }
+
+  function scheduleAckMatches(relay, value) {
+    clearExpiredPending();
+    if (!pendingSchedule || pendingSchedule.relay !== relay) return false;
+    const key = pendingSchedule.command === 'DELETE' ? emptyScheduleKey() : scheduleKey(value);
+    if (key !== pendingSchedule.key) return false;
+    pendingSchedule = null;
+    return true;
   }
 
   function slotIsOn(slot, minute) {
@@ -85,7 +117,7 @@
 
   function applyQuickSchedule(value) {
     const [on, off] = String(value || '').split('|');
-    if (!/^\d{2}:\d{2}$/.test(on) || !/^\d{2}:\d{2}$/.test(off) || on === off) return false;
+    if (timeToMinutes(on) < 0 || timeToMinutes(off) < 0 || on === off) return false;
     writeSlots({ slots: [{ enabled: true, on, off }, ...emptySlots().slice(1)] });
     document.querySelectorAll('[data-quick-schedule]').forEach(button => button.classList.toggle('active', button.dataset.quickSchedule === value));
     window.showToast?.(`เลือกเวลา ${on}–${off} แล้ว กดบันทึกตาราง`, 'success');
@@ -98,7 +130,7 @@
     for (let index = 0; index < data.length; index += 1) {
       const slot = data[index];
       if (!slot.enabled) continue;
-      if (!/^\d{2}:\d{2}$/.test(slot.on) || !/^\d{2}:\d{2}$/.test(slot.off) || slot.on === slot.off) {
+      if (timeToMinutes(slot.on) < 0 || timeToMinutes(slot.off) < 0 || slot.on === slot.off) {
         const message = `ช่วงที่ ${index + 1} ต้องระบุเวลาเปิดและปิดที่ไม่เท่ากัน`;
         setValidation(message);
         throw new Error(message);
@@ -128,11 +160,17 @@
   }
 
   function saveSchedule() {
+    clearExpiredPending();
     let payload;
     try {
       payload = validate();
     } catch (error) {
       window.showToast?.(error.message, 'warning');
+      return false;
+    }
+    const key = scheduleKey(payload);
+    if (pendingSchedule) {
+      window.showToast?.('กำลังบันทึกตาราง รออุปกรณ์ตอบกลับก่อน', 'warning');
       return false;
     }
     const sent = window.mqttHandler?.publish?.(MQTT_CONFIG.topics.scheduleSet(activeRelay), JSON.stringify(payload));
@@ -141,6 +179,7 @@
       window.mqttHandler?.showSetup?.();
       return false;
     }
+    pendingSchedule = { relay: activeRelay, key, command: 'SAVE', startedAt: Date.now() };
     cache[activeRelay] = payload;
     updateSummary();
     setValidation('');
@@ -149,14 +188,20 @@
   }
 
   function deleteSchedule() {
+    clearExpiredPending();
     const confirmation = window.confirm(`ลบช่วงเวลาทั้งหมดของ ${relayNames[activeRelay] || activeRelay} หรือไม่?`);
     if (!confirmation) return false;
+    if (pendingSchedule) {
+      window.showToast?.('กำลังบันทึกตาราง รออุปกรณ์ตอบกลับก่อน', 'warning');
+      return false;
+    }
     const sent = window.mqttHandler?.publish?.(MQTT_CONFIG.topics.scheduleSet(activeRelay), 'DELETE');
     if (!sent) {
       window.showToast?.('ต้องตั้งค่าบัญชี MQTT ก่อนลบตาราง', 'warning');
       window.mqttHandler?.showSetup?.();
       return false;
     }
+    pendingSchedule = { relay: activeRelay, key: emptyScheduleKey(), command: 'DELETE', startedAt: Date.now() };
     cache[activeRelay] = { slots: emptySlots() };
     writeSlots(cache[activeRelay]);
     window.showToast?.(`ลบตาราง ${relayNames[activeRelay] || activeRelay} แล้ว`, 'success');
@@ -237,7 +282,9 @@
     window.addEventListener('schedule:status', event => {
       const relay = event.detail?.relay;
       if (!relay) return;
-      cache[relay] = normalizeSlots(event.detail.schedule);
+      const normalized = normalizeSlots(event.detail.schedule);
+      scheduleAckMatches(relay, normalized);
+      cache[relay] = normalized;
       if (relay === activeRelay) writeSlots(cache[relay]);
     });
     window.addEventListener('schedule:error', event => window.showToast?.(event.detail?.message || 'ไม่สามารถอ่านตารางจากอุปกรณ์ได้', 'warning'));

@@ -296,6 +296,9 @@ static const uint32_t MAX_TIMER_SECONDS = 4294967UL;
 void relaySet(uint8_t i, bool on);
 void publishRelayStatus(uint8_t i);
 void publishEmergencyStatus();
+bool relayHasSchedule(uint8_t r);
+bool readRtcNow(DateTime &value);
+bool relayScheduleDesired(uint8_t r, uint16_t now);
 
 void clearRelayTimer(uint8_t i) {
   if (i < RELAY_COUNT) {
@@ -355,11 +358,18 @@ void runRelayTimers() {
       if (statusDue) publishRelayTimerStatus(i);
       continue;
     }
-    if (!relayOn(i) || (int32_t)(millis() - relayTimerUntil[i]) >= 0) {
-      bool expired = relayOn(i) && (int32_t)(millis() - relayTimerUntil[i]) >= 0;
+    // A zero deadline means no finite timer. Do not treat a relay that is ON
+    // from a schedule/manual command as an already-expired timer.
+    if (!relayTimerUntil[i]) continue;
+    if ((int32_t)(millis() - relayTimerUntil[i]) >= 0) {
+      DateTime timerNow(2000, 1, 1);
+      bool scheduleKeepsOn = !emergencyLock && !otaUpdateInProgress &&
+                             readRtcNow(timerNow) && relayHasSchedule(i) &&
+                             relayScheduleDesired(i, timerNow.hour() * 60U + timerNow.minute());
       clearRelayTimer(i);
-      if (expired)
-        relaySet(i, false);
+      // If the active RTC schedule still wants ON, keep the relay ON and let
+      // runSchedules() maintain it. Otherwise perform one OFF transition.
+      if (!scheduleKeepsOn) relaySetRaw(i, false);
       publishRelayStatus(i);
       publishRelayTimerStatus(i);
     } else if (statusDue)
@@ -383,12 +393,15 @@ bool parseTimerSeconds(const String &value, uint32_t &seconds) {
 }
 bool validHM(uint8_t h, uint8_t m) { return h < 24 && m < 60; }
 bool parseHM(const char *s, uint8_t &h, uint8_t &m) {
-  int a, b;
-  if (!s || sscanf(s, "%d:%d", &a, &b) != 2 || a < 0 || a > 23 || b < 0 ||
-      b > 59)
+  if (!s || strlen(s) != 5 || s[2] != ':' || s[0] < '0' || s[0] > '9' ||
+      s[1] < '0' || s[1] > '9' || s[3] < '0' || s[3] > '9' ||
+      s[4] < '0' || s[4] > '9')
     return false;
-  h = (uint8_t)a;
-  m = (uint8_t)b;
+  uint8_t parsedH = (uint8_t)((s[0] - '0') * 10 + (s[1] - '0'));
+  uint8_t parsedM = (uint8_t)((s[3] - '0') * 10 + (s[4] - '0'));
+  if (!validHM(parsedH, parsedM)) return false;
+  h = parsedH;
+  m = parsedM;
   return true;
 }
 int relayIndex(const String &n) {
@@ -596,23 +609,30 @@ void loadConfig() {
     JsonArray rs = all[r].as<JsonArray>();
     if (rs.isNull()) continue;
     ScheduleSlot candidate[SLOT_COUNT] = {};
+    bool malformed = false;
     for (uint8_t s = 0; s < SLOT_COUNT && s < rs.size(); s++) {
       JsonObject o = rs[s].as<JsonObject>();
+      bool enabled = o["enabled"] | false;
       uint8_t oh = o["onH"] | 0, om = o["onM"] | 0, fh = o["offH"] | 0,
               fm = o["offM"] | 0;
-      if (validHM(oh, om) && validHM(fh, fm) && !(oh == fh && om == fm))
-        candidate[s] = {bool(o["enabled"] | false), oh, om, fh, fm};
+      if (!enabled) continue;
+      if (!validHM(oh, om) || !validHM(fh, fm) || (oh == fh && om == fm)) {
+        malformed = true;
+        break;
+      }
+      candidate[s] = {true, oh, om, fh, fm};
     }
-    if (scheduleSetValid(candidate)) {
+    if (!malformed && scheduleSetValid(candidate)) {
       for (uint8_t s = 0; s < SLOT_COUNT; s++) schedules[r][s] = candidate[s];
     } else {
-      Serial.printf("Schedule: overlap rejected relay=%s\n", relayNames[r]);
+      Serial.printf("Schedule: invalid stored data rejected relay=%s reason=%s\n",
+                    relayNames[r], malformed ? "time" : "overlap");
     }
   }
 }
-void saveConfig() {
+bool saveConfig() {
   if (!fsReady)
-    return;
+    return false;
   StaticJsonDocument<1536> d;
   JsonArray all = d.createNestedArray("s");
   for (uint8_t r = 0; r < RELAY_COUNT; r++) {
@@ -626,11 +646,23 @@ void saveConfig() {
       o["offM"] = schedules[r][s].offM;
     }
   }
-  File f = LittleFS.open("/smartfarm.json", "w");
-  if (f) {
-    serializeJson(d, f);
-    f.close();
+  if (d.overflowed()) {
+    Serial.println(F("Schedule: config document overflow"));
+    return false;
   }
+  File f = LittleFS.open("/smartfarm.json", "w");
+  if (!f) {
+    Serial.println(F("Schedule: cannot open config for write"));
+    return false;
+  }
+  size_t bytes = serializeJson(d, f);
+  f.flush();
+  f.close();
+  if (!bytes) {
+    Serial.println(F("Schedule: config write returned zero bytes"));
+    return false;
+  }
+  return true;
 }
 
 int clampInt(int value, int minimum, int maximum, int fallback) {
@@ -1364,6 +1396,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     int r = relayIndex(n);
     if (r < 0)
       return;
+    ScheduleSlot previous[SLOT_COUNT] = {};
+    for (uint8_t s = 0; s < SLOT_COUNT; s++) previous[s] = schedules[r][s];
     StaticJsonDocument<1024> d;
     if (msg.equalsIgnoreCase("DELETE")) {
       for (uint8_t s = 0; s < SLOT_COUNT; s++)
@@ -1372,23 +1406,40 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       if (deserializeJson(d, msg))
         return;
       JsonArray slots = d["slots"].as<JsonArray>();
-      if (slots.isNull()) return;
+      if (slots.isNull() || slots.size() > SLOT_COUNT) {
+        Serial.printf("Schedule: rejected relay=%s reason=slot-count\n", relayNames[r]);
+        queueTelegram(String("ปฏิเสธตารางของรีเลย์ ") + relayNames[r] + " เนื่องจากจำนวนช่วงเวลาไม่ถูกต้อง");
+        return;
+      }
       ScheduleSlot candidate[SLOT_COUNT] = {};
+      bool malformed = false;
       for (uint8_t s = 0; s < SLOT_COUNT && s < slots.size(); s++) {
         JsonObject o = slots[s].as<JsonObject>();
+        bool enabled = o["enabled"] | false;
+        if (!enabled) continue;
         uint8_t oh, om, fh, fm;
-        if (!parseHM(o["on"] | "", oh, om) || !parseHM(o["off"] | "", fh, fm))
-          continue;
-        candidate[s] = {bool(o["enabled"] | false), oh, om, fh, fm};
+        if (!parseHM(o["on"] | "", oh, om) || !parseHM(o["off"] | "", fh, fm)) {
+          malformed = true;
+          break;
+        }
+        candidate[s] = {true, oh, om, fh, fm};
       }
-      if (!scheduleSetValid(candidate)) {
-        Serial.printf("Schedule: overlap rejected relay=%s\n", relayNames[r]);
-        queueTelegram(String("ปฏิเสธตารางของรีเลย์ ") + relayNames[r] + " เนื่องจากเวลาชนกัน");
+      if (malformed || !scheduleSetValid(candidate)) {
+        const char *reason = malformed ? "invalid time" : "overlap";
+        Serial.printf("Schedule: rejected relay=%s reason=%s\n", relayNames[r], reason);
+        queueTelegram(String("ปฏิเสธตารางของรีเลย์ ") + relayNames[r] +
+                      (malformed ? " เนื่องจากรูปแบบเวลาไม่ถูกต้อง" : " เนื่องจากเวลาชนกัน"));
         return;
       }
       for (uint8_t s = 0; s < SLOT_COUNT; s++) schedules[r][s] = candidate[s];
     }
-    saveConfig();
+    if (!saveConfig()) {
+      for (uint8_t s = 0; s < SLOT_COUNT; s++) schedules[r][s] = previous[s];
+      Serial.printf("Schedule: persistence failed relay=%s; previous schedule restored\n", relayNames[r]);
+      publishScheduleStatus((uint8_t)r);
+      queueTelegram(String("บันทึกตารางของรีเลย์ ") + relayNames[r] + " ไม่สำเร็จ จึงคืนค่าตารางเดิม");
+      return;
+    }
     DateTime scheduleRtc(2000, 1, 1);
     if (readRtcNow(scheduleRtc)) applyAutoState(scheduleRtc.hour() * 60U + scheduleRtc.minute());
     publishScheduleStatus((uint8_t)r);
