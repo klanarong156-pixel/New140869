@@ -1183,3 +1183,52 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
 @media (prefers-reduced-motion: reduce) {
   .dashboard-page .hub-card { transition:none; }
 }
+
+/* Modern colorful background — midnight aurora */
+.dashboard-page {
+  background:
+    radial-gradient(ellipse 70% 45% at 8% 0%, rgba(42, 211, 162, .20), transparent 72%),
+    radial-gradient(ellipse 54% 42% at 94% 5%, rgba(99, 102, 241, .28), transparent 70%),
+    radial-gradient(ellipse 58% 50% at 78% 82%, rgba(14, 165, 233, .16), transparent 72%),
+    radial-gradient(ellipse 55% 44% at 10% 92%, rgba(168, 85, 247, .13), transparent 72%),
+    linear-gradient(145deg, #091827 0%, #0b1224 42%, #10152d 71%, #081b20 100%);
+  background-attachment: fixed;
+}
+.dashboard-page::after {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  inset: -14%;
+  pointer-events: none;
+  opacity: .46;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(45, 212, 191, .18), transparent 19%),
+    radial-gradient(circle at 81% 18%, rgba(129, 140, 248, .20), transparent 20%),
+    radial-gradient(circle at 70% 76%, rgba(56, 189, 248, .14), transparent 21%),
+    radial-gradient(circle at 28% 82%, rgba(192, 132, 252, .12), transparent 18%);
+  filter: blur(46px);
+}
+.dashboard-page .app-shell { isolation: isolate; }
+.dashboard-page .topbar,
+.dashboard-page .app-main,
+.dashboard-page .bottom-nav { position: relative; z-index: 1; }
+.dashboard-page .hero {
+  background:
+    linear-gradient(118deg, rgba(20, 87, 78, .88), rgba(22, 39, 91, .84) 58%, rgba(58, 32, 84, .82)),
+    linear-gradient(135deg, #103b37, #171d48);
+  border-color: rgba(126, 235, 220, .24);
+}
+.dashboard-page .dashboard-hub {
+  background: linear-gradient(145deg, rgba(22, 54, 76, .70), rgba(20, 25, 54, .58));
+  border-color: rgba(125, 211, 252, .20);
+}
+.dashboard-page .dashboard-hub::before {
+  background: linear-gradient(90deg, transparent, rgba(103, 232, 249, .58), rgba(167, 139, 250, .42), transparent);
+}
+@media (max-width: 700px) {
+  .dashboard-page { background-attachment: scroll; }
+  .dashboard-page::after { opacity: .32; filter: blur(34px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-page { background-attachment: scroll; }
+}
