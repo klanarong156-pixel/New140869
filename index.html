@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png" sizes="192x192">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="app.css?v=21">
+  <link rel="stylesheet" href="app.css?v=22">
   <title>สวนลุงนะ · Smart Farm</title>
 </head>
 <body class="app-shell compact-ui dashboard-page" data-auth-required="true">
@@ -38,6 +38,18 @@
       </div>
     </section>
 
+    <section class="dashboard-hub section" aria-labelledby="dashboard-hub-title">
+      <div class="section-head"><div><p class="kicker">WORKSPACE MAP</p><h2 id="dashboard-hub-title">ศูนย์ควบคุมระบบ</h2><p class="helper">เลือกหมวดที่ต้องการดูรายละเอียด แบ่งเป็นหน้าทำงานชัดเจน ไม่ต้องเลื่อนหาข้อมูลทั้งระบบ</p></div><span class="tag success">6 หมวดหลัก</span></div>
+      <div class="dashboard-hub-grid">
+        <a class="hub-card hub-card-primary" href="#control"><span class="hub-icon">⌁</span><span><strong>อุปกรณ์และปั้ม</strong><small>สั่งงานรีเลย์ · ตั้งเวลาทำงานชั่วคราว</small></span><b>→</b></a>
+        <a class="hub-card" href="schedule.html"><span class="hub-icon">◷</span><span><strong>ตารางอัตโนมัติ</strong><small>ตั้งเวลาเปิด–ปิดและงานแจ้งเตือน</small></span><b>→</b></a>
+        <a class="hub-card" href="#weatherBox"><span class="hub-icon">☁</span><span><strong>อากาศและการป้องกันฝน</strong><small>พยากรณ์และสถานะการตัดสินใจ</small></span><b>→</b></a>
+        <a class="hub-card" href="#analyticsPanel"><span class="hub-icon">↗</span><span><strong>วิเคราะห์ฟาร์ม</strong><small>แนวโน้มเซนเซอร์และสถิติรีเลย์</small></span><b>→</b></a>
+        <a class="hub-card" href="finance.html"><span class="hub-icon">฿</span><span><strong>การเงิน</strong><small>รายรับ รายจ่าย และยอดสุทธิ</small></span><b>→</b></a>
+        <a class="hub-card" href="settings.html"><span class="hub-icon">⚙</span><span><strong>ระบบและการตั้งค่า</strong><small>บัญชี MQTT · OTA · การดูแลระบบ</small></span><b>→</b></a>
+      </div>
+    </section>
+
     <section class="mqtt-live-panel section" data-mqtt-live-panel aria-labelledby="mqtt-live-title">
       <div class="mqtt-live-main">
         <span class="mqtt-live-dot" data-mqtt-live-dot aria-hidden="true"></span>
@@ -48,7 +60,7 @@
     </section>
 
     <section class="section" aria-labelledby="live-title">
-      <div class="section-head"><div><p class="kicker">LIVE STATUS</p><h2 id="live-title">ภาพรวมฟาร์ม</h2></div><span class="helper">ข้อมูลจากอุปกรณ์แบบเรียลไทม์</span></div>
+      <div class="section-head"><div><p class="kicker">01 · LIVE STATUS</p><h2 id="live-title">ภาพรวมฟาร์ม</h2></div><span class="helper">ข้อมูลจากอุปกรณ์แบบเรียลไทม์</span></div>
       <div class="grid four">
         <article class="card metric-card interactive"><div class="metric-top"><span>อุณหภูมิ</span><span class="metric-icon">🌡️</span></div><div><strong data-sensor="temperature">-- °C</strong><small>DHT11 · D2 / GPIO4</small></div></article>
         <article class="card metric-card interactive"><div class="metric-top"><span>ความชื้นอากาศ</span><span class="metric-icon">💧</span></div><div><strong data-sensor="humidity">-- %</strong><small>DHT11 · D2 / GPIO4</small></div></article>
@@ -88,7 +100,7 @@
     </section>
 
     <section class="section" id="control" aria-labelledby="control-title">
-      <div class="section-head"><div><p class="kicker">RELAY CONTROL</p><h2 id="control-title">ควบคุมอุปกรณ์</h2></div><div class="section-head-actions"><button class="btn danger small" type="button" data-emergency-stop>หยุดและล็อก</button><button class="btn secondary small" type="button" data-emergency-reset>ปลดล็อก</button><span class="helper" data-emergency-status>Emergency Stop ปกติ</span></div></div>
+      <div class="section-head"><div><p class="kicker">02 · RELAY CONTROL</p><h2 id="control-title">ควบคุมอุปกรณ์</h2></div><div class="section-head-actions"><button class="btn danger small" type="button" data-emergency-stop>หยุดและล็อก</button><button class="btn secondary small" type="button" data-emergency-reset>ปลดล็อก</button><span class="helper" data-emergency-status>Emergency Stop ปกติ</span></div></div>
       <div class="grid four">
         <article class="card control-card" data-relay-card="pump"><div class="control-top"><div class="control-name"><span class="icon icon-pump" aria-hidden="true">💧</span><span><strong>ปั๊มน้ำ</strong></span></div><label class="switch"><input data-relay-toggle="pump" type="checkbox" aria-label="เปิดหรือปิดปั๊มน้ำ"><span></span></label></div><p class="control-state"><b data-relay-state="pump">ปิดอยู่</b></p><div class="relay-timer"><label>ตั้งเวลา (นาที)<input data-timer-minutes="pump" type="number" min="1" max="71582" value="30" inputmode="numeric"><span class="input-suffix">นาที</span><label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="pump"> ไม่จำกัดเวลา</label></label><div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="pump" aria-label="ตั้งเวลา 5 นาที">5</button><button type="button" data-timer-preset="15" data-timer-for="pump" aria-label="ตั้งเวลา 15 นาที">15</button><button type="button" data-timer-preset="30" data-timer-for="pump" aria-label="ตั้งเวลา 30 นาที">30</button></div><div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="pump">เริ่ม</button><button class="btn ghost small" type="button" data-timer-cancel="pump">ยกเลิก</button></div><span data-timer-status="pump" aria-live="polite">ยังไม่ได้ตั้งเวลา</span></div></article>
         <article class="card control-card" data-relay-card="zone1"><div class="control-top"><div class="control-name"><span class="icon icon-irrigation" aria-hidden="true">🌿</span><span><strong>โซน 1</strong></span></div><label class="switch"><input data-relay-toggle="zone1" type="checkbox" aria-label="เปิดหรือปิดโซน 1"><span></span></label></div><p class="control-state"><b data-relay-state="zone1">ปิดอยู่</b></p><div class="relay-timer"><label>ตั้งเวลา (นาที)<input data-timer-minutes="zone1" type="number" min="1" max="71582" value="15" inputmode="numeric"><span class="input-suffix">นาที</span><label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="zone1"> ไม่จำกัดเวลา</label></label><div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="zone1" aria-label="ตั้งเวลา 5 นาที">5</button><button type="button" data-timer-preset="15" data-timer-for="zone1" aria-label="ตั้งเวลา 15 นาที">15</button><button type="button" data-timer-preset="30" data-timer-for="zone1" aria-label="ตั้งเวลา 30 นาที">30</button></div><div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="zone1">เริ่ม</button><button class="btn ghost small" type="button" data-timer-cancel="zone1">ยกเลิก</button></div><span data-timer-status="zone1" aria-live="polite">ยังไม่ได้ตั้งเวลา</span></div></article>
