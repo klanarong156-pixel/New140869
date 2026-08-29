@@ -1232,3 +1232,59 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
 @media (prefers-reduced-motion: reduce) {
   .dashboard-page { background-attachment: scroll; }
 }
+
+/* Dashboard contrast and visual polish — v9 */
+.dashboard-page {
+  --text: #f4fbff;
+  --muted: #aec1cf;
+  --line: rgba(184, 220, 238, .18);
+  --line-strong: rgba(110, 231, 183, .40);
+  color: var(--text);
+}
+.dashboard-page .topbar {
+  min-height: 82px;
+  padding: 10px 14px;
+  border: 1px solid rgba(166, 220, 232, .12);
+  border-radius: 0 0 22px 22px;
+  background: rgba(7, 16, 32, .56);
+  box-shadow: 0 14px 32px rgba(0,0,0,.12);
+  backdrop-filter: blur(18px);
+}
+.dashboard-page .card,
+.dashboard-page .dashboard-hub,
+.dashboard-page .mqtt-live-panel {
+  background-color: rgba(10, 24, 40, .90);
+  backdrop-filter: blur(18px);
+}
+.dashboard-page .card { border-color: rgba(184, 220, 238, .17); }
+.dashboard-page .dashboard-hub { background: linear-gradient(145deg, rgba(14, 42, 58, .92), rgba(14, 25, 50, .90)); }
+.dashboard-page .hub-card { background: rgba(7, 20, 34, .70); border-color: rgba(166, 220, 232, .16); }
+.dashboard-page .hub-card:hover { background: linear-gradient(135deg, rgba(16, 87, 86, .72), rgba(35, 38, 94, .72)); }
+.dashboard-page .hub-card-primary { background: linear-gradient(135deg, rgba(13, 117, 103, .68), rgba(26, 49, 103, .72)); border-color: rgba(110, 231, 183, .55); }
+.dashboard-page .hub-card strong { color: #eafff4; font-size: 14px; }
+.dashboard-page .hub-card small { color: #b8cbd7; }
+.dashboard-page .hub-card b { color: #6ee7b7; }
+.dashboard-page .hub-icon { color: #d6fff0; background: linear-gradient(145deg, rgba(57, 211, 164, .30), rgba(91, 103, 235, .30)); box-shadow: inset 0 0 0 1px rgba(202,255,234,.10); }
+.dashboard-page .kicker { color: #72e6c0; }
+.dashboard-page h1, .dashboard-page h2, .dashboard-page h3,
+.dashboard-page .metric-card strong, .dashboard-page .control-name strong { color: #f4fbff; }
+.dashboard-page .helper, .dashboard-page .metric-card small { color: #aec1cf; }
+.dashboard-page .tag { background: rgba(20, 37, 57, .78); }
+.dashboard-page .status-pill { background: rgba(231, 247, 255, .92); color: #29404e; border-color: rgba(255,255,255,.72); }
+.dashboard-page .status-pill.online { color: #114e3a; }
+.dashboard-page .btn.secondary { background: rgba(28, 52, 73, .80); border-color: rgba(183, 224, 239, .28); }
+.dashboard-page .btn.ghost { color: #c0d1dc; }
+.dashboard-page .control-card { background: linear-gradient(145deg, rgba(18, 45, 57, .94), rgba(11, 28, 46, .94)); }
+.dashboard-page .control-card.active { background: linear-gradient(145deg, rgba(15, 102, 76, .90), rgba(11, 45, 64, .94)); }
+.dashboard-page .section { margin-top: 30px; }
+@media (max-width: 560px) {
+  .dashboard-page .topbar { width: 100%; min-height: 70px; padding: 8px 13px; border-radius: 0 0 18px 18px; }
+  .dashboard-page .brand-symbol { width: 38px; height: 38px; flex-basis: 38px; }
+  .dashboard-page .brand-copy strong { font-size: 15px; }
+  .dashboard-page .section { margin-top: 22px; }
+  .dashboard-page .section-head { align-items: flex-start; }
+  .dashboard-page .section-head .helper { font-size: 11px; }
+  .dashboard-page .dashboard-hub .section-head { display: block; }
+  .dashboard-page .dashboard-hub .section-head > .tag { margin-top: 10px; }
+  .dashboard-page .metric-card { min-height: 104px; }
+}
