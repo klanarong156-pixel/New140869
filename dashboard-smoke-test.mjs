@@ -123,7 +123,7 @@ const checks = [
   ['Firmware secrets persistence checks write result and restores Telegram config', /bool saveSecrets\(\)/.test(firmware) && /return bytes > 0/.test(firmware) && /Credential persistence failed/.test(firmware) && /previousToken/.test(firmware)],
   ['Firmware MQTT control logs use real newlines', /MQTT RX: topic=%s payload=%s\\n/.test(firmware) && !/MQTT RX: topic=%s payload=%s\\\\n/.test(firmware)],
   ['Firmware rejects overlapping or malformed schedule slots', /schedulesOverlap/.test(firmware) && /scheduleSetValid/.test(firmware) && /invalid time/.test(firmware) && /reason=/.test(firmware) && /malformed/.test(firmware) && /slot-count/.test(firmware)],
-  ['Firmware schedules use RTC only', /Schedule ต้องใช้ RTC/.test(firmware) && /if \(!readRtcNow\(now\)\) return/.test(firmware)],
+  ['Firmware schedules use RTC with validated NTP fallback', /scheduleClockMinutes/.test(firmware) && /ntp\.getEpochTime\(\) < 1704067200UL/.test(firmware) && /applyAutoState\(scheduleMinutes\)/.test(firmware)],
   ['Relay writes only on state changes', /if \(wasOn == on\)\s*return/.test(firmware)],
   ['Timer loop ignores relays without finite timers', /if \(!relayTimerUntil\[i\]\) continue/.test(firmware) && /runRelayTimers/.test(firmware)],
   ['Timer expiry resolves against RTC schedule before OFF', /scheduleKeepsOn/.test(firmware) && /readRtcNow\(timerNow\)/.test(firmware) && /if \(!scheduleKeepsOn\) relaySetRaw\(i, false\)/.test(firmware)],

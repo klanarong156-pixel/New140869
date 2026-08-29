@@ -298,6 +298,7 @@ void publishRelayStatus(uint8_t i);
 void publishEmergencyStatus();
 bool relayHasSchedule(uint8_t r);
 bool readRtcNow(DateTime &value);
+bool scheduleClockMinutes(uint16_t &minutes);
 bool relayScheduleDesired(uint8_t r, uint16_t now);
 
 void clearRelayTimer(uint8_t i) {
@@ -469,6 +470,18 @@ bool clockIsValid() {
     if (readRtcNow(checked)) return true;
   }
   return ntp.getEpochTime() >= 1704067200UL;
+}
+bool scheduleClockMinutes(uint16_t &minutes) {
+  DateTime rtcNow(2000, 1, 1);
+  if (readRtcNow(rtcNow)) {
+    minutes = rtcNow.hour() * 60U + rtcNow.minute();
+    return true;
+  }
+  // A missing or power-lost DS3231 must not disable schedules when NTP is valid.
+  // NTPClient already applies TZ_OFFSET_SECONDS to getHours/getMinutes.
+  if (ntp.getEpochTime() < 1704067200UL) return false;
+  minutes = ntp.getHours() * 60U + ntp.getMinutes();
+  return true;
 }
 bool relayScheduleDesired(uint8_t r, uint16_t now) {
   if (r >= RELAY_COUNT)
@@ -1203,8 +1216,8 @@ void resetEmergencyStop(const char *source) {
   emergencyTimestamp = millis();
   strlcpy(emergencySource, source && source[0] ? source : "reset", sizeof(emergencySource));
   Serial.printf("EMERGENCY STOP: reset source=%s\n", emergencySource);
-  DateTime resetRtc(2000, 1, 1);
-  if (readRtcNow(resetRtc)) applyAutoState(resetRtc.hour() * 60U + resetRtc.minute());
+  uint16_t resetMinutes;
+  if (scheduleClockMinutes(resetMinutes)) applyAutoState(resetMinutes);
   publishStatus();
   queueTelegram(String("ปลดล็อกหยุดฉุกเฉิน source=") + emergencySource);
 }
@@ -1517,8 +1530,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       queueTelegram(String("บันทึกตารางของรีเลย์ ") + relayNames[r] + " ไม่สำเร็จ จึงคืนค่าตารางเดิม");
       return;
     }
-    DateTime scheduleRtc(2000, 1, 1);
-    if (readRtcNow(scheduleRtc)) applyAutoState(scheduleRtc.hour() * 60U + scheduleRtc.minute());
+    uint16_t scheduleMinutes;
+    if (scheduleClockMinutes(scheduleMinutes)) applyAutoState(scheduleMinutes);
     publishScheduleStatus((uint8_t)r);
     publishRelayStatus((uint8_t)r);
     queueTelegram(String("อัปเดตตารางเวลาของรีเลย์ ") + relayNames[r] +
@@ -1918,8 +1931,8 @@ void setup() {
   mqtt.setBufferSize(768);
   syncRTCFromNTP(true);
   reportClockStatus();
-  DateTime bootRtc(2000, 1, 1);
-  if (readRtcNow(bootRtc)) applyAutoState(bootRtc.hour() * 60U + bootRtc.minute());
+  uint16_t bootMinutes;
+  if (scheduleClockMinutes(bootMinutes)) applyAutoState(bootMinutes);
   ArduinoOTA.setHostname(deviceName);
   ArduinoOTA.onStart([]() {
     enterOtaSafeState();
@@ -1970,10 +1983,10 @@ void runSchedules() {
   if ((uint32_t)(millis() - lastSchedule) < SCHEDULE_INTERVAL_MS)
     return;
   lastSchedule = millis();
-  // Schedule ต้องใช้ RTC ที่อ่านได้จริง ห้ามใช้ NTP fallback ไปสั่งรีเลย์
-  DateTime now(2000, 1, 1);
-  if (!readRtcNow(now)) return;
-  applyAutoState(now.hour() * 60U + now.minute());
+  // Prefer the DS3231, but keep schedules running from validated NTP when RTC is unavailable.
+  uint16_t scheduleMinutes;
+  if (!scheduleClockMinutes(scheduleMinutes)) return;
+  applyAutoState(scheduleMinutes);
 }
 
 void publishHeartbeat() {
