@@ -53,6 +53,7 @@ const settings = read('settings.html');
 const firmware = read('SmartFarm_V6_PRODUCTION.ino');
 const sw = read('sw.js');
 const readme = read('README.txt');
+const boardReference = read('BOARD_REFERENCE.md');
 const buildStatus = read('BUILD_STATUS.txt');
 const mqttContract = read('MQTT_CONTRACT_V6.md');
 const mqttContractHtml = read('MQTT_CONTRACT_V6.html');
@@ -132,6 +133,7 @@ const checks = [
   ['Usage estimator persists configurable flow power and tariff', /USAGE_KEY/.test(analytics) && /localStorage\.setItem\(USAGE_KEY/.test(analytics) && /usageTotals/.test(analytics) && /pumpPower/.test(analytics) && /tariff/.test(analytics)],
   ['Usage reset starts current total at zero without deleting history', /usage\.resetAt/.test(analytics) && /effectiveFrom/.test(analytics) && /ยอดปัจจุบันเริ่มหลังรีเซ็ต/.test(analytics)],
   ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
+  ['Board reference matches firmware and settings link', /SmartFarm_V6\.0|V7\.1\.0-FIELD-STABILITY/.test(boardReference) && /DHT11_DATA|DHT11 data/.test(boardReference) && /RELAY_PUMP|ปั้มน้ำ/.test(boardReference) && /BOARD_REFERENCE\.md/.test(settings)],
   ['All user pages use compact UI mode', /compact-ui/.test(index) && /compact-ui/.test(schedulePage) && /compact-ui/.test(settings) && /compact-ui/.test(read('finance.html')) && /compact-ui/.test(read('account.html')) && /compact-ui/.test(read('admin.html')) && /compact-ui/.test(read('ota.html'))],
   ['Schedule page uses short labels and one save action', /<h1>ตั้งเวลา<\/h1>/.test(schedulePage) && !/slotEnable\d+/.test(schedulePage) && /<label>เปิด<input/.test(schedulePage) && /onclick="saveSchedule\(\)">บันทึก<\/button>/.test(schedulePage)],
   ['Schedule page loads overlap-safe schedule.js', /schedule\.js\?v=10/.test(schedulePage)],
