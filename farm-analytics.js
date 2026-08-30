@@ -285,15 +285,77 @@
     setText('analyticsUpdatedAt', state.sensors.length ? formatTime(state.sensors.at(-1).at) : 'ยังไม่มีข้อมูล');
   }
 
+  const USAGE_KEY = 'smartfarm.usage.v1';
+  const usage = { flowRate: 20, pumpPower: 0.75, tariff: 4.2 };
+
+  function loadUsage() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(USAGE_KEY) || '{}');
+      ['flowRate', 'pumpPower', 'tariff'].forEach(key => {
+        const value = Number(saved[key]);
+        if (Number.isFinite(value) && value >= 0) usage[key] = value;
+      });
+    } catch (_) { /* use safe defaults */ }
+    ['usageFlowRate', 'usagePumpPower', 'usageTariff'].forEach((id, index) => {
+      const element = $(id);
+      if (element) element.value = [usage.flowRate, usage.pumpPower, usage.tariff][index];
+    });
+  }
+
+  function usageTotals() {
+    const cutoff = Date.now() - 86400000;
+    const events = state.relayEvents.filter(item => item.relay === 'pump' && new Date(item.at).getTime() >= cutoff)
+      .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+    let activeAt = null, minutes = 0, runs = 0;
+    events.forEach(item => {
+      const at = new Date(item.at).getTime();
+      if (item.on && activeAt === null) { activeAt = at; runs += 1; }
+      if (!item.on && activeAt !== null) { minutes += Math.max(0, at - activeAt) / 60000; activeAt = null; }
+    });
+    if (activeAt !== null) minutes += Math.max(0, Date.now() - activeAt) / 60000;
+    const energy = minutes / 60 * usage.pumpPower;
+    return { minutes, runs, liters: minutes * usage.flowRate, energy, cost: energy * usage.tariff };
+  }
+
+  function renderUsage() {
+    const panel = $('usagePanel');
+    if (!panel) return;
+    const totals = usageTotals();
+    setText('usagePumpMinutes', `${Math.round(totals.minutes)} นาที`);
+    setText('usagePumpRuns', `${totals.runs} รอบการทำงาน · 24 ชม. ล่าสุด`);
+    setText('usageWaterLiters', `${totals.liters.toFixed(1)} ลิตร`);
+    setText('usageEnergyKwh', `${totals.energy.toFixed(2)} kWh`);
+    setText('usageElectricCost', `฿${totals.cost.toFixed(2)}`);
+    setText('usageFlowNote', `อัตราการไหล ${usage.flowRate.toFixed(1)} ลิตร/นาที`);
+    setText('usagePowerNote', `กำลังปั๊ม ${usage.pumpPower.toFixed(2)} kW`);
+    setText('usageTariffNote', `อัตรา ฿${usage.tariff.toFixed(2)}/kWh`);
+  }
+
+  function saveUsage() {
+    const values = ['usageFlowRate', 'usagePumpPower', 'usageTariff'].map(id => Number($(id)?.value));
+    if (values.some(value => !Number.isFinite(value) || value < 0)) {
+      setText('usageSettingsStatus', 'กรุณากรอกค่าเป็นตัวเลขตั้งแต่ 0 ขึ้นไป');
+      return false;
+    }
+    [usage.flowRate, usage.pumpPower, usage.tariff] = values;
+    localStorage.setItem(USAGE_KEY, JSON.stringify(usage));
+    setText('usageSettingsStatus', 'บันทึกค่าคำนวณแล้ว');
+    renderUsage();
+    return true;
+  }
+
   function renderAll() {
     renderSensors();
     renderSensorChart();
     renderRelayStats();
     renderSystem();
+    renderUsage();
   }
 
   function bind() {
     loadLocal();
+    loadUsage();
+    $('usageSaveSettings')?.addEventListener('click', saveUsage);
     window.addEventListener('sensor:data', event => addSensor(event.detail?.type, event.detail?.value));
     window.addEventListener('relay:status', event => addRelayEvent(event.detail?.relay, event.detail?.status));
     window.addEventListener('device:data', event => {

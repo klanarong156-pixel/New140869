@@ -1288,3 +1288,36 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
   .dashboard-page .dashboard-hub .section-head > .tag { margin-top: 10px; }
   .dashboard-page .metric-card { min-height: 104px; }
 }
+
+/* Water and energy usage panel */
+.dashboard-page .usage-panel { background: linear-gradient(145deg, rgba(14, 44, 65, .94), rgba(18, 28, 58, .93)); }
+.dashboard-page .usage-summary-grid { display:grid; grid-template-columns:1.25fr repeat(3,1fr); gap:11px; }
+.dashboard-page .usage-summary-grid article { min-height:126px; padding:17px; border:1px solid rgba(177,226,240,.15); border-radius:17px; background:rgba(6,19,36,.58); }
+.dashboard-page .usage-summary-grid span, .dashboard-page .usage-summary-grid small { display:block; color:#b4c7d3; font-size:12px; }
+.dashboard-page .usage-summary-grid strong { display:block; margin:14px 0 7px; color:#f3fbff; font-size:25px; letter-spacing:-.04em; line-height:1; }
+.dashboard-page .usage-summary-grid small { font-size:11px; }
+.dashboard-page .usage-hero-card { background:linear-gradient(135deg,rgba(11,129,111,.72),rgba(21,68,121,.70)) !important; border-color:rgba(105,239,190,.40) !important; }
+.dashboard-page .usage-hero-card strong { color:#e1fff2; font-size:31px; }
+.dashboard-page .usage-cost { background:linear-gradient(135deg,rgba(120,77,177,.43),rgba(29,50,100,.62)) !important; border-color:rgba(196,165,255,.25) !important; }
+.dashboard-page .usage-cost strong { color:#e6d5ff; }
+.dashboard-page .usage-settings { display:grid; grid-template-columns:minmax(180px,.8fr) minmax(0,2fr); gap:16px; align-items:start; margin-top:16px; padding-top:16px; border-top:1px solid rgba(177,226,240,.14); }
+.dashboard-page .usage-settings > div:first-child strong { color:#effaff; font-size:14px; }
+.dashboard-page .usage-form { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:9px; align-items:end; }
+.dashboard-page .usage-form label { display:grid; gap:5px; color:#b4c7d3; font-size:11px; }
+.dashboard-page .usage-form input { min-height:37px; padding:7px 9px; font-size:13px; }
+.dashboard-page .usage-form .btn { min-height:37px; white-space:nowrap; }
+.dashboard-page .usage-settings-status { grid-column:2; margin:8px 0 0; color:#72e6c0; }
+@media (max-width: 900px) {
+  .dashboard-page .usage-summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .dashboard-page .usage-hero-card { grid-column:span 2; }
+  .dashboard-page .usage-settings { grid-template-columns:1fr; }
+  .dashboard-page .usage-settings-status { grid-column:auto; }
+}
+@media (max-width: 560px) {
+  .dashboard-page .usage-summary-grid { grid-template-columns:1fr; }
+  .dashboard-page .usage-hero-card { grid-column:auto; }
+  .dashboard-page .usage-summary-grid article { min-height:105px; padding:14px; }
+  .dashboard-page .usage-summary-grid strong, .dashboard-page .usage-hero-card strong { margin-top:10px; font-size:24px; }
+  .dashboard-page .usage-form { grid-template-columns:1fr; }
+  .dashboard-page .usage-form .btn { width:100%; }
+}

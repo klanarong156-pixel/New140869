@@ -128,6 +128,8 @@ const checks = [
   ['Timer loop ignores relays without finite timers', /if \(!relayTimerUntil\[i\]\) continue/.test(firmware) && /runRelayTimers/.test(firmware)],
   ['Timer expiry resolves against RTC schedule before OFF', /scheduleKeepsOn/.test(firmware) && /readRtcNow\(timerNow\)/.test(firmware) && /if \(!scheduleKeepsOn\) relaySetRaw\(i, false\)/.test(firmware)],
   ['Dashboard validates time ranges and guards duplicate schedule publishes', /SCHEDULE_PUBLISH_GUARD_MS = 8000/.test(schedule) && /pendingSchedule/.test(schedule) && /timeToMinutes\(slot\.on\) < 0/.test(schedule) && /กำลังบันทึกตาราง/.test(schedule)],
+  ['Dashboard includes water and energy usage estimator', /usagePanel/.test(index) && /usagePumpMinutes/.test(index) && /usageWaterLiters/.test(index) && /usageEnergyKwh/.test(index) && /usageElectricCost/.test(index)],
+  ['Usage estimator persists configurable flow power and tariff', /USAGE_KEY/.test(analytics) && /localStorage\.setItem\(USAGE_KEY/.test(analytics) && /usageTotals/.test(analytics) && /pumpPower/.test(analytics) && /tariff/.test(analytics)],
   ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
   ['All user pages use compact UI mode', /compact-ui/.test(index) && /compact-ui/.test(schedulePage) && /compact-ui/.test(settings) && /compact-ui/.test(read('finance.html')) && /compact-ui/.test(read('account.html')) && /compact-ui/.test(read('admin.html')) && /compact-ui/.test(read('ota.html'))],
   ['Schedule page uses short labels and one save action', /<h1>ตั้งเวลา<\/h1>/.test(schedulePage) && !/slotEnable\d+/.test(schedulePage) && /<label>เปิด<input/.test(schedulePage) && /onclick="saveSchedule\(\)">บันทึก<\/button>/.test(schedulePage)],
