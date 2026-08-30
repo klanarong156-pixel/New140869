@@ -1422,3 +1422,17 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
   .bottom-nav { bottom: calc(10px + env(safe-area-inset-bottom)); width: calc(100% - 22px); border-radius:23px; }
   .bottom-nav a { min-height:47px; border-radius:16px; }
 }
+
+/* Keep the floating nav fixed even on dashboard stacking contexts */
+.dashboard-page .bottom-nav {
+  position: fixed !important;
+  z-index: 1000 !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(14px + env(safe-area-inset-bottom)) !important;
+  transform: translateX(-50%) !important;
+  pointer-events: auto !important;
+}
+@media (max-width: 560px) {
+  .dashboard-page .bottom-nav { bottom: calc(10px + env(safe-area-inset-bottom)) !important; width: calc(100% - 22px) !important; }
+}
