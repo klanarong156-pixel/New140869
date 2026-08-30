@@ -1455,3 +1455,30 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
 .app-shell table td { color: #e1edf2 !important; }
 .bottom-nav a { color: #b9ccd7 !important; }
 .bottom-nav a.active { color: #f2fff9 !important; }
+
+/* Global high-contrast typography for every system page — v13 */
+.app-shell, .app-shell button, .app-shell input, .app-shell select, .app-shell textarea { font-family: system-ui, -apple-system, "Noto Sans Thai", "Segoe UI", sans-serif; }
+.app-shell .page-heading h1 { color:#f8fcff !important; font-size:clamp(25px, 3.2vw, 38px); font-weight:900; letter-spacing:-.025em; }
+.app-shell .page-heading .subtitle { color:#c2d3dd !important; font-size:14px; line-height:1.7; font-weight:500; }
+.app-shell .section-head h2, .app-shell .card h2 { color:#f2fbff !important; font-weight:850; letter-spacing:-.015em; }
+.app-shell .section-head h3, .app-shell .card h3 { color:#e7f6f5 !important; font-weight:800; }
+.app-shell .field label, .app-shell label, .app-shell .form-label { color:#dcecf1 !important; font-weight:750; }
+.app-shell .field small, .app-shell .field .hint, .app-shell .helper { color:#b5c9d4 !important; font-weight:500; line-height:1.65; }
+.app-shell .btn { color:#f2fffa !important; font-weight:800; letter-spacing:.005em; text-shadow:0 1px 1px rgba(0,0,0,.22); }
+.app-shell .btn.secondary { color:#e4f2f7 !important; background:rgba(17,39,58,.84); border-color:rgba(151,208,220,.35); }
+.app-shell .tag { background:rgba(32,112,102,.38); border-color:rgba(119,235,194,.30); color:#dcfff4 !important; }
+.app-shell .status-pill { background:rgba(15,38,55,.82); border-color:rgba(143,210,216,.30); color:#e9fbff !important; }
+.app-shell .status-pill.success, .app-shell .status-pill.online { color:#caffea !important; }
+.app-shell .notice span:last-child { color:#d6e7ed !important; }
+.app-shell .notice strong { color:#f5fffb !important; font-weight:850; }
+.app-shell footer { color:#9db4c0 !important; font-weight:600; }
+.app-shell a:not(.btn):not(.bottom-nav a) { color:#8df0d1; text-decoration-color:rgba(141,240,209,.45); text-underline-offset:3px; }
+.app-shell a:not(.btn):not(.bottom-nav a):hover { color:#e5fff7; }
+.app-shell input, .app-shell select, .app-shell textarea { background:rgba(8,25,39,.88); border-color:rgba(143,202,215,.30); }
+.app-shell input:focus, .app-shell select:focus, .app-shell textarea:focus { border-color:#7ae6c9; box-shadow:0 0 0 3px rgba(122,230,201,.17); }
+@media (max-width:560px) {
+  .app-shell .page-heading h1 { font-size:27px; }
+  .app-shell .page-heading .subtitle { font-size:13px; }
+  .app-shell .card h2 { font-size:20px; }
+  .app-shell .helper, .app-shell .field small { font-size:12px; }
+}
