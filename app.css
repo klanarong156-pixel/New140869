@@ -1321,3 +1321,26 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
   .dashboard-page .usage-form { grid-template-columns:1fr; }
   .dashboard-page .usage-form .btn { width:100%; }
 }
+
+/* Usage history controls */
+.dashboard-page .usage-history-toolbar { display:flex; align-items:end; justify-content:space-between; gap:14px; margin:18px 0 8px; padding:13px; border:1px solid rgba(177,226,240,.14); border-radius:15px; background:rgba(5,18,34,.48); }
+.dashboard-page .usage-date-field { display:flex; align-items:end; gap:9px; }
+.dashboard-page .usage-date-field > span { padding-bottom:10px; color:#94adbd; font-size:12px; }
+.dashboard-page .usage-date-field label { display:grid; gap:5px; color:#b6c9d4; font-size:11px; }
+.dashboard-page .usage-date-field input { min-height:37px; padding:7px 9px; color:#eefaff; color-scheme:dark; }
+.dashboard-page .usage-toolbar-actions { display:flex; gap:8px; }
+.dashboard-page .usage-range-status { margin:7px 2px 13px; color:#7fe4c1; }
+.dashboard-page .usage-head-actions { display:flex; align-items:center; gap:8px; }
+.dashboard-page .usage-reset-at { grid-column:1 / -1; margin:0; color:#8fa8b7; font-size:11px; }
+@media (max-width: 650px) {
+  .dashboard-page .usage-history-toolbar { display:grid; align-items:stretch; gap:10px; }
+  .dashboard-page .usage-date-field { justify-content:space-between; }
+  .dashboard-page .usage-date-field label { flex:1; }
+  .dashboard-page .usage-date-field input { width:100%; }
+  .dashboard-page .usage-toolbar-actions { display:grid; grid-template-columns:1fr 1fr; }
+  .dashboard-page .usage-toolbar-actions .btn { width:100%; }
+}
+@media (max-width: 380px) {
+  .dashboard-page .usage-date-field { gap:5px; }
+  .dashboard-page .usage-date-field input { font-size:11px; padding-left:5px; padding-right:5px; }
+}

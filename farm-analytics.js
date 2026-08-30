@@ -297,6 +297,10 @@
         const value = Number(saved[key]);
         if (Number.isFinite(value) && value >= 0) usage[key] = value;
       });
+      if (Number.isFinite(Number(saved.resetAt)) && Number(saved.resetAt) > 0) {
+        usage.resetAt = Number(saved.resetAt);
+        setText('usageResetAt', `เริ่มนับใหม่เมื่อ ${new Date(usage.resetAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}`);
+      }
     } catch (_) { /* use safe defaults */ }
     ['usageFlowRate', 'usagePumpPower', 'usageTariff'].forEach((id, index) => {
       const element = $(id);
@@ -304,17 +308,32 @@
     });
   }
 
-  function usageTotals() {
-    const cutoff = Date.now() - 86400000;
-    const events = state.relayEvents.filter(item => item.relay === 'pump' && new Date(item.at).getTime() >= cutoff)
+  const localDate = date => {
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+  };
+
+  function selectedUsageRange() {
+    const today = localDate(new Date());
+    const fromValue = $('usageDateFrom')?.value || today;
+    const toValue = $('usageDateTo')?.value || today;
+    const from = new Date(`${fromValue}T00:00:00`).getTime();
+    const to = new Date(`${toValue}T23:59:59.999`).getTime();
+    return { fromValue, toValue, from, to };
+  }
+
+  function usageTotals(from, to) {
+    const events = state.relayEvents.filter(item => item.relay === 'pump' && Number.isFinite(new Date(item.at).getTime()))
       .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
     let activeAt = null, minutes = 0, runs = 0;
     events.forEach(item => {
       const at = new Date(item.at).getTime();
+      if (at < from) { activeAt = item.on ? from : null; return; }
+      if (at > to) return;
       if (item.on && activeAt === null) { activeAt = at; runs += 1; }
       if (!item.on && activeAt !== null) { minutes += Math.max(0, at - activeAt) / 60000; activeAt = null; }
     });
-    if (activeAt !== null) minutes += Math.max(0, Date.now() - activeAt) / 60000;
+    if (activeAt !== null) minutes += Math.max(0, to - activeAt) / 60000;
     const energy = minutes / 60 * usage.pumpPower;
     return { minutes, runs, liters: minutes * usage.flowRate, energy, cost: energy * usage.tariff };
   }
@@ -322,15 +341,18 @@
   function renderUsage() {
     const panel = $('usagePanel');
     if (!panel) return;
-    const totals = usageTotals();
+    const range = selectedUsageRange();
+    const validRange = Number.isFinite(range.from) && Number.isFinite(range.to) && range.from <= range.to;
+    const totals = validRange ? usageTotals(range.from, Math.min(range.to, Date.now())) : { minutes: 0, runs: 0, liters: 0, energy: 0, cost: 0 };
     setText('usagePumpMinutes', `${Math.round(totals.minutes)} นาที`);
-    setText('usagePumpRuns', `${totals.runs} รอบการทำงาน · 24 ชม. ล่าสุด`);
+    setText('usagePumpRuns', `${totals.runs} รอบการทำงาน`);
     setText('usageWaterLiters', `${totals.liters.toFixed(1)} ลิตร`);
     setText('usageEnergyKwh', `${totals.energy.toFixed(2)} kWh`);
     setText('usageElectricCost', `฿${totals.cost.toFixed(2)}`);
     setText('usageFlowNote', `อัตราการไหลประมาณ ${usage.flowRate.toFixed(1)} ลิตร/นาที`);
     setText('usagePowerNote', `กำลังปั๊ม ${usage.pumpPower.toFixed(2)} kW`);
     setText('usageTariffNote', `อัตรา ฿${usage.tariff.toFixed(2)}/kWh · ปั้ม 2 HP`);
+    setText('usageRangeStatus', validRange ? `กำลังแสดงข้อมูล ${range.fromValue} ถึง ${range.toValue} · ${state.relayEvents.filter(item => item.relay === 'pump').length} เหตุการณ์ในประวัติ` : 'กรุณาเลือกวันที่เริ่มต้นไม่เกินวันที่สิ้นสุด');
   }
 
   function saveUsage() {
@@ -357,7 +379,22 @@
   function bind() {
     loadLocal();
     loadUsage();
+    const today = localDate(new Date());
+    if ($('usageDateFrom')) $('usageDateFrom').value = today;
+    if ($('usageDateTo')) $('usageDateTo').value = today;
     $('usageSaveSettings')?.addEventListener('click', saveUsage);
+    $('usageRefresh')?.addEventListener('click', () => { renderAll(); setText('usageSettingsStatus', 'รีเฟรชข้อมูลล่าสุดแล้ว'); });
+    ['usageDateFrom', 'usageDateTo'].forEach(id => $(id)?.addEventListener('change', renderUsage));
+    $('usageReset')?.addEventListener('click', () => {
+      if (!window.confirm('เริ่มนับข้อมูลใหม่ตั้งแต่ตอนนี้หรือไม่? ประวัติเดิมจะยังคงอยู่สำหรับดูย้อนหลัง')) return;
+      usage.resetAt = Date.now();
+      localStorage.setItem(USAGE_KEY, JSON.stringify(usage));
+      const now = localDate(new Date());
+      if ($('usageDateFrom')) $('usageDateFrom').value = now;
+      if ($('usageDateTo')) $('usageDateTo').value = now;
+      setText('usageResetAt', `เริ่มนับใหม่แล้วเมื่อ ${new Date().toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}`);
+      renderAll();
+    });
     window.addEventListener('sensor:data', event => addSensor(event.detail?.type, event.detail?.value));
     window.addEventListener('relay:status', event => addRelayEvent(event.detail?.relay, event.detail?.status));
     window.addEventListener('device:data', event => {
