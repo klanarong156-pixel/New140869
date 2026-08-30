@@ -1508,3 +1508,7 @@ body:has(.app-shell) { background:linear-gradient(135deg,#eef8f5 0%,#eaf1fb 48%,
 .bottom-nav a { color:#4b6975 !important; }
 .bottom-nav a.active { color:#0b665c !important; background:linear-gradient(145deg,#d5f2e6,#dceafa) !important; box-shadow:inset 0 0 0 1px #a6d8ca !important; }
 @media (max-width:560px) { body:has(.app-shell) { background:linear-gradient(160deg,#eff9f6,#edf3fb 55%,#fff9ef) !important; } }
+
+/* Final light-theme link contrast */
+.app-shell a:not(.btn):not(.bottom-nav a) { color:#0b6d63 !important; text-decoration-color:rgba(11,109,99,.42); }
+.app-shell a:not(.btn):not(.bottom-nav a):hover { color:#08483f !important; }
