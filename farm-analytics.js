@@ -288,7 +288,7 @@
   const USAGE_KEY = 'smartfarm.usage.v2';
   // Field profile: 2 HP pump, 2-inch pipe, 120 m delivery distance.
   // Flow remains a conservative editable estimate until measured with a flow meter.
-  const usage = { flowRate: 20, pumpPower: 1.5, tariff: 4.2, pipeDiameterIn: 2, deliveryDistanceM: 120 };
+  const usage = { flowRate: 20, pumpPower: 1.5, tariff: 4.2, pipeDiameterIn: 2, deliveryDistanceM: 120, resetAt: 0 };
 
   function loadUsage() {
     try {
@@ -343,7 +343,9 @@
     if (!panel) return;
     const range = selectedUsageRange();
     const validRange = Number.isFinite(range.from) && Number.isFinite(range.to) && range.from <= range.to;
-    const totals = validRange ? usageTotals(range.from, Math.min(range.to, Date.now())) : { minutes: 0, runs: 0, liters: 0, energy: 0, cost: 0 };
+    // The current view starts at resetAt; an explicitly selected older range still shows archived history.
+    const effectiveFrom = usage.resetAt && range.to >= usage.resetAt ? Math.max(range.from, usage.resetAt) : range.from;
+    const totals = validRange && effectiveFrom <= Math.min(range.to, Date.now()) ? usageTotals(effectiveFrom, Math.min(range.to, Date.now())) : { minutes: 0, runs: 0, liters: 0, energy: 0, cost: 0 };
     setText('usagePumpMinutes', `${Math.round(totals.minutes)} นาที`);
     setText('usagePumpRuns', `${totals.runs} รอบการทำงาน`);
     setText('usageWaterLiters', `${totals.liters.toFixed(1)} ลิตร`);
@@ -352,7 +354,7 @@
     setText('usageFlowNote', `อัตราการไหลประมาณ ${usage.flowRate.toFixed(1)} ลิตร/นาที`);
     setText('usagePowerNote', `กำลังปั๊ม ${usage.pumpPower.toFixed(2)} kW`);
     setText('usageTariffNote', `อัตรา ฿${usage.tariff.toFixed(2)}/kWh · ปั้ม 2 HP`);
-    setText('usageRangeStatus', validRange ? `กำลังแสดงข้อมูล ${range.fromValue} ถึง ${range.toValue} · ${state.relayEvents.filter(item => item.relay === 'pump').length} เหตุการณ์ในประวัติ` : 'กรุณาเลือกวันที่เริ่มต้นไม่เกินวันที่สิ้นสุด');
+    setText('usageRangeStatus', validRange ? `กำลังแสดงข้อมูล ${range.fromValue} ถึง ${range.toValue}${usage.resetAt && range.to >= usage.resetAt ? ' · ยอดปัจจุบันเริ่มหลังรีเซ็ต' : ''} · ${state.relayEvents.filter(item => item.relay === 'pump').length} เหตุการณ์ในประวัติ` : 'กรุณาเลือกวันที่เริ่มต้นไม่เกินวันที่สิ้นสุด');
   }
 
   function saveUsage() {
