@@ -1482,3 +1482,29 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
   .app-shell .card h2 { font-size:20px; }
   .app-shell .helper, .app-shell .field small { font-size:12px; }
 }
+
+/* Light surface + dark typography theme — v14 */
+body:has(.app-shell) { background:linear-gradient(135deg,#eef8f5 0%,#eaf1fb 48%,#f8f3ea 100%) !important; color:#173247 !important; }
+.app-shell { color:#173247 !important; background:transparent !important; }
+.app-shell .topbar { background:rgba(255,255,255,.88) !important; border-color:rgba(25,71,82,.14) !important; box-shadow:0 8px 26px rgba(35,72,80,.09); }
+.app-shell .brand-copy strong, .app-shell h1, .app-shell h2, .app-shell h3, .app-shell h4 { color:#12384b !important; text-shadow:none !important; }
+.app-shell .brand-copy span, .app-shell .kicker { color:#167c70 !important; }
+.app-shell .page-heading .subtitle, .app-shell .subtitle, .app-shell .helper, .app-shell .muted { color:#526b79 !important; }
+.app-shell .card, .app-shell .panel, .app-shell .section { background:rgba(255,255,255,.92) !important; border-color:rgba(39,94,99,.18) !important; box-shadow:0 12px 30px rgba(41,81,91,.10); }
+.app-shell .card strong, .app-shell .card b, .app-shell .metric-value, .app-shell .value { color:#123c50 !important; }
+.app-shell .card span, .app-shell .card label, .app-shell .card small, .app-shell .field label { color:#315365 !important; }
+.app-shell .notice { background:#f4faf8 !important; border-color:#c5e4d8 !important; color:#315365 !important; }
+.app-shell .notice strong { color:#123d4f !important; }
+.app-shell .tag, .app-shell .status-pill { color:#155b50 !important; background:#e2f5ec !important; border-color:#b6dfcd !important; }
+.app-shell .desktop-nav a { color:#365c6b !important; }
+.app-shell .desktop-nav a:hover, .app-shell .desktop-nav a.active { color:#0d756b !important; }
+.app-shell input, .app-shell select, .app-shell textarea { color:#173247 !important; background:#fff !important; border-color:#a9c7cd !important; }
+.app-shell input::placeholder, .app-shell textarea::placeholder { color:#78909b !important; }
+.app-shell table th { color:#285b67 !important; background:#edf7f5 !important; }
+.app-shell table td { color:#264b5b !important; }
+.app-shell .btn.primary { color:#fff !important; background:linear-gradient(135deg,#168b78,#2567a2) !important; }
+.app-shell .btn.secondary { color:#19485b !important; background:#e9f4f5 !important; border-color:#a9ced2 !important; }
+.bottom-nav { background:rgba(255,255,255,.96) !important; border-color:rgba(29,91,93,.22) !important; box-shadow:0 16px 42px rgba(35,75,83,.20),0 0 0 6px rgba(65,166,148,.07) !important; }
+.bottom-nav a { color:#4b6975 !important; }
+.bottom-nav a.active { color:#0b665c !important; background:linear-gradient(145deg,#d5f2e6,#dceafa) !important; box-shadow:inset 0 0 0 1px #a6d8ca !important; }
+@media (max-width:560px) { body:has(.app-shell) { background:linear-gradient(160deg,#eff9f6,#edf3fb 55%,#fff9ef) !important; } }
