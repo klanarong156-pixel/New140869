@@ -112,7 +112,7 @@ const checks = [
   ['Firmware queues event Telegram notifications', /telegramQueue/.test(firmware) && /processTelegramQueue/.test(firmware) && /lastTelegramAttempt/.test(firmware)],
   ['Firmware heartbeat includes field diagnostics', /heapMaxBlock/.test(firmware) && /heapFrag/.test(firmware) && /sensorFaults/.test(firmware) && /pumpRuntimeSec/.test(firmware) && /resetReason/.test(firmware)],
   ['Firmware retains latest RTC heartbeat', /device\/status/.test(firmware) && /mqtt\.publish\(MQTT_BASE "\/device\/status", out, true\)/.test(firmware)],
-  ['Dashboard renders field diagnostics', /systemSensorDetail/.test(analytics) && /systemPumpDetail/.test(analytics) && /systemReconnectDetail/.test(analytics) && /farm-analytics\.js\?v=2/.test(index)],
+  ['Dashboard renders field diagnostics', /systemSensorDetail/.test(analytics) && /systemPumpDetail/.test(analytics) && /systemReconnectDetail/.test(analytics) && /farm-analytics\.js\?v=3/.test(index)],
   ['Dashboard has realtime MQTT status panel', /data-mqtt-live-panel/.test(index) && /data-mqtt-live-label/.test(index) && /data-mqtt-device-status/.test(index) && /data-mqtt-last-update/.test(index) && /setText\('mqttLiveLabel'/.test(app) && /mqtt:reconnecting/.test(app)],
   ['User Management page is Admin-only', /data-admin-required=\"true\"/.test(read('admin.html')) && /user-management\.js/.test(read('admin.html')) && /window\.addEventListener\('access:ready'/.test(read('user-management.js'))],
   ['User Management backend has protected Auth actions', /exports\.listUsers/.test(functions) && /exports\.setUserRole/.test(functions) && /exports\.setUserDisabled/.test(functions) && /exports\.createPasswordResetLink/.test(functions) && /exports\.deleteUser/.test(functions) && /requireAdmin/.test(functions)],
