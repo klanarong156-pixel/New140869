@@ -1378,3 +1378,19 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
 .dashboard-page .usage-summary-grid article { background-color: rgba(7, 20, 34, .80); }
 .dashboard-page .usage-hero-card,
 .dashboard-page .usage-cost { background-color: transparent; }
+
+/* Centralized settings map */
+.settings-map { margin-top: 22px; background: linear-gradient(145deg, rgba(14, 42, 58, .92), rgba(14, 25, 50, .90)); border-color: rgba(125, 211, 252, .20); }
+.settings-map-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; }
+.settings-map-grid a { display:block; min-height:74px; padding:12px; border:1px solid rgba(166,220,232,.16); border-radius:14px; color:#f1fbff; background:rgba(7,20,34,.70); transition:transform .18s ease,border-color .18s ease,background .18s ease; }
+.settings-map-grid a:hover { transform:translateY(-2px); border-color:rgba(110,231,183,.48); background:linear-gradient(135deg,rgba(16,87,86,.72),rgba(35,38,94,.72)); }
+.settings-map-grid strong,.settings-map-grid small { display:block; }
+.settings-map-grid strong { font-size:12px; }
+.settings-map-grid small { margin-top:5px; color:#b8cbd7; font-size:10px; line-height:1.45; }
+.settings-map + .grid { scroll-margin-top:20px; }
+@media (max-width: 900px) { .settings-map-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width: 560px) {
+  .settings-map { margin-top:17px; padding:15px; }
+  .settings-map-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .settings-map-grid a { min-height:70px; }
+}
