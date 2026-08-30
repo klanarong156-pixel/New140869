@@ -285,8 +285,10 @@
     setText('analyticsUpdatedAt', state.sensors.length ? formatTime(state.sensors.at(-1).at) : 'ยังไม่มีข้อมูล');
   }
 
-  const USAGE_KEY = 'smartfarm.usage.v1';
-  const usage = { flowRate: 20, pumpPower: 0.75, tariff: 4.2 };
+  const USAGE_KEY = 'smartfarm.usage.v2';
+  // Field profile: 2 HP pump, 2-inch pipe, 120 m delivery distance.
+  // Flow remains a conservative editable estimate until measured with a flow meter.
+  const usage = { flowRate: 20, pumpPower: 1.5, tariff: 4.2, pipeDiameterIn: 2, deliveryDistanceM: 120 };
 
   function loadUsage() {
     try {
@@ -326,9 +328,9 @@
     setText('usageWaterLiters', `${totals.liters.toFixed(1)} ลิตร`);
     setText('usageEnergyKwh', `${totals.energy.toFixed(2)} kWh`);
     setText('usageElectricCost', `฿${totals.cost.toFixed(2)}`);
-    setText('usageFlowNote', `อัตราการไหล ${usage.flowRate.toFixed(1)} ลิตร/นาที`);
+    setText('usageFlowNote', `อัตราการไหลประมาณ ${usage.flowRate.toFixed(1)} ลิตร/นาที`);
     setText('usagePowerNote', `กำลังปั๊ม ${usage.pumpPower.toFixed(2)} kW`);
-    setText('usageTariffNote', `อัตรา ฿${usage.tariff.toFixed(2)}/kWh`);
+    setText('usageTariffNote', `อัตรา ฿${usage.tariff.toFixed(2)}/kWh · ปั้ม 2 HP`);
   }
 
   function saveUsage() {
