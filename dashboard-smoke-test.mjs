@@ -128,7 +128,7 @@ const checks = [
   ['Timer loop ignores relays without finite timers', /if \(!relayTimerUntil\[i\]\) continue/.test(firmware) && /runRelayTimers/.test(firmware)],
   ['Timer expiry resolves against RTC schedule before OFF', /scheduleKeepsOn/.test(firmware) && /readRtcNow\(timerNow\)/.test(firmware) && /if \(!scheduleKeepsOn\) relaySetRaw\(i, false\)/.test(firmware)],
   ['Dashboard validates time ranges and guards duplicate schedule publishes', /SCHEDULE_PUBLISH_GUARD_MS = 8000/.test(schedule) && /pendingSchedule/.test(schedule) && /timeToMinutes\(slot\.on\) < 0/.test(schedule) && /กำลังบันทึกตาราง/.test(schedule)],
-  ['Dashboard includes water and energy usage estimator', /usagePanel/.test(index) && /usagePumpMinutes/.test(index) && /usageWaterLiters/.test(index) && /usageEnergyKwh/.test(index) && /usageElectricCost/.test(index)],
+  ['Usage estimator lives in settings, not dashboard', !/id="usagePanel"/.test(index) && /id="usagePanel"/.test(settings) && /usagePumpMinutes/.test(settings) && /usageWaterLiters/.test(settings) && /usageEnergyKwh/.test(settings) && /usageElectricCost/.test(settings)],
   ['Usage estimator persists configurable flow power and tariff', /USAGE_KEY/.test(analytics) && /localStorage\.setItem\(USAGE_KEY/.test(analytics) && /usageTotals/.test(analytics) && /pumpPower/.test(analytics) && /tariff/.test(analytics)],
   ['Usage reset starts current total at zero without deleting history', /usage\.resetAt/.test(analytics) && /effectiveFrom/.test(analytics) && /ยอดปัจจุบันเริ่มหลังรีเซ็ต/.test(analytics)],
   ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
@@ -152,7 +152,7 @@ const checks = [
   ['Firebase rules twin is identical', rules === databaseRules],
   ['Active JavaScript has no HTML injection sinks', !/innerHTML|outerHTML|document\\.write|insertAdjacentHTML/.test(activeJs)],
   ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-6/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
-  ['Dashboard loads latest stylesheet cache version', /app\.css\?v=25/.test(index) && /app\.css\?v=21/.test(schedulePage) && /app\.css\?v=21/.test(settings)],
+  ['Pages load latest stylesheet cache version', /app\.css\?v=25/.test(index) && /app\.css\?v=26/.test(settings) && /app\.css\?v=21/.test(schedulePage)],
 ];
 
 let failed = 0;

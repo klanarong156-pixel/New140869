@@ -113,23 +113,6 @@
 
     <section id="analyticsPanel" class="section card pad advanced-only" aria-labelledby="analytics-title"><div class="section-head"><div><p class="kicker">FARM INSIGHTS · ADVANCED</p><h2 id="analytics-title">แนวโน้มและสถิติ</h2><p class="helper">ข้อมูลที่เก็บในอุปกรณ์นี้และซิงก์เข้าบัญชีเมื่อมี Firebase</p></div><span id="analyticsUpdatedAt" class="tag">ยังไม่มีข้อมูล</span></div><div class="analytics-grid"><article class="analytics-card"><span>อุณหภูมิล่าสุด</span><strong id="analyticsTemp">-- °C</strong><small id="analyticsTempTrend">ยังไม่มีข้อมูล 24 ชม.</small><em id="analyticsTempAt">ยังไม่มีข้อมูล</em></article><article class="analytics-card"><span>ความชื้นล่าสุด</span><strong id="analyticsHumidity">-- %</strong><small id="analyticsHumidityTrend">ยังไม่มีข้อมูล 24 ชม.</small><em id="analyticsHumidityAt">ยังไม่มีข้อมูล</em></article></div><div class="chart-card"><div class="section-head compact-head"><div><h3>กราฟอุณหภูมิและความชื้นย้อนหลัง</h3><span id="sensorChartMeta" class="helper">จะแสดงเมื่อมีข้อมูลจาก DHT11</span></div></div><canvas id="sensorHistoryChart" class="sensor-history-chart" role="img" aria-label="กราฟอุณหภูมิและความชื้นย้อนหลัง 24 ชั่วโมง"></canvas><p id="sensorChartEmpty" class="empty-state">ยังไม่มีข้อมูลย้อนหลังจาก DHT11</p></div><div class="section-head compact-head"><h3>เวลาทำงานรีเลย์ใน 24 ชั่วโมง</h3><span id="analyticsSampleCount" class="helper">0 จุดข้อมูล</span></div><div id="relayStatsList" class="relay-stats-list"></div></section>
 
-    <section id="usagePanel" class="section card pad usage-panel" aria-labelledby="usage-title">
-      <div class="section-head"><div><p class="kicker">WATER & ENERGY · ESTIMATE</p><h2 id="usage-title">การใช้น้ำและค่าไฟโดยประมาณ</h2><p class="helper">คำนวณจากเวลาที่ปั๊มทำงานจริงบน Dashboard · เป็นค่าประมาณจากอัตราการไหลและกำลังไฟที่ตั้งไว้</p></div><div class="usage-head-actions"><span id="usageUpdatedAt" class="tag">อัปเดตแบบเรียลไทม์</span></div></div>
-      <div class="usage-history-toolbar"><div class="usage-date-field"><label>ตั้งแต่วันที่<input id="usageDateFrom" type="date"></label><span>ถึง</span><label>วันที่<input id="usageDateTo" type="date"></label></div><div class="usage-toolbar-actions"><button id="usageRefresh" class="btn primary small" type="button">รีเฟรชข้อมูล</button><button id="usageReset" class="btn ghost small" type="button">เริ่มนับใหม่</button></div></div>
-      <p id="usageRangeStatus" class="helper usage-range-status" aria-live="polite">กำลังแสดงข้อมูลช่วงวันนี้</p>
-      <div class="usage-summary-grid">
-        <article class="usage-hero-card"><span>วันนี้ · ปั๊มน้ำทำงาน</span><strong id="usagePumpMinutes">0 นาที</strong><small id="usagePumpRuns">0 รอบการทำงาน</small></article>
-        <article class="usage-metric"><span>น้ำโดยประมาณ</span><strong id="usageWaterLiters">0 ลิตร</strong><small id="usageFlowNote">อัตราการไหลประมาณ 20 ลิตร/นาที · ท่อ 2 นิ้ว / ระยะส่ง 120 ม.</small></article>
-        <article class="usage-metric"><span>พลังงานไฟฟ้า</span><strong id="usageEnergyKwh">0.00 kWh</strong><small id="usagePowerNote">กำลังปั๊ม 1.50 kW · 2 HP</small></article>
-        <article class="usage-metric usage-cost"><span>ค่าไฟโดยประมาณ</span><strong id="usageElectricCost">฿0.00</strong><small id="usageTariffNote">อัตรา ฿4.20/kWh</small></article>
-      </div>
-      <div class="usage-settings">
-        <div><strong>ตั้งค่าการคำนวณ</strong><p class="helper">โปรไฟล์ปัจจุบัน: ปั้ม 2 HP · ท่อ 2 นิ้ว · ระยะส่ง 120 เมตร · อัตราไหลเป็นค่าประมาณ</p></div>
-        <div class="usage-form"><label>อัตราการไหล (ลิตร/นาที)<input id="usageFlowRate" type="number" min="0" max="1000" step="0.1" inputmode="decimal"></label><label>กำลังปั๊ม (kW)<input id="usagePumpPower" type="number" min="0" max="20" step="0.01" inputmode="decimal"></label><label>ค่าไฟ (บาท/kWh)<input id="usageTariff" type="number" min="0" max="100" step="0.01" inputmode="decimal"></label><button id="usageSaveSettings" class="btn secondary small" type="button">บันทึกค่า</button></div>
-        <p id="usageSettingsStatus" class="helper usage-settings-status" aria-live="polite"></p><p id="usageResetAt" class="helper usage-reset-at">ตัวนับเริ่มจากข้อมูล 24 ชั่วโมงล่าสุด</p>
-      </div>
-    </section>
-
     <section id="financeSummary" class="section card pad finance-summary" aria-labelledby="finance-summary-title">
       <div class="finance-summary-head"><div><p class="kicker">FARM FINANCE</p><h2 id="finance-summary-title">สรุปการเงินฟาร์ม</h2><p id="financeSummaryStatus" class="helper">กำลังโหลดข้อมูลการเงิน…</p></div><a class="finance-link" href="finance.html" aria-label="ดูรายละเอียดการเงิน">รายละเอียด <span aria-hidden="true">→</span></a></div>
       <div class="finance-summary-layout">
