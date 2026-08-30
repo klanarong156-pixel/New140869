@@ -1344,3 +1344,37 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
   .dashboard-page .usage-date-field { gap:5px; }
   .dashboard-page .usage-date-field input { font-size:11px; padding-left:5px; padding-right:5px; }
 }
+
+/* Final numeric readability pass — v10 */
+.dashboard-page .metric-card strong,
+.dashboard-page .analytics-card strong,
+.dashboard-page .relay-stat-row b,
+.dashboard-page .health-item strong,
+.dashboard-page .control-state b,
+.dashboard-page .usage-summary-grid strong,
+.dashboard-page .finance-metric strong,
+.dashboard-page [data-sensor],
+.dashboard-page [data-relay-state] {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  -webkit-font-smoothing: antialiased;
+}
+.dashboard-page .metric-card strong,
+.dashboard-page [data-sensor] { font-size: clamp(22px, 2.4vw, 30px); }
+.dashboard-page .analytics-card strong { font-size: 25px; }
+.dashboard-page .relay-stat-row b { color: #8ff5c5 !important; font-size: 17px; }
+.dashboard-page .health-item strong { color: #d9fbea !important; font-size: 14px; }
+.dashboard-page .control-state b { color: #e9fff4 !important; }
+.dashboard-page .usage-summary-grid strong { color: #ffffff !important; }
+.dashboard-page .finance-metric.income strong { color: #9bf2b3 !important; }
+.dashboard-page .finance-metric.expense strong { color: #ffabb7 !important; }
+.dashboard-page .finance-metric.pending strong { color: #ffd887 !important; }
+.dashboard-page .metric-card,
+.dashboard-page .analytics-card,
+.dashboard-page .health-item,
+.dashboard-page .relay-stat-row { background-color: rgba(7, 20, 34, .72); }
+.dashboard-page .usage-summary-grid article { background-color: rgba(7, 20, 34, .80); }
+.dashboard-page .usage-hero-card,
+.dashboard-page .usage-cost { background-color: transparent; }
