@@ -154,7 +154,7 @@ const checks = [
   ['Firebase rules twin is identical', rules === databaseRules],
   ['Active JavaScript has no HTML injection sinks', !/innerHTML|outerHTML|document\\.write|insertAdjacentHTML/.test(activeJs)],
   ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-6/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
-  ['Pages load latest stylesheet cache version', /app\.css\?v=33/.test(index) && /app\.css\?v=33/.test(settings) && /app\.css\?v=33/.test(schedulePage)],
+  ['Pages load latest stylesheet cache version', /app\.css\?v=34/.test(index) && /app\.css\?v=33/.test(settings) && /app\.css\?v=33/.test(schedulePage)],
 ];
 
 let failed = 0;
