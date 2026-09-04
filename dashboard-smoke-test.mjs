@@ -13,6 +13,7 @@ const files = [
   'ai-farm-advisor.js',
   'farm-tools.js',
   'farm-clock.js',
+  'internet-time.js',
   'mqtt-shared-worker.js',
   'user-management.js',
   'weather.js',
@@ -42,6 +43,7 @@ const analytics = read('farm-analytics.js');
 const aiAdvisor = read('ai-farm-advisor.js');
 const tools = read('farm-tools.js');
 const clock = read('farm-clock.js');
+const internetTime = read('internet-time.js');
 const worker = read('mqtt-shared-worker.js');
 const weather = read('weather.js');
 const guard = read('auto-weather-guard.js');
@@ -93,7 +95,8 @@ const checks = [
   ['Analytics stores real sensor history and renders chart', /sensor:data/.test(analytics) && /sensorHistoryChart/.test(analytics) && /getContext\('2d'\)/.test(analytics) && !/Math\.random/.test(analytics)],
   ['AI advisor uses real events, persists history and has no relay publisher', /sensor:data/.test(aiAdvisor) && /weather:protection/.test(aiAdvisor) && /farm\/aiAdvisor/.test(aiAdvisor) && /aiAlertSet/.test(aiAdvisor) && !/relaySet|relayTimerSet/.test(aiAdvisor)],
   ['AI advisor limits duplicate notifications and keeps safety read-only', /AUTO_COOLDOWN_MS/.test(aiAdvisor) && /payload.length > 900/.test(aiAdvisor) && /ไม่สั่งรีเลย์/.test(aiAdvisor)],
-  ['Homepage clock uses RTC heartbeat time directly', /device:data/.test(clock) && /device\.time/.test(clock) && /rtc/.test(clock) && /data-farm-time/.test(index) && /data-farm-clock-source/.test(index)],
+  ['Homepage clock uses internet time with RTC fallback', /InternetTime/.test(clock) && /internet-time:updated/.test(clock) && /device:data/.test(clock) && /device\.time/.test(clock) && /rtc/.test(clock) && /data-farm-time/.test(index) && /data-farm-clock-source/.test(index)],
+  ['Internet time sync has Bangkok timezone, timeout, fallback and refresh', /Asia\/Bangkok/.test(internetTime) && /AbortController/.test(internetTime) && /REQUEST_TIMEOUT_MS/.test(internetTime) && /SOURCES/.test(internetTime) && /setInterval\(sync, SYNC_INTERVAL_MS\)/.test(internetTime)],
   ['Backup excludes secrets and supports restore', /SECRET_KEY/.test(tools) && /downloadJson/.test(tools) && /FirebaseDB\.put/.test(tools)],
   ['Firmware uses same broker and base topic', /#define MQTT_SERVER/.test(firmware) && /#define MQTT_BASE "smartfarm"/.test(firmware)],
   ['Firmware recovers Wi-Fi and clears stale MQTT socket', /WIFI_RECONNECT_INTERVAL_MS/.test(firmware) && /void maintainWifi\(\)/.test(firmware) && /WiFi\.reconnect\(\)/.test(firmware) && /tls\.stop\(\)/.test(firmware)],
@@ -153,7 +156,7 @@ const checks = [
   ['User management audit is server-only', /"userManagementAudit"/.test(rules) && /"\.read": false/.test(rules) && /"\.write": false/.test(rules)],
   ['Firebase rules twin is identical', rules === databaseRules],
   ['Active JavaScript has no HTML injection sinks', !/innerHTML|outerHTML|document\\.write|insertAdjacentHTML/.test(activeJs)],
-  ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-6/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
+  ['PWA cache matches V7.1 source of truth', /smartfarm-v7\.1-field-stability-7/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
   ['Pages load latest stylesheet cache version', /app\.css\?v=34/.test(index) && /app\.css\?v=34/.test(settings) && /app\.css\?v=34/.test(schedulePage)],
 ];
 
