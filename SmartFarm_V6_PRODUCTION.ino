@@ -47,6 +47,10 @@ const uint32_t SENSOR_INTERVAL_MS = 30000UL;
 const uint32_t HEARTBEAT_INTERVAL_MS = 10000UL;
 const uint32_t SCHEDULE_INTERVAL_MS = 1000UL;
 const uint32_t RTC_NTP_SYNC_INTERVAL_MS = 6UL * 60UL * 60UL * 1000UL;
+const uint32_t NTP_RETRY_INTERVAL_MS = 10UL * 60UL * 1000UL;
+const uint32_t MIN_VALID_EPOCH = 1704067200UL;
+const char *const NTP_SERVERS[] = {"pool.ntp.org", "time.nist.gov", "asia.pool.ntp.org"};
+const uint8_t NTP_SERVER_COUNT = sizeof(NTP_SERVERS) / sizeof(NTP_SERVERS[0]);
 const uint8_t MQTT_AUTH_FAIL_LIMIT = 3;
 const uint32_t MQTT_DIAGNOSTIC_INTERVAL_MS = 30000UL;
 const uint32_t WIFI_RECONNECT_INTERVAL_MS = 15000UL;
@@ -60,8 +64,8 @@ NTPClient ntp(udp, "pool.ntp.org", TZ_OFFSET_SECONDS, 60000UL);
 RTC_DS3231 rtc;
 DHT dht(DHT_PIN, DHT11);
 
-bool fsReady = false, rtcAvailable = false, rtcTimeValid = false;
-uint32_t lastRtcSync = 0, lastMqttAttempt = 0, lastSensor = 0,
+bool fsReady = false, rtcAvailable = false, rtcTimeValid = false, ntpTimeValid = false;
+uint32_t lastRtcSync = 0, lastNtpAttempt = 0, lastMqttAttempt = 0, lastSensor = 0,
          lastHeartbeat = 0, lastSchedule = 0, lastMqttDiagnostic = 0,
          lastWifiReconnect = 0, lastSensorValidAt = 0;
 uint32_t sensorReadCount = 0, sensorFaultCount = 0;
@@ -469,7 +473,7 @@ bool clockIsValid() {
     DateTime checked(2000, 1, 1);
     if (readRtcNow(checked)) return true;
   }
-  return ntp.getEpochTime() >= 1704067200UL;
+  return ntpTimeValid && ntp.getEpochTime() >= MIN_VALID_EPOCH;
 }
 bool scheduleClockMinutes(uint16_t &minutes) {
   DateTime rtcNow(2000, 1, 1);
@@ -479,7 +483,7 @@ bool scheduleClockMinutes(uint16_t &minutes) {
   }
   // A missing or power-lost DS3231 must not disable schedules when NTP is valid.
   // NTPClient already applies TZ_OFFSET_SECONDS to getHours/getMinutes.
-  if (ntp.getEpochTime() < 1704067200UL) return false;
+  if (!ntpTimeValid || ntp.getEpochTime() < MIN_VALID_EPOCH) return false;
   minutes = ntp.getHours() * 60U + ntp.getMinutes();
   return true;
 }
@@ -703,7 +707,7 @@ String currentDateString() {
     return String(out);
   }
   uint32_t epoch = ntp.getEpochTime();
-  if (epoch < 1704067200UL)
+  if (!ntpTimeValid || epoch < MIN_VALID_EPOCH)
     return String();
   DateTime fallbackNow(epoch);
   char out[12];
@@ -1051,11 +1055,15 @@ void runReminders() {
 uint16_t currentMinutes() {
   DateTime now(2000, 1, 1);
   if (readRtcNow(now)) return now.hour() * 60U + now.minute();
+  if (!ntpTimeValid || ntp.getEpochTime() < MIN_VALID_EPOCH) return 0;
   return ntp.getHours() * 60U + ntp.getMinutes();
 }
 String rtcIso() {
   DateTime now(2000, 1, 1);
-  if (!readRtcNow(now)) return String();
+  if (!readRtcNow(now)) {
+    if (!ntpTimeValid || ntp.getEpochTime() < MIN_VALID_EPOCH) return String();
+    now = DateTime(ntp.getEpochTime());
+  }
   char b[25];
   snprintf(b, sizeof(b), "%04u-%02u-%02uT%02u:%02u:%02u+07:00", now.year(),
            now.month(), now.day(), now.hour(), now.minute(), now.second());
@@ -1079,31 +1087,49 @@ void initRTC() {
       Serial.println(F("DS3231 returned invalid time - NTP fallback"));
   }
 }
+bool syncNTPFromInternet(bool force = false) {
+  if (WiFi.status() != WL_CONNECTED) return ntpTimeValid;
+  if (!force && lastNtpAttempt &&
+      millis() - lastNtpAttempt < NTP_RETRY_INTERVAL_MS)
+    return ntpTimeValid;
+  lastNtpAttempt = millis();
+  for (uint8_t i = 0; i < NTP_SERVER_COUNT; i++) {
+    ntp.setPoolServerName(NTP_SERVERS[i]);
+    if (ntp.forceUpdate() && ntp.getEpochTime() >= MIN_VALID_EPOCH) {
+      ntpTimeValid = true;
+      Serial.print(F("NTP synced from "));
+      Serial.println(NTP_SERVERS[i]);
+      return true;
+    }
+    Serial.print(F("NTP server failed: "));
+    Serial.println(NTP_SERVERS[i]);
+  }
+  if (!ntpTimeValid) Serial.println(F("NTP unavailable - schedules paused until time is valid"));
+  return ntpTimeValid;
+}
 void syncRTCFromNTP(bool force = false) {
-  if (!rtcAvailable || WiFi.status() != WL_CONNECTED)
-    return;
+  if (WiFi.status() != WL_CONNECTED) return;
+  bool ntpUpdated = syncNTPFromInternet(force);
+  if (!rtcAvailable || !ntpUpdated) return;
   if (!force && lastRtcSync &&
       millis() - lastRtcSync < RTC_NTP_SYNC_INTERVAL_MS)
     return;
-  if (ntp.forceUpdate()) {
-    uint32_t localEpoch = ntp.getEpochTime();
-    if (localEpoch >= 1704067200UL) {
-      rtc.adjust(DateTime(localEpoch));
-      DateTime verified(2000, 1, 1);
-      bool readBackOk = readRtcNow(verified);
-      uint32_t verifiedEpoch = readBackOk ? verified.unixtime() : 0;
-      uint32_t delta = verifiedEpoch >= localEpoch
-                           ? verifiedEpoch - localEpoch
-                           : localEpoch - verifiedEpoch;
-      if (readBackOk && delta <= 2UL) {
-        rtcTimeValid = true;
-        lastRtcSync = millis();
-        Serial.println(F("RTC synced from NTP and read-back verified"));
-      } else {
-        rtcTimeValid = false;
-        Serial.println(F("RTC sync read-back failed - NTP fallback"));
-      }
-    }
+  uint32_t localEpoch = ntp.getEpochTime();
+  if (localEpoch < MIN_VALID_EPOCH) return;
+  rtc.adjust(DateTime(localEpoch));
+  DateTime verified(2000, 1, 1);
+  bool readBackOk = readRtcNow(verified);
+  uint32_t verifiedEpoch = readBackOk ? verified.unixtime() : 0;
+  uint32_t delta = verifiedEpoch >= localEpoch
+                       ? verifiedEpoch - localEpoch
+                       : localEpoch - verifiedEpoch;
+  if (readBackOk && delta <= 2UL) {
+    rtcTimeValid = true;
+    lastRtcSync = millis();
+    Serial.println(F("RTC synced from NTP and read-back verified"));
+  } else {
+    rtcTimeValid = false;
+    Serial.println(F("RTC sync read-back failed - NTP fallback"));
   }
 }
 
@@ -1111,7 +1137,7 @@ void reportClockStatus() {
   uint32_t epoch = ntp.getEpochTime();
   Serial.print(F("NTP: epoch="));
   Serial.print(epoch);
-  if (epoch >= 1704067200UL) {
+  if (ntpTimeValid && epoch >= MIN_VALID_EPOCH) {
     Serial.println(F(" VALID"));
     return;
   }
@@ -2012,8 +2038,10 @@ void publishHeartbeat() {
                              : 0;
   String iso = rtcIso();
   bool rtcNowValid = rtcAvailable && rtcTimeValid && iso.length();
-  d["clockValid"] = rtcNowValid || ntp.getEpochTime() >= 1704067200UL;
+  d["clockValid"] = rtcNowValid || (ntpTimeValid && ntp.getEpochTime() >= MIN_VALID_EPOCH);
   d["rtc"] = rtcNowValid;
+  d["ntp"] = ntpTimeValid;
+  d["clockSource"] = rtcNowValid ? "rtc" : (ntpTimeValid ? "ntp" : "none");
   d["sensorReads"] = sensorReadCount;
   d["sensorFaults"] = sensorFaultCount;
   d["sensorAgeSec"] = lastSensorValidAt
