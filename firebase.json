@@ -1,4 +1,10 @@
 {
+  "hosting": {
+    "public": ".",
+    "ignore": ["firebase.json", "firebase.rules.json", "database.rules.json", "functions/**", "node_modules/**", ".git/**"],
+    "cleanUrls": false,
+    "trailingSlash": false
+  },
   "functions": {
     "source": "functions",
     "runtime": "nodejs20"
