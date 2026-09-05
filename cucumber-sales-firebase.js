@@ -5,6 +5,8 @@
   const GRADE_LABELS = Object.freeze({ good: 'เกรดดี', sorted: 'เกรดคัด', large: 'เกรดใหญ่' });
   const SALE_STATUSES = Object.freeze(['posted', 'cancelled']);
   const INVALID_KEY = /[.#$/[\]]/;
+  const RETRY_MAX_ATTEMPTS = 3;
+  const RETRY_BASE_DELAY_MS = 250;
   let saveLock = false;
 
   const cleanText = (value, max = 160) => String(value ?? '').trim().slice(0, max);
@@ -19,6 +21,32 @@
     const key = String(value ?? '').trim();
     if (!key || key.length > max || INVALID_KEY.test(key)) throw new Error(`${label}ไม่ถูกต้อง`);
     return key;
+  }
+
+  function isRetryableError(error) {
+    const message = String(error?.message || error || '').toLowerCase();
+    return /\bhttp\s+5\d{2}\b/.test(message)
+      || message.includes('timeout')
+      || message.includes('network error')
+      || message.includes('networkerror')
+      || message.includes('failed to fetch')
+      || message.includes('fetch failed');
+  }
+
+  const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+  async function withRetry(operation) {
+    let lastError;
+    for (let attempt = 1; attempt <= RETRY_MAX_ATTEMPTS; attempt += 1) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        if (!isRetryableError(error) || attempt === RETRY_MAX_ATTEMPTS) throw error;
+        await wait(RETRY_BASE_DELAY_MS * (2 ** (attempt - 1)));
+      }
+    }
+    throw lastError;
   }
 
   function normalizeGrades(grades = {}) {
@@ -108,8 +136,8 @@
     try {
       const now = new Date().toISOString();
       const saleId = input.id ? validateKey(input.id, 'รหัสรายการขาย') : id('SALE');
-      const existing = input.id ? await FirebaseDB.get(`cucumberSales/${saleId}`) : null;
-      const existingAccount = input.id ? await FirebaseDB.get(`finance/${accountingId(saleId)}`) : null;
+      const existing = input.id ? await withRetry(() => FirebaseDB.get(`cucumberSales/${saleId}`)) : null;
+      const existingAccount = input.id ? await withRetry(() => FirebaseDB.get(`finance/${accountingId(saleId)}`)) : null;
       if (input.id && !existing) throw new Error('ไม่พบรายการขายที่ต้องการแก้ไข');
       const normalized = validateSale(input);
       const sale = {
@@ -128,10 +156,10 @@
       // Do not send { finance: { [account.id]: account } } at the user root.
       // Firebase treats that as a replacement of the whole finance collection.
       // Flattened child paths update only this sale and its linked accounting record.
-      await FirebaseDB.patch('', {
+      await withRetry(() => FirebaseDB.patch('', {
         [`cucumberSales/${sale.id}`]: sale,
         [`finance/${account.id}`]: account
-      });
+      }));
       return sale;
     } finally { saveLock = false; }
   }
