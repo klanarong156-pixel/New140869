@@ -95,11 +95,17 @@ jobs:
           arduino-cli lib install 'Adafruit Unified Sensor'
       - name: Compile firmware
         run: |
-          mkdir -p /tmp/smartfarm-sketch
+          set -euo pipefail
+          rm -rf build
+          mkdir -p /tmp/smartfarm-sketch build
           cp SmartFarm_V6_PRODUCTION.ino /tmp/smartfarm-sketch/smartfarm-sketch.ino
           arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --output-dir build /tmp/smartfarm-sketch
+          test -s build/smartfarm-sketch.ino.bin
+          sha256sum build/*.bin | tee build/SHA256SUMS.txt
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
           name: SmartFarm-V7-ESP8266-BIN
-          path: build/*.bin
+          path: |
+            build/*.bin
+            build/SHA256SUMS.txt
