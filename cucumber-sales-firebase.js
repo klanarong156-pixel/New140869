@@ -4,6 +4,7 @@
   const GRADES = Object.freeze(['good', 'sorted', 'large']);
   const GRADE_LABELS = Object.freeze({ good: 'เกรดดี', sorted: 'เกรดคัด', large: 'เกรดใหญ่' });
   const SALE_STATUSES = Object.freeze(['posted', 'cancelled']);
+  const INVALID_KEY = /[.#$/[\]]/;
   let saveLock = false;
 
   const cleanText = (value, max = 160) => String(value ?? '').trim().slice(0, max);
@@ -13,6 +14,12 @@
   };
   const money = value => Math.round((number(value) + Number.EPSILON) * 100) / 100;
   const id = prefix => `${prefix}-${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`;
+
+  function validateKey(value, label, max = 100) {
+    const key = String(value ?? '').trim();
+    if (!key || key.length > max || INVALID_KEY.test(key)) throw new Error(`${label}ไม่ถูกต้อง`);
+    return key;
+  }
 
   function normalizeGrades(grades = {}) {
     const result = {};
@@ -29,7 +36,7 @@
     return result;
   }
 
-  function validateSale(input) {
+  function validateSale(input = {}) {
     const date = cleanText(input.date, 10);
     const customerId = cleanText(input.customerId, 80);
     const customerName = cleanText(input.customerName, 120);
@@ -100,39 +107,72 @@
     saveLock = true;
     try {
       const now = new Date().toISOString();
-      const existing = input.id ? await FirebaseDB.get(`cucumberSales/${input.id}`) : null;
+      const saleId = input.id ? validateKey(input.id, 'รหัสรายการขาย') : id('SALE');
+      const existing = input.id ? await FirebaseDB.get(`cucumberSales/${saleId}`) : null;
+      const existingAccount = input.id ? await FirebaseDB.get(`finance/${accountingId(saleId)}`) : null;
+      if (input.id && !existing) throw new Error('ไม่พบรายการขายที่ต้องการแก้ไข');
       const normalized = validateSale(input);
       const sale = {
-        id: input.id || id('SALE'),
+        id: saleId,
         ...normalized,
-        status: input.status === 'cancelled' ? 'cancelled' : 'posted',
+        status: input.status === 'cancelled' || existing?.status === 'cancelled' ? 'cancelled' : 'posted',
         createdAt: existing?.createdAt || now,
         updatedAt: now,
         createdBy: existing?.createdBy || window.SMARTFARM_ACCESS?.user?.localId || '',
-        accounting: { transactionId: accountingId(input.id || 'pending'), category: 'cucumber_sales', type: 'income', status: input.status === 'cancelled' ? 'cancelled' : 'posted' }
+        accounting: { transactionId: accountingId(saleId), category: 'cucumber_sales', type: 'income', status: input.status === 'cancelled' ? 'cancelled' : 'posted' }
       };
-      sale.accounting.transactionId = accountingId(sale.id);
-      const account = buildAccounting(sale, now, existing?.accountingRecord || {});
+      sale.accounting.status = sale.status;
+      const account = buildAccounting(sale, now, existingAccount || existing?.accountingRecord || {});
       sale.accountingRecord = { createdAt: account.createdAt, createdBy: account.createdBy };
-      await FirebaseDB.patch('', { cucumberSales: { [sale.id]: sale }, finance: { [account.id]: account } });
+
+      // Do not send { finance: { [account.id]: account } } at the user root.
+      // Firebase treats that as a replacement of the whole finance collection.
+      // Flattened child paths update only this sale and its linked accounting record.
+      await FirebaseDB.patch('', {
+        [`cucumberSales/${sale.id}`]: sale,
+        [`finance/${account.id}`]: account
+      });
       return sale;
     } finally { saveLock = false; }
   }
 
   async function cancelSale(sale) {
+    const saleId = validateKey(sale?.id, 'รหัสรายการขาย');
     const now = new Date().toISOString();
-    const current = await FirebaseDB.get(`cucumberSales/${sale.id}`);
+    const current = await FirebaseDB.get(`cucumberSales/${saleId}`);
     if (!current) throw new Error('ไม่พบรายการขาย');
-    const accountId = accountingId(sale.id);
+    const accountId = accountingId(saleId);
     const updates = {
-      [`cucumberSales/${sale.id}/status`]: 'cancelled',
-      [`cucumberSales/${sale.id}/updatedAt`]: now,
-      [`cucumberSales/${sale.id}/accounting/status`]: 'cancelled',
-      [`finance/${accountId}/status`]: 'cancelled',
-      [`finance/${accountId}/updatedAt`]: now
+      [`cucumberSales/${saleId}/status`]: 'cancelled',
+      [`cucumberSales/${saleId}/updatedAt`]: now,
+      [`cucumberSales/${saleId}/accounting/status`]: 'cancelled'
     };
+    // An older sale may have lost its finance row because of the old overwrite bug.
+    // Do not create an invalid partial finance row when there is nothing to cancel.
+    const account = await FirebaseDB.get(`finance/${accountId}`);
+    if (account) {
+      updates[`finance/${accountId}/status`] = 'cancelled';
+      updates[`finance/${accountId}/updatedAt`] = now;
+    }
     await FirebaseDB.patch('', updates);
+    return { ...current, status: 'cancelled', updatedAt: now, accounting: { ...(current.accounting || {}), status: 'cancelled' } };
   }
 
-  window.CucumberSales = { GRADES, GRADE_LABELS, SALE_STATUSES, loadCucumberData, saveCustomer, savePrices, saveSale, cancelSale, validateSale, accountingId };
+  async function deleteSale(sale) {
+    const saleId = validateKey(sale?.id, 'รหัสรายการขาย');
+    const current = await FirebaseDB.get(`cucumberSales/${saleId}`);
+    if (!current) throw new Error('ไม่พบรายการขาย');
+    const accountId = accountingId(saleId);
+    const updates = { [`cucumberSales/${saleId}`]: null };
+    const account = await FirebaseDB.get(`finance/${accountId}`);
+    if (account !== null) updates[`finance/${accountId}`] = null;
+    await FirebaseDB.patch('', updates);
+    const [remainingSale, remainingAccount] = await Promise.all([
+      FirebaseDB.get(`cucumberSales/${saleId}`),
+      FirebaseDB.get(`finance/${accountId}`)
+    ]);
+    if (remainingSale !== null || remainingAccount !== null) throw new Error('Firebase ยังไม่ยืนยันการลบรายการ กรุณาลองใหม่');
+  }
+
+  window.CucumberSales = { GRADES, GRADE_LABELS, SALE_STATUSES, loadCucumberData, saveCustomer, savePrices, saveSale, cancelSale, deleteSale, validateSale, accountingId };
 })();
