@@ -10,6 +10,7 @@
   const progress = document.getElementById('otaDashboardProgress');
   const status = document.getElementById('otaDashboardStatus');
   const statusText = status?.querySelector('span:last-child');
+  const testButton = document.getElementById('otaDashboardTest');
   const savedUrl = localStorage.getItem('smartfarm_ota_device_url') || '';
   if (savedUrl) deviceUrl.value = savedUrl;
 
@@ -17,12 +18,36 @@
     if (statusText) statusText.textContent = message;
     status.className = `notice ${kind}`.trim();
   };
+  const getBaseUrl = () => {
+    const baseUrl = deviceUrl.value.trim().replace(/\/+$/, '');
+    if (!/^https?:\/\//i.test(baseUrl)) throw new Error('กรุณากรอก URL ที่ขึ้นต้นด้วย http:// หรือ https://');
+    if (location.protocol === 'https:' && baseUrl.toLowerCase().startsWith('http://')) throw new Error('หน้าเว็บ HTTPS ถูก Browser บล็อกการเชื่อมต่อไปยัง ESP8266 HTTP ให้ดาวน์โหลด Standalone OTA แล้วเปิดผ่าน file:// หรือ http://localhost');
+    return baseUrl;
+  };
+  const getAuth = () => {
+    if (!password.value) throw new Error('กรุณากรอกรหัสผ่าน OTA');
+    return `Basic ${btoa(`admin:${password.value}`)}`;
+  };
+  testButton?.addEventListener('click', async () => {
+    try {
+      const baseUrl = getBaseUrl();
+      const response = await fetch(`${baseUrl}/api/status`, { headers: { Authorization: getAuth() }, credentials: 'omit', cache: 'no-store' });
+      const responseText = await response.text();
+      if (!response.ok) throw new Error(`HTTP ${response.status}${responseText ? ` · ${responseText}` : ''}`);
+      let device = {};
+      try { device = JSON.parse(responseText); } catch (_) { /* reachable even without JSON */ }
+      setStatus(`เชื่อมต่อ ESP8266 สำเร็จ · firmware ${device.firmware || 'ไม่ระบุ'} · RSSI ${device.rssi ?? 'ไม่ระบุ'}`, 'success');
+    } catch (error) {
+      setStatus(error.message || 'ตรวจการเชื่อมต่อไม่สำเร็จ', 'warning');
+    }
+  });
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     const file = firmware.files?.[0];
-    const baseUrl = deviceUrl.value.trim().replace(/\/+$/, '');
-    if (!file || !baseUrl || !password.value) {
+    let baseUrl;
+    try { baseUrl = getBaseUrl(); } catch (error) { setStatus(error.message, 'warning'); return; }
+    if (!file || !password.value) {
       setStatus('กรุณากรอก URL รหัสผ่าน และเลือกไฟล์ .bin ให้ครบ', 'warning');
       return;
     }

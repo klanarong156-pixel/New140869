@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="app.css?v=34">
   <link rel="stylesheet" href="dashboard-overhaul.css?v=1">
   <title>สวนลุงนะ · Smart Farm</title>
+  <link rel="stylesheet" href="readability-overhaul.css?v=1">
 </head>
 <body class="app-shell compact-ui dashboard-page" data-auth-required="true">
   <header class="topbar">
@@ -35,7 +36,7 @@
           <span class="tag">รีเลย์ 4 จุด</span>
           <span class="tag" data-ui-mode-label>โหมดใช้งานง่าย</span>
         </div>
-        <div class="btn-row hero-actions"><button class="btn secondary small" type="button" data-ui-mode-toggle>แสดงขั้นสูง</button><a class="btn ghost small" href="schedule.html#crop-reminders">จัดการงานวันนี้</a></div>
+        <div class="btn-row hero-actions"><button class="btn secondary small" type="button" data-ui-mode-toggle>แสดงขั้นสูง</button><a class="btn ghost small" href="schedule.html#crop-reminders">จัดการงานวันนี้</a><a class="btn ghost small" href="ota.html" data-admin-ota-link hidden>อัปเดต OTA</a></div>
       </div>
     </section>
 
@@ -121,7 +122,7 @@
   <nav class="bottom-nav" style="--nav-items:6" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="cucumber-sales.html"><span>🥒</span><small>ขายแตงกวา</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
   <link rel="stylesheet" href="cucumber-sales-dashboard.css?v=1"><script src="firebase.js?v=9"></script><script src="cucumber-sales-firebase.js?v=1"></script><script src="cucumber-sales-dashboard.js?v=1"></script><script src="mqtt.min.js?v=1"></script>
-  <script src="config.js?v=12"></script><script src="mqtt-handler.js?v=12"></script><script src="internet-time.js?v=1"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=9"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=10"></script><script src="access.js?v=10"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=3"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=3"></script><script src="ai-farm-advisor.js?v=1"></script><script src="farm-tools.js?v=2"></script><script src="farm-clock.js?v=2"></script><script src="weather.js?v=8"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="config.js?v=12"></script><script src="dashboard-admin-tools.js?v=1"></script><script src="mqtt-handler.js?v=12"></script><script src="internet-time.js?v=1"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=9"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=10"></script><script src="access.js?v=10"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=3"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=3"></script><script src="ai-farm-advisor.js?v=1"></script><script src="farm-tools.js?v=2"></script><script src="farm-clock.js?v=2"></script><script src="weather.js?v=8"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
