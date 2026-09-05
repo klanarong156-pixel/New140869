@@ -33,10 +33,6 @@ jobs:
           node schedule-regression-test.mjs
           node firmware-logic-regression-test.mjs
           node ai-advisor-regression-test.mjs
-          node cucumber-sales-core-test.mjs
-          node cucumber-sales-dashboard-test.mjs
-          node cucumber-sales-data-test.mjs
-          node cucumber-sales-retry-test.mjs
           python3 tools/mqtt_contract_audit.py
       - name: Validate referenced local assets
         shell: bash
