@@ -102,11 +102,6 @@
   }
 
   async function remove(id, label) {
-    const linked = items.find(item => item.id === id);
-    if (linked?.source === 'cucumber_sales') {
-      window.showToast?.('รายการนี้เชื่อมกับการขายแตงกวา กรุณายกเลิกจากหน้าการขายแตงกวา', 'warning');
-      return;
-    }
     if (!window.confirm(`ลบรายการ “${label}” หรือไม่?`)) return;
     try {
       await deleteFinanceItem(id);
