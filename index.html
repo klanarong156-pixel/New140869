@@ -9,9 +9,7 @@
   <link rel="icon" href="icon-192.png" sizes="192x192">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="app.css?v=34">
-  <link rel="stylesheet" href="dashboard-overhaul.css?v=1">
   <title>สวนลุงนะ · Smart Farm</title>
-  <link rel="stylesheet" href="readability-overhaul.css?v=1">
 </head>
 <body class="app-shell compact-ui dashboard-page" data-auth-required="true">
   <header class="topbar">
@@ -20,7 +18,7 @@
       <span class="brand-copy"><strong>สวนลุงนะ</strong><span>อย่าทำเฒ่า บ่าวทำโถก</span></span>
     </a>
     <nav class="desktop-nav" aria-label="เมนูหลัก">
-      <a class="active" href="index.html">แดชบอร์ด</a><a href="cucumber-sales.html">การขายแตงกวา</a><a href="schedule.html">ตั้งเวลา</a><a href="finance.html">การเงิน</a><a href="account.html">บัญชี</a><a href="settings.html">ตั้งค่า</a>
+      <a class="active" href="index.html">แดชบอร์ด</a><a href="schedule.html">ตั้งเวลา</a><a href="finance.html">การเงิน</a><a href="account.html">บัญชี</a><a href="settings.html">ตั้งค่า</a>
     </nav>
     <div class="topbar-actions"><div class="farm-clock" aria-label="วันและเวลามาตรฐานประเทศไทย"><span class="farm-clock-label">เวลามาตรฐานประเทศไทย</span><strong data-farm-time>--:--:--</strong><small data-farm-date>กำลังซิงค์เวลาจากอินเทอร์เน็ต</small><em data-farm-clock-source>กำลังซิงค์เวลาอินเทอร์เน็ต</em></div><span class="status-pill offline" data-mqtt-status><i></i>MQTT ยังไม่เชื่อมต่อ</span></div>
   </header>
@@ -36,7 +34,7 @@
           <span class="tag">รีเลย์ 4 จุด</span>
           <span class="tag" data-ui-mode-label>โหมดใช้งานง่าย</span>
         </div>
-        <div class="btn-row hero-actions"><button class="btn secondary small" type="button" data-ui-mode-toggle>แสดงขั้นสูง</button><a class="btn ghost small" href="schedule.html#crop-reminders">จัดการงานวันนี้</a><a class="btn ghost small" href="ota.html" data-admin-ota-link hidden>อัปเดต OTA</a></div>
+        <div class="btn-row hero-actions"><button class="btn secondary small" type="button" data-ui-mode-toggle>แสดงขั้นสูง</button><a class="btn ghost small" href="schedule.html#crop-reminders">จัดการงานวันนี้</a></div>
       </div>
     </section>
 
@@ -103,8 +101,6 @@
 
     <section id="analyticsPanel" class="section card pad advanced-only" aria-labelledby="analytics-title"><div class="section-head"><div><p class="kicker">FARM INSIGHTS · ADVANCED</p><h2 id="analytics-title">แนวโน้มและสถิติ</h2><p class="helper">ข้อมูลที่เก็บในอุปกรณ์นี้และซิงก์เข้าบัญชีเมื่อมี Firebase</p></div><span id="analyticsUpdatedAt" class="tag">ยังไม่มีข้อมูล</span></div><div class="analytics-grid"><article class="analytics-card"><span>อุณหภูมิล่าสุด</span><strong id="analyticsTemp">-- °C</strong><small id="analyticsTempTrend">ยังไม่มีข้อมูล 24 ชม.</small><em id="analyticsTempAt">ยังไม่มีข้อมูล</em></article><article class="analytics-card"><span>ความชื้นล่าสุด</span><strong id="analyticsHumidity">-- %</strong><small id="analyticsHumidityTrend">ยังไม่มีข้อมูล 24 ชม.</small><em id="analyticsHumidityAt">ยังไม่มีข้อมูล</em></article></div><div class="chart-card"><div class="section-head compact-head"><div><h3>กราฟอุณหภูมิและความชื้นย้อนหลัง</h3><span id="sensorChartMeta" class="helper">จะแสดงเมื่อมีข้อมูลจาก DHT11</span></div></div><canvas id="sensorHistoryChart" class="sensor-history-chart" role="img" aria-label="กราฟอุณหภูมิและความชื้นย้อนหลัง 24 ชั่วโมง"></canvas><p id="sensorChartEmpty" class="empty-state">ยังไม่มีข้อมูลย้อนหลังจาก DHT11</p></div><div class="section-head compact-head"><h3>เวลาทำงานรีเลย์ใน 24 ชั่วโมง</h3><span id="analyticsSampleCount" class="helper">0 จุดข้อมูล</span></div><div id="relayStatsList" class="relay-stats-list"></div></section>
 
-    <section id="cucumberSummary" class="section card pad finance-summary" aria-labelledby="cucumber-summary-title"><div class="finance-summary-head"><div><p class="kicker">CUCUMBER SALES · SMART FARM</p><h2 id="cucumber-summary-title">ยอดขายแตงกวา</h2><p id="dashboardCucumberStatus" class="helper">กำลังโหลดข้อมูลการขายแตงกวา…</p></div><a class="finance-link" href="cucumber-sales.html" aria-label="ดูการขายแตงกวา">รายละเอียด <span aria-hidden="true">→</span></a></div><div class="finance-summary-layout"><article class="finance-summary-item profit"><span>วันนี้</span><strong id="dashboardCucumberToday">฿0.00</strong><small id="dashboardCucumberWeight">0.00 กก.</small></article><div class="finance-summary-subgrid"><article class="finance-summary-item income"><span>เดือนนี้</span><strong id="dashboardCucumberMonth">฿0.00</strong></article><article class="finance-summary-item expense"><span>รายการทั้งหมด</span><strong id="dashboardCucumberCount">0 รายการ</strong></article></div></div></section>
-
     <section id="financeSummary" class="section card pad finance-summary" aria-labelledby="finance-summary-title">
       <div class="finance-summary-head"><div><p class="kicker">FARM FINANCE</p><h2 id="finance-summary-title">สรุปการเงินฟาร์ม</h2><p id="financeSummaryStatus" class="helper">กำลังโหลดข้อมูลการเงิน…</p></div><a class="finance-link" href="finance.html" aria-label="ดูรายละเอียดการเงิน">รายละเอียด <span aria-hidden="true">→</span></a></div>
       <div class="finance-summary-layout">
@@ -119,10 +115,10 @@
     <footer>สวนลุงนะ Smart Farm · ออกแบบเพื่อการตัดสินใจที่ชัดเจนในทุกวัน</footer>
   </main>
 
-  <nav class="bottom-nav" style="--nav-items:6" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="cucumber-sales.html"><span>🥒</span><small>ขายแตงกวา</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
+  <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
-  <link rel="stylesheet" href="cucumber-sales-dashboard.css?v=1"><script src="firebase.js?v=9"></script><script src="cucumber-sales-firebase.js?v=1"></script><script src="cucumber-sales-dashboard.js?v=1"></script><script src="mqtt.min.js?v=1"></script>
-  <script src="config.js?v=12"></script><script src="dashboard-admin-tools.js?v=1"></script><script src="mqtt-handler.js?v=12"></script><script src="internet-time.js?v=1"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=9"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=10"></script><script src="access.js?v=10"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=3"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=3"></script><script src="ai-farm-advisor.js?v=1"></script><script src="farm-tools.js?v=2"></script><script src="farm-clock.js?v=2"></script><script src="weather.js?v=8"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="firebase.js?v=9"></script><script src="mqtt.min.js?v=1"></script>
+  <script src="config.js?v=12"></script><script src="mqtt-handler.js?v=12"></script><script src="internet-time.js?v=1"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=9"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=10"></script><script src="access.js?v=10"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=3"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=3"></script><script src="ai-farm-advisor.js?v=1"></script><script src="farm-tools.js?v=2"></script><script src="farm-clock.js?v=2"></script><script src="weather.js?v=8"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

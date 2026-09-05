@@ -25,21 +25,6 @@
             ".validate": "newData.hasChildren(['id', 'type', 'item', 'amount', 'createdAt']) && newData.child('id').isString() && newData.child('id').val().length > 0 && newData.child('id').val().length <= 64 && newData.child('type').isString() && (newData.child('type').val() === 'income' || newData.child('type').val() === 'expense' || newData.child('type').val() === 'pending') && newData.child('item').isString() && newData.child('item').val().length > 0 && newData.child('item').val().length <= 140 && newData.child('amount').isNumber() && newData.child('amount').val() > 0 && newData.child('amount').val() < 1000000000 && newData.child('createdAt').isString() && newData.child('createdAt').val().length <= 40 && (!newData.hasChild('category') || (newData.child('category').isString() && newData.child('category').val().length <= 80))"
           }
         },
-        "customers": {
-          "$customerId": {
-            ".validate": "newData.hasChildren(['id', 'name', 'updatedAt']) && newData.child('id').isString() && newData.child('id').val().length > 0 && newData.child('id').val().length <= 80 && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 120 && (!newData.hasChild('phone') || (newData.child('phone').isString() && newData.child('phone').val().length <= 40)) && (!newData.hasChild('note') || (newData.child('note').isString() && newData.child('note').val().length <= 200)) && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40"
-          }
-        },
-        "cucumberPrices": {
-          "$grade": {
-            ".validate": "($grade === 'good' || $grade === 'sorted' || $grade === 'large') && newData.hasChild('price') && newData.child('price').isNumber() && newData.child('price').val() >= 0 && newData.child('price').val() < 1000000 && newData.hasChild('updatedAt') && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40"
-          }
-        },
-        "cucumberSales": {
-          "$saleId": {
-            ".validate": "newData.hasChildren(['id', 'date', 'customerId', 'customerName', 'grades', 'totalWeight', 'totalAmount', 'status', 'createdAt', 'updatedAt', 'createdBy', 'accounting']) && newData.child('id').isString() && newData.child('id').val().length > 0 && newData.child('id').val().length <= 100 && newData.child('date').isString() && newData.child('date').val().matches(/^\\d{4}-\\d{2}-\\d{2}$/) && newData.child('customerId').isString() && newData.child('customerId').val().length > 0 && newData.child('customerName').isString() && newData.child('customerName').val().length > 0 && newData.child('customerName').val().length <= 120 && newData.child('grades').hasChildren(['good', 'sorted', 'large']) && newData.child('totalWeight').isNumber() && newData.child('totalWeight').val() > 0 && newData.child('totalAmount').isNumber() && newData.child('totalAmount').val() >= 0 && (newData.child('status').val() === 'posted' || newData.child('status').val() === 'cancelled') && newData.child('createdAt').isString() && newData.child('updatedAt').isString() && newData.child('createdBy').isString() && newData.child('accounting').child('transactionId').isString() && newData.child('accounting').child('transactionId').val().length > 0"
-          }
-        },
         "farm": {
           "cropCycle": {
             ".validate": "newData.hasChildren(['crop', 'startDate', 'updatedAt']) && newData.child('crop').isString() && newData.child('crop').val().length > 0 && newData.child('crop').val().length <= 100 && newData.child('startDate').isString() && newData.child('startDate').val().length === 10 && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40"
