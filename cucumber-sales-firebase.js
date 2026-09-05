@@ -17,8 +17,13 @@
   function normalizeGrades(grades = {}) {
     const result = {};
     GRADES.forEach(grade => {
-      const weight = Math.max(0, number(grades[grade]?.weight));
-      const price = Math.max(0, number(grades[grade]?.price));
+      const rawWeight = grades[grade]?.weight ?? 0;
+      const rawPrice = grades[grade]?.price ?? 0;
+      const weight = number(rawWeight);
+      const price = number(rawPrice);
+      if (!Number.isFinite(Number(rawWeight)) || !Number.isFinite(Number(rawPrice))) throw new Error('น้ำหนักและราคาต้องเป็นตัวเลข');
+      if (weight < 0) throw new Error('น้ำหนักแตงกวาต้องไม่ติดลบ');
+      if (price < 0) throw new Error('ราคาขายต้องไม่ติดลบ');
       result[grade] = { weight, price, amount: money(weight * price) };
     });
     return result;
@@ -34,7 +39,6 @@
     const totalWeight = money(GRADES.reduce((sum, grade) => sum + grades[grade].weight, 0));
     const totalAmount = money(GRADES.reduce((sum, grade) => sum + grades[grade].amount, 0));
     if (totalWeight <= 0) throw new Error('กรุณากรอกน้ำหนักแตงกวาอย่างน้อย 1 เกรด');
-    if (GRADES.some(grade => grades[grade].weight > 0 && grades[grade].price < 0)) throw new Error('ราคาขายต้องไม่ติดลบ');
     return { date, customerId, customerName, grades, totalWeight, totalAmount };
   }
 
