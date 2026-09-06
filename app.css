@@ -1512,3 +1512,19 @@ body:has(.app-shell) { background:linear-gradient(135deg,#eef8f5 0%,#eaf1fb 48%,
 /* Final light-theme link contrast */
 .app-shell a:not(.btn):not(.bottom-nav a) { color:#0b6d63 !important; text-decoration-color:rgba(11,109,99,.42); }
 .app-shell a:not(.btn):not(.bottom-nav a):hover { color:#08483f !important; }
+
+/* Final dark heading contrast — v15 */
+.app-shell h1,
+.app-shell h2,
+.app-shell h3,
+.app-shell h4,
+.app-shell .section-head h2,
+.app-shell .section-head h3,
+.app-shell .card h2,
+.app-shell .card h3 { color:#0b2f3d !important; opacity:1 !important; text-shadow:none !important; }
+.app-shell .kicker { color:#245b58 !important; opacity:1 !important; font-weight:800 !important; }
+.app-shell .crop-cycle-summary strong,
+.app-shell .crop-task-highlight strong,
+.app-shell .ai-advisor-summary strong,
+.app-shell .analytics-card strong,
+.app-shell .health-item strong { color:#12384b !important; opacity:1 !important; }
