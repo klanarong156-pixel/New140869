@@ -92,7 +92,7 @@ jobs:
       - name: Validate Cloud Functions syntax
         run: node --check index.js
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --omit=dev
 
   firmware-build:
     name: ESP8266 firmware build
