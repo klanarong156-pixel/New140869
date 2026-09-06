@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png" sizes="192x192">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="app.css?v=36">
+  <link rel="stylesheet" href="app.css?v=37">
   <title>สวนลุงนะ · Smart Farm</title>
 </head>
 <body class="app-shell compact-ui dashboard-page" data-auth-required="true">
@@ -20,8 +20,17 @@
     <nav class="desktop-nav" aria-label="เมนูหลัก">
       <a class="active" href="index.html">แดชบอร์ด</a><a href="schedule.html">ตั้งเวลา</a><a href="finance.html">การเงิน</a><a href="account.html">บัญชี</a><a href="settings.html">ตั้งค่า</a>
     </nav>
-    <div class="topbar-actions"><div class="farm-clock" aria-label="วันและเวลามาตรฐานประเทศไทย"><span class="farm-clock-label">เวลามาตรฐานประเทศไทย</span><strong data-farm-time>--:--:--</strong><small data-farm-date>กำลังซิงค์เวลาจากอินเทอร์เน็ต</small><em data-farm-clock-source>กำลังซิงค์เวลาอินเทอร์เน็ต</em></div><span class="status-pill offline" data-mqtt-status><i></i>MQTT ยังไม่เชื่อมต่อ</span></div>
+    <div class="topbar-actions"><span class="status-pill offline" data-mqtt-status><i></i>MQTT ยังไม่เชื่อมต่อ</span></div>
   </header>
+
+  <div class="dashboard-clock-layer" aria-label="วันและเวลามาตรฐานประเทศไทย">
+    <div class="farm-clock">
+      <span class="farm-clock-label">เวลามาตรฐานประเทศไทย</span>
+      <strong data-farm-time>--:--:--</strong>
+      <small data-farm-date>กำลังซิงค์เวลาจากอินเทอร์เน็ต</small>
+      <em data-farm-clock-source>กำลังซิงค์เวลาอินเทอร์เน็ต</em>
+    </div>
+  </div>
 
   <main class="app-main">
     <section class="hero" aria-labelledby="dashboard-title">

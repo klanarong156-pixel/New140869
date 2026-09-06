@@ -1277,6 +1277,41 @@ input, select, textarea { color: #123d2b !important; background: #ffffff !import
 .dashboard-page .control-card { background: linear-gradient(145deg, rgba(18, 45, 57, .94), rgba(11, 28, 46, .94)); }
 .dashboard-page .control-card.active { background: linear-gradient(145deg, rgba(15, 102, 76, .90), rgba(11, 45, 64, .94)); }
 .dashboard-page .section { margin-top: 30px; }
+
+/* Dedicated clock layer: keeps time readable below the header on mobile and desktop. */
+.dashboard-page .dashboard-clock-layer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  width: min(1180px, calc(100% - 32px));
+  margin: 10px auto 0;
+}
+.dashboard-page .dashboard-clock-layer .farm-clock {
+  width: min(100%, 236px);
+  min-width: 0;
+  padding: 8px 13px;
+  border-color: rgba(184, 220, 238, .24);
+  background: rgba(231, 247, 255, .94);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .15);
+  text-align: center;
+}
+.dashboard-page .dashboard-clock-layer .farm-clock-label { color: #536b78; }
+.dashboard-page .dashboard-clock-layer .farm-clock strong { color: #193b4b; }
+.dashboard-page .dashboard-clock-layer .farm-clock small { color: #536b78; }
+.dashboard-page .dashboard-clock-layer .farm-clock em { color: #23775d; }
+@media (max-width: 560px) {
+  .dashboard-page .dashboard-clock-layer {
+    width: calc(100% - 20px);
+    margin-top: 8px;
+  }
+  .dashboard-page .dashboard-clock-layer .farm-clock {
+    width: min(100%, 236px);
+    padding: 7px 10px;
+  }
+  .dashboard-page .dashboard-clock-layer .farm-clock strong { font-size: 18px; }
+  .dashboard-page .dashboard-clock-layer .farm-clock em { display: none; }
+}
 @media (max-width: 560px) {
   .dashboard-page .topbar { width: 100%; min-height: 70px; padding: 8px 13px; border-radius: 0 0 18px 18px; }
   .dashboard-page .brand-symbol { width: 38px; height: 38px; flex-basis: 38px; }
