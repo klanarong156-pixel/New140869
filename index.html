@@ -9,6 +9,7 @@
   <link rel="icon" href="icon-192.png" sizes="192x192">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="app.css?v=40">
+  <link rel="stylesheet" href="redesign-lambo.css?v=1">
   <title>สวนลุงนะ · Smart Farm</title>
 </head>
 <body class="app-shell compact-ui dashboard-page" data-auth-required="true">
@@ -47,6 +48,42 @@
       </div>
     </section>
 
+
+    <section class="quick-control-center" aria-labelledby="quick-control-title">
+      <div class="quick-control-heading">
+        <div>
+          <p class="kicker">QUICK CONTROL · LAMBO GREY</p>
+          <h2 id="quick-control-title">ศูนย์ควบคุมด่วน</h2>
+          <p class="helper">คำสั่งสำคัญสำหรับตรวจสอบสถานะและสั่งงานจากจุดเดียว</p>
+        </div>
+        <div class="quick-control-health"><i></i><span>ระบบพร้อมใช้งาน</span><small>อัปเดตล่าสุด 09:42</small></div>
+      </div>
+      <div class="quick-control-grid">
+        <button class="quick-control-card quick-control-card-primary" type="button" data-quick-action="monitor">
+          <span class="quick-control-icon" aria-hidden="true">◉</span>
+          <span class="quick-control-card-copy"><strong>เปิดโหมดเฝ้าระวัง</strong><small>ติดตามสัญญาณสำคัญแบบต่อเนื่อง</small></span>
+          <span class="quick-control-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="quick-control-card" type="button" data-quick-action="task">
+          <span class="quick-control-icon" aria-hidden="true">＋</span>
+          <span class="quick-control-card-copy"><strong>สร้างงานด่วน</strong><small>ส่งต่อภารกิจให้ทีมที่เกี่ยวข้อง</small></span>
+          <span class="quick-control-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="quick-control-card" type="button" data-quick-action="security">
+          <span class="quick-control-icon" aria-hidden="true">✓</span>
+          <span class="quick-control-card-copy"><strong>ตรวจสอบความปลอดภัย</strong><small>เช็กการเชื่อมต่อและสิทธิ์การเข้าถึง</small></span>
+          <span class="quick-control-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="quick-control-card" type="button" data-quick-action="support">
+          <span class="quick-control-icon" aria-hidden="true">⌁</span>
+          <span class="quick-control-card-copy"><strong>เรียกทีมช่วยเหลือ</strong><small>แจ้งผู้รับผิดชอบเมื่อเกิดเหตุสำคัญ</small></span>
+          <span class="quick-control-arrow" aria-hidden="true">↗</span>
+        </button>
+      </div>
+      <div class="quick-control-meta" aria-label="สรุปสถานะอย่างย่อ">
+        <span><b>18</b> งานกำลังทำ</span><span><b>94.2%</b> เสร็จตามเวลา</span><span><b>2m 14s</b> เวลาตอบสนอง</span>
+      </div>
+    </section>
     <section class="mqtt-live-panel section" data-mqtt-live-panel aria-labelledby="mqtt-live-title">
       <div class="mqtt-live-main">
         <span class="mqtt-live-dot" data-mqtt-live-dot aria-hidden="true"></span>
