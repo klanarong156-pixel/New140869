@@ -48,6 +48,23 @@ async function assertCanRemoveAdmin(targetUid, action) {
   }
 }
 
+async function sendPasswordResetEmail(email, apiKey) {
+  const key = String(apiKey || '').trim();
+  if (!key) throw new HttpsError('failed-precondition', 'ยังไม่ได้ตั้งค่า Firebase Web API Key สำหรับส่งอีเมลรีเซ็ต');
+  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ requestType: 'PASSWORD_RESET', email })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const code = payload.error?.message || 'RESET_EMAIL_FAILED';
+    if (code === 'EMAIL_NOT_FOUND') throw new HttpsError('not-found', 'ไม่พบอีเมลผู้ใช้ใน Firebase Authentication');
+    throw new HttpsError('failed-precondition', `ส่งอีเมลรีเซ็ตไม่สำเร็จ: ${code}`);
+  }
+  return payload;
+}
+
 exports.listUsers = onCall(async request => {
   const actorUid = await requireAdmin(request);
   const pageToken = request.data?.pageToken ? String(request.data.pageToken) : undefined;
@@ -103,10 +120,10 @@ exports.createPasswordResetLink = onCall(async request => {
   const actorUid = await requireAdmin(request);
   const targetUid = stringArg(request.data, 'uid');
   const user = await auth.getUser(targetUid);
-  if (!user.email) throw new HttpsError('failed-precondition', 'บัญชีนี้ไม่มี email สำหรับส่งลิงก์รีเซ็ต');
-  const link = await auth.generatePasswordResetLink(user.email);
-  await writeAudit(actorUid, 'password_reset_link', targetUid, { email: user.email });
-  return { uid: targetUid, email: user.email, link };
+  if (!user.email) throw new HttpsError('failed-precondition', 'บัญชีนี้ไม่มี email สำหรับส่งอีเมลรีเซ็ต');
+  await sendPasswordResetEmail(user.email, request.data?.apiKey);
+  await writeAudit(actorUid, 'password_reset_email_sent', targetUid, { email: user.email });
+  return { uid: targetUid, email: user.email, sent: true };
 });
 
 exports.deleteUser = onCall(async request => {

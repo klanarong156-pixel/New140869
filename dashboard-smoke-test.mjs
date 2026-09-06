@@ -19,7 +19,6 @@ const files = [
   'weather.js',
   'auto-weather-guard.js',
   'dashboard-ota.js',
-  'admin.js',
   'finance.js',
   'functions/index.js',
 ];
@@ -119,7 +118,8 @@ const checks = [
   ['Dashboard renders field diagnostics', /systemSensorDetail/.test(analytics) && /systemPumpDetail/.test(analytics) && /systemReconnectDetail/.test(analytics) && /farm-analytics\.js\?v=3/.test(index)],
   ['Dashboard has realtime MQTT status panel', /data-mqtt-live-panel/.test(index) && /data-mqtt-live-label/.test(index) && /data-mqtt-device-status/.test(index) && /data-mqtt-last-update/.test(index) && /setText\('mqttLiveLabel'/.test(app) && /mqtt:reconnecting/.test(app)],
   ['User Management page is Admin-only', /data-admin-required=\"true\"/.test(read('admin.html')) && /user-management\.js/.test(read('admin.html')) && /window\.addEventListener\('access:ready'/.test(read('user-management.js'))],
-  ['User Management backend has protected Auth actions', /exports\.listUsers/.test(functions) && /exports\.setUserRole/.test(functions) && /exports\.setUserDisabled/.test(functions) && /exports\.createPasswordResetLink/.test(functions) && /exports\.deleteUser/.test(functions) && /requireAdmin/.test(functions)],
+  ['User Management backend has protected Auth actions', /exports\.listUsers/.test(functions) && /exports\.setUserRole/.test(functions) && /exports\.setUserDisabled/.test(functions) && /exports\.createPasswordResetLink/.test(functions) && /sendPasswordResetEmail/.test(functions) && /exports\.deleteUser/.test(functions) && /requireAdmin/.test(functions)],
+  ['Legacy admin role editor is removed', !fs.existsSync('admin.js') && !/admin\.js/.test(read('sw.js'))],
   ['Dashboard distinguishes MQTT stop from physical E-stop', /ไม่ใช่อุปกรณ์ตัดไฟฉุกเฉินทางกายภาพ/.test(index) && /E-stop/.test(schedulePage)],
   ['Documentation matches no pump hard cutoff policy', /ไม่มี hard cutoff 30 นาที/.test(readme) && /no forced 30-minute.*cutoff/.test(mqttContract) && /No 30-minute pump ceiling/.test(buildStatus) && /no forced 30-minute.*cutoff/.test(mqttContractHtml)],
   ['Firmware schedule parser accepts slots/on/off', /d\["slots"\]/.test(firmware) && /o\["on"\]/.test(firmware) && /o\["off"\]/.test(firmware)],

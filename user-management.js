@@ -101,13 +101,12 @@
   }
 
   async function resetPassword(user) {
-    if (!window.confirm(`สร้างลิงก์รีเซ็ตรหัสผ่านสำหรับ ${user.email || user.uid}?`)) return;
+    if (!window.confirm(`ส่งอีเมลรีเซ็ตรหัสผ่านไปยัง ${user.email || user.uid}?`)) return;
     try {
-      const result = await callFunction('createPasswordResetLink', { uid: user.uid });
-      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(result.link);
-      window.prompt('ลิงก์รีเซ็ตรหัสผ่าน (คัดลอกไว้แล้วถ้าเบราว์เซอร์อนุญาต)', result.link);
-      setStatus(`สร้างลิงก์รีเซ็ตสำหรับ ${result.email} แล้ว`, 'success');
-    } catch (error) { setStatus(error.message || 'สร้างลิงก์รีเซ็ตไม่สำเร็จ', 'danger'); }
+      const apiKey = window.FIREBASE_CONFIG?.apiKey;
+      const result = await callFunction('createPasswordResetLink', { uid: user.uid, apiKey });
+      setStatus(`ส่งอีเมลรีเซ็ตไปยัง ${result.email} แล้ว`, 'success');
+    } catch (error) { setStatus(error.message || 'ส่งอีเมลรีเซ็ตรหัสผ่านไม่สำเร็จ', 'danger'); }
   }
 
   async function removeUser(user) {
