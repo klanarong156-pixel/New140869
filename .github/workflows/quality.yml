@@ -34,6 +34,8 @@ jobs:
           node firmware-logic-regression-test.mjs
           node ai-advisor-regression-test.mjs
           python3 tools/mqtt_contract_audit.py
+      - name: Run E2E navigation checks
+        run: node e2e-navigation-test.mjs
       - name: Validate referenced local assets
         shell: bash
         run: |
@@ -69,6 +71,28 @@ jobs:
           }
           EOF
           (cd /tmp/smartfarm-firebase-rules && npx --yes firebase-tools@15.28.1 emulators:exec --only database --project smart-farm-platfor "echo FIREBASE_RULES_PARSED")
+
+  functions-quality:
+    name: Cloud Functions quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install Cloud Functions dependencies
+        run: npm ci
+      - name: Validate Cloud Functions syntax
+        run: node --check index.js
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
 
   firmware-build:
     name: ESP8266 firmware build
