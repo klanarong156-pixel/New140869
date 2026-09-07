@@ -365,6 +365,12 @@
       if (typeof device.emergencyLock === 'boolean') renderEmergency(device.emergencyLock, device.emergencySource || '');
     });
     window.addEventListener('mqtt:credentials-required', event => {
+      const status = event.detail?.status;
+      if (status && !status.complete) {
+        const missing = Array.isArray(status.missing) ? status.missing.join(' และ ') : 'username และ password';
+        const storage = status.storage === 'localStorage' ? 'พื้นที่จัดเก็บแบบจดจำ' : status.storage === 'sessionStorage' ? 'เซสชันของเบราว์เซอร์' : 'การตั้งค่าในเบราว์เซอร์';
+        setText('mqttStatusText', `ยังเชื่อมต่อไม่ได้: ขาด ${missing} ใน${storage}`);
+      }
       if (event.detail?.forPublish || event.detail?.manual) openMqttSetup();
     });
     window.addEventListener('access:ready', event => {

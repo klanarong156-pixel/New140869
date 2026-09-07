@@ -57,18 +57,66 @@ class MqttHandler {
     const configuredUser = String(this.config?.username || '').trim();
     const configuredPass = String(this.config?.password || '');
     if (configuredUser && configuredPass) return { username: configuredUser, password: configuredPass, remember: false };
-    const remembered = localStorage.getItem(this.storageRemember) === 'true';
-    const store = remembered ? localStorage : sessionStorage;
-    return {
-      username: store.getItem(this.storageUser) || '',
-      password: store.getItem(this.storagePass) || '',
-      remember: remembered
-    };
+    try {
+      const remembered = localStorage.getItem(this.storageRemember) === 'true';
+      const store = remembered ? localStorage : sessionStorage;
+      return {
+        username: store.getItem(this.storageUser) || '',
+        password: store.getItem(this.storagePass) || '',
+        remember: remembered
+      };
+    } catch (_) {
+      return { username: '', password: '', remember: false };
+    }
+  }
+
+  getCredentialStatus() {
+    const configuredUser = String(this.config?.username || '').trim();
+    const configuredPass = String(this.config?.password || '');
+    if (configuredUser || configuredPass) {
+      return {
+        complete: Boolean(configuredUser && configuredPass),
+        usernamePresent: Boolean(configuredUser),
+        passwordPresent: Boolean(configuredPass),
+        storage: 'config',
+        remember: false,
+        missing: [
+          ...(configuredUser ? [] : ['username']),
+          ...(configuredPass ? [] : ['password'])
+        ]
+      };
+    }
+    try {
+      const remember = localStorage.getItem(this.storageRemember) === 'true';
+      const storage = remember ? localStorage : sessionStorage;
+      const usernamePresent = Boolean(String(storage.getItem(this.storageUser) || '').trim());
+      const passwordPresent = Boolean(storage.getItem(this.storagePass));
+      return {
+        complete: usernamePresent && passwordPresent,
+        usernamePresent,
+        passwordPresent,
+        storage: remember ? 'localStorage' : 'sessionStorage',
+        remember,
+        missing: [
+          ...(usernamePresent ? [] : ['username']),
+          ...(passwordPresent ? [] : ['password'])
+        ]
+      };
+    } catch (error) {
+      return {
+        complete: false,
+        usernamePresent: false,
+        passwordPresent: false,
+        storage: 'unavailable',
+        remember: false,
+        missing: ['username', 'password'],
+        error: this.errorMessage(error, 'ไม่สามารถอ่าน Browser Storage ได้')
+      };
+    }
   }
 
   hasCredentials() {
-    const credentials = this.getCredentials();
-    return Boolean(credentials.username && credentials.password);
+    return this.getCredentialStatus().complete;
   }
 
   setCredentials(username, password, remember = false) {
@@ -81,7 +129,7 @@ class MqttHandler {
     store.setItem(this.storagePass, cleanPass);
     if (remember) localStorage.setItem(this.storageRemember, 'true');
     else localStorage.removeItem(this.storageRemember);
-    this.dispatch('mqtt:credentials-saved', { username: cleanUser, remember: Boolean(remember) });
+    this.dispatch('mqtt:credentials-saved', { username: cleanUser, remember: Boolean(remember), status: this.getCredentialStatus() });
     return this.connect(true);
   }
 
@@ -253,7 +301,7 @@ class MqttHandler {
   connect(force = false) {
     const credentials = this.getCredentials();
     if (!credentials.username || !credentials.password) {
-      this.dispatch('mqtt:credentials-required', { configured: false });
+      this.dispatch('mqtt:credentials-required', { configured: false, status: this.getCredentialStatus() });
       return false;
     }
     if (!force && (this.client?.connected || this.connecting || (this.usingSharedWorker && APP_STATE.mqttConnected))) return true;
@@ -319,7 +367,7 @@ class MqttHandler {
     this.bootstrapped = true;
     this.startDeviceWatchdog();
     if (this.hasCredentials()) this.connect();
-    else this.dispatch('mqtt:credentials-required', { configured: false, initial: true });
+    else this.dispatch('mqtt:credentials-required', { configured: false, initial: true, status: this.getCredentialStatus() });
   }
 
   flushPending() {

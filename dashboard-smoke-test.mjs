@@ -76,6 +76,7 @@ const checks = [
   ['Reminder topics exist', /reminderSet: 'smartfarm\/reminder\/set'/.test(cfg) && /reminderStatus: 'smartfarm\/reminder\/status'/.test(cfg)],
   ['AI alert topic is isolated from relay commands', /aiAlertSet: 'smartfarm\/ai\/alert\/set'/.test(cfg) && /aiAlertStatus: 'smartfarm\/ai\/alert\/status'/.test(cfg) && /ai\/alert\/set/.test(firmware) && /handleAiAlert/.test(firmware)],
   ['Browser uses current MQTT handler', /new MqttHandler\(MQTT_CONFIG\)/.test(handler)],
+  ['MQTT checks Browser Storage credentials before auto-connect', /getCredentialStatus\(\)/.test(handler) && /missing/.test(handler) && /localStorage/.test(handler) && /sessionStorage/.test(handler) && /initial: true, status: this\.getCredentialStatus\(\)/.test(handler)],
   ['SharedWorker keeps one MQTT connection across pages', /new SharedWorker/.test(handler) && /mqtt-shared-worker\.js/.test(handler) && /importScripts\('mqtt\.min\.js/.test(worker)],
   ['SharedWorker owns bounded reconnect backoff', /RECONNECT_BASE_MS/.test(worker) && /RECONNECT_MAX_MS/.test(worker) && /reconnectPeriod: 0/.test(worker) && /scheduleReconnect/.test(worker)],
   ['SharedWorker replays latest device heartbeat', /lastDeviceStatus/.test(worker) && /smartfarm\/device\/status/.test(worker) && /type: 'message'/.test(worker)],
