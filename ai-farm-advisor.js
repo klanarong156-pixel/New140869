@@ -76,7 +76,7 @@
     if (h !== null && h < 30) addFinding(findings, 'low-humidity', 'warning', 'ความชื้นอากาศต่ำ', `ความชื้นอากาศ ${h.toFixed(0)}% ต่ำกว่าระดับเฝ้าระวัง`, 'ตรวจความชื้นดินและสภาพแปลงก่อนเปิดน้ำ');
     if (weather.autoWateringAllowed === false && pumpOn) addFinding(findings, 'rain-with-pump', 'critical', 'ฝนหรือสภาพอากาศไม่เหมาะกับการให้น้ำ', 'ระบบตรวจพบเงื่อนไขป้องกันฝนขณะปั๊มน้ำกำลังทำงาน', 'ตรวจปั๊มและตารางให้น้ำด้วยตนเอง ระบบนี้จะไม่สั่งรีเลย์แทนคุณ');
     if (device.emergencyLock === true) addFinding(findings, 'emergency-lock', 'critical', 'Emergency Stop ทำงานอยู่', 'รีเลย์ถูกล็อกเพื่อความปลอดภัย', 'ตรวจสาเหตุและรีเซ็ตเฉพาะเมื่อพื้นที่ปลอดภัย');
-    if (device.rtcValid === false || device.clockValid === false) addFinding(findings, 'rtc-invalid', 'warning', 'ยังยืนยันเวลา RTC ไม่ได้', 'การตัดสินใจตามตารางเวลาอาจไม่แม่นยำ', 'ตรวจ heartbeat และแบตเตอรี่ DS3231');
+    if (device.clockValid === false || device.timeSource === 'unsynced') addFinding(findings, 'clock-invalid', 'warning', 'ยังไม่ได้รับการ sync เวลา NTP', 'การตัดสินใจตามตารางเวลาถูกหยุดเพื่อป้องกันการรดน้ำผิดเวลา', 'ตรวจ Wi‑Fi และการเข้าถึง NTP จาก ESP8266');
     if (device.sensorOk === false || (num(device.sensorAgeSec) !== null && Number(device.sensorAgeSec) > 180)) addFinding(findings, 'sensor-stale', 'warning', 'ข้อมูล DHT11 เก่า', 'Dashboard ยังไม่ได้รับค่าความชื้น/อุณหภูมิใหม่ตามปกติ', 'ตรวจสาย DHT11, ไฟเลี้ยง และการเชื่อมต่ออุปกรณ์');
     if (device.emergencyLock !== true && !findings.length) addFinding(findings, 'normal', 'info', 'ฟาร์มอยู่ในเกณฑ์ปกติ', 'ยังไม่พบสัญญาณผิดปกติจากข้อมูลที่ Dashboard มีอยู่', 'ติดตามข้อมูลต่อเนื่องและตรวจพื้นที่จริงตามรอบ');
 

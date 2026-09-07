@@ -41,8 +41,8 @@ const MQTT_CONFIG = Object.freeze({
 
 const HARDWARE_PINS = Object.freeze({
   DHT11_DATA: 'D2 / GPIO4',
-  RTC_SDA: 'D3 / GPIO0',
-  RTC_SCL: 'D4 / GPIO2',
+  RESERVED_GPIO0: 'D3 / GPIO0',
+  RESERVED_GPIO2: 'D4 / GPIO2',
   PUMP: 'D5 / GPIO14',
   ZONE1: 'D6 / GPIO12',
   HOME_LIGHT: 'D7 / GPIO13',

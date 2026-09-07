@@ -15,40 +15,40 @@
     second: '2-digit',
     hour12: false
   });
-  let rtcEpochMs = 0;
+  let clockEpochMs = 0;
   let lastHeartbeatAt = 0;
-  let hasRtcTime = false;
+  let hasClockTime = false;
 
   function setText(selector, value) {
     document.querySelectorAll(selector).forEach(element => { element.textContent = value; });
   }
 
   function render() {
-    if (!hasRtcTime || !rtcEpochMs) {
+    if (!hasClockTime || !clockEpochMs) {
       setText('[data-farm-time]', '--:--:--');
-      setText('[data-farm-date]', 'ยังไม่ได้รับเวลาจาก RTC');
-      setText('[data-farm-clock-source]', 'รอ RTC จาก ESP8266');
+      setText('[data-farm-date]', 'ยังไม่ได้รับเวลาจาก NTP');
+      setText('[data-farm-clock-source]', 'รอ NTP จาก ESP8266');
       return;
     }
     const elapsed = performance.now() - lastHeartbeatAt;
     const fresh = elapsed >= 0 && elapsed <= 30000;
-    const current = new Date(rtcEpochMs + (fresh ? elapsed : 0));
+    const current = new Date(clockEpochMs + (fresh ? elapsed : 0));
     setText('[data-farm-time]', timeFormatter.format(current));
     setText('[data-farm-date]', dateFormatter.format(current));
-    setText('[data-farm-clock-source]', fresh ? 'เวลา RTC ESP8266' : 'RTC ล่าสุด · รอ heartbeat');
+    setText('[data-farm-clock-source]', fresh ? 'เวลา NTP ESP8266' : 'NTP ล่าสุด · รอ heartbeat');
   }
 
   function handleDeviceData(event) {
     const device = event.detail || {};
     const parsed = Date.parse(String(device.time || ''));
-    const rtcAvailable = device.rtc === true || device.rtcValid === true;
-    if (rtcAvailable && Number.isFinite(parsed)) {
-      rtcEpochMs = parsed;
+    const clockValid = device.clockValid === true || device.timeSource === 'ntp';
+    if (clockValid && Number.isFinite(parsed)) {
+      clockEpochMs = parsed;
       lastHeartbeatAt = performance.now();
-      hasRtcTime = true;
-    } else if (device.rtc === false || device.rtcValid === false) {
-      hasRtcTime = false;
-      rtcEpochMs = 0;
+      hasClockTime = true;
+    } else if (device.clockValid === false || device.timeSource === 'unsynced') {
+      hasClockTime = false;
+      clockEpochMs = 0;
       lastHeartbeatAt = 0;
     }
     render();

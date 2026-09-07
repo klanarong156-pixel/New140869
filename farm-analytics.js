@@ -267,8 +267,8 @@
     const heapText = Number.isFinite(Number(heap)) ? `${Number(heap)} bytes` : 'รอข้อมูล';
     const blockText = Number.isFinite(heapMaxBlock) ? ` · บล็อกใหญ่สุด ${heapMaxBlock}` : '';
     setText('systemHeapDetail', Number.isFinite(frag) ? `${heapText}${blockText} · แตกตัว ${frag}%` : `${heapText}${blockText}`);
-    const rtcOk = device.rtcValid === true || device.clockValid === true || device.rtc === true;
-    setText('systemRtcDetail', rtcOk ? (device.rtc === true ? 'RTC ถูกต้อง' : 'NTP fallback') : 'รอตรวจสอบ');
+    const clockOk = device.clockValid === true || device.timeSource === 'ntp';
+    setText('systemRtcDetail', clockOk ? 'NTP ถูกต้อง · fallback พร้อมใช้' : 'รอ NTP sync');
     const sensorAge = Number(device.sensorAgeSec);
     const sensorFaults = Number(device.sensorFaults) || 0;
     const sensorOk = device.sensorOk === true || (Number.isFinite(sensorAge) && sensorAge <= 90);

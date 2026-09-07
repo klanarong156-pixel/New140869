@@ -26,7 +26,7 @@ assert.ok(advisor, 'advisor export exists');
 
 listeners.get('sensor:data')({ detail: { type: 'temperature', value: 39 } });
 listeners.get('sensor:data')({ detail: { type: 'humidity', value: 25 } });
-listeners.get('device:data')({ detail: { emergencyLock: false, rtcValid: true, sensorOk: true } });
+listeners.get('device:data')({ detail: { emergencyLock: false, clockValid: true, timeSource: 'ntp', sensorOk: true } });
 const result = advisor.analyze('manual');
 assert.equal(result.findings[0].id, 'high-temperature');
 assert.ok(result.findings.some(item => item.id === 'low-humidity'));

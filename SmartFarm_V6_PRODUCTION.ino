@@ -1,5 +1,5 @@
-// SmartFarm V6.0 Production - hardened ESP8266 controller + DS3231 RTC
-// Hardware: DHT11 + 4 relays + DS3231
+// SmartFarm V6.0 Production - hardened ESP8266 controller + NTP clock
+// Hardware: DHT11 + 4 relays; no RTC module required
 // Fixes: boot/reset diagnostics, NTP init order, reduced JSON stack usage,
 // non-blocking reconnect behavior, safer WiFiManager recovery, explicit MQTT
 // setup/diagnostics.
@@ -19,18 +19,15 @@
 #include <WiFiClientSecure.h>
 #include <WiFiManager.h>
 #include <WiFiUdp.h>
-#include <Wire.h>
 
 struct ScheduleSlot;
 
-#define SMARTFARM_VERSION "V7.1.0-FIELD-STABILITY"
+#define SMARTFARM_VERSION "V7.1.1-NTP-FALLBACK"
 #define MQTT_SERVER "650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud"
 #define MQTT_PORT 8883
 #define MQTT_BASE "smartfarm"
 #define TZ_OFFSET_SECONDS (7L * 3600L)
 
-#define RTC_SDA D3
-#define RTC_SCL D4
 #define DHT_PIN D2
 #define RELAY_PUMP D5
 #define RELAY_ZONE1 D6
@@ -46,7 +43,8 @@ const uint32_t MQTT_RECONNECT_MS = 5000UL;
 const uint32_t SENSOR_INTERVAL_MS = 30000UL;
 const uint32_t HEARTBEAT_INTERVAL_MS = 10000UL;
 const uint32_t SCHEDULE_INTERVAL_MS = 1000UL;
-const uint32_t RTC_NTP_SYNC_INTERVAL_MS = 6UL * 60UL * 60UL * 1000UL;
+const uint32_t NTP_SYNC_INTERVAL_MS = 6UL * 60UL * 60UL * 1000UL;
+const uint32_t MIN_VALID_EPOCH = 1704067200UL;
 const uint8_t MQTT_AUTH_FAIL_LIMIT = 3;
 const uint32_t MQTT_DIAGNOSTIC_INTERVAL_MS = 30000UL;
 const uint32_t WIFI_RECONNECT_INTERVAL_MS = 15000UL;
@@ -57,11 +55,10 @@ PubSubClient mqtt(tls);
 ESP8266WebServer otaServer(80);
 WiFiUDP udp;
 NTPClient ntp(udp, "pool.ntp.org", TZ_OFFSET_SECONDS, 60000UL);
-RTC_DS3231 rtc;
 DHT dht(DHT_PIN, DHT11);
 
-bool fsReady = false, rtcAvailable = false, rtcTimeValid = false;
-uint32_t lastRtcSync = 0, lastMqttAttempt = 0, lastSensor = 0,
+bool fsReady = false, ntpTimeValid = false;
+uint32_t lastNtpSyncMillis = 0, lastNtpSyncEpoch = 0, lastMqttAttempt = 0, lastSensor = 0,
          lastHeartbeat = 0, lastSchedule = 0, lastMqttDiagnostic = 0,
          lastWifiReconnect = 0, lastSensorValidAt = 0;
 uint32_t sensorReadCount = 0, sensorFaultCount = 0;
@@ -224,6 +221,8 @@ void reportWifiState() {
   if (connected) {
     Serial.print(F("WiFi: reconnected, IP: "));
     Serial.println(WiFi.localIP());
+    // Re-anchor the monotonic fallback as soon as connectivity returns.
+    lastNtpSyncMillis = 0;
     queueTelegram(String("WiFi กลับมาเชื่อมต่อสำเร็จ IP=") +
                   WiFi.localIP().toString());
   } else {
@@ -297,7 +296,7 @@ void relaySet(uint8_t i, bool on);
 void publishRelayStatus(uint8_t i);
 void publishEmergencyStatus();
 bool relayHasSchedule(uint8_t r);
-bool readRtcNow(DateTime &value);
+bool readCurrentTime(DateTime &value);
 bool scheduleClockMinutes(uint16_t &minutes);
 bool relayScheduleDesired(uint8_t r, uint16_t now);
 
@@ -365,10 +364,10 @@ void runRelayTimers() {
     if ((int32_t)(millis() - relayTimerUntil[i]) >= 0) {
       DateTime timerNow(2000, 1, 1);
       bool scheduleKeepsOn = !emergencyLock && !otaUpdateInProgress &&
-                             readRtcNow(timerNow) && relayHasSchedule(i) &&
+                             readCurrentTime(timerNow) && relayHasSchedule(i) &&
                              relayScheduleDesired(i, timerNow.hour() * 60U + timerNow.minute());
       clearRelayTimer(i);
-      // If the active RTC schedule still wants ON, keep the relay ON and let
+      // If the active NTP schedule still wants ON, keep the relay ON and let
       // runSchedules() maintain it. Otherwise perform one OFF transition.
       if (!scheduleKeepsOn) relaySetRaw(i, false);
       publishRelayStatus(i);
@@ -447,40 +446,31 @@ bool scheduleSetValid(const ScheduleSlot *candidate) {
   }
   return true;
 }
-bool validRtcDateTime(const DateTime &value) {
+bool validClockDateTime(const DateTime &value) {
   return value.isValid() && value.year() >= 2024 && value.year() <= 2099;
 }
-bool readRtcNow(DateTime &value) {
-  if (!rtcAvailable) {
-    rtcTimeValid = false;
-    return false;
-  }
-  DateTime candidate = rtc.now();
-  if (!validRtcDateTime(candidate)) {
-    rtcTimeValid = false;
-    return false;
-  }
+
+uint32_t currentClockEpoch() {
+  if (!ntpTimeValid || !lastNtpSyncEpoch) return 0;
+  return lastNtpSyncEpoch + (uint32_t)((millis() - lastNtpSyncMillis) / 1000UL);
+}
+
+bool readCurrentTime(DateTime &value) {
+  uint32_t epoch = currentClockEpoch();
+  if (epoch < MIN_VALID_EPOCH) return false;
+  DateTime candidate(epoch);
+  if (!validClockDateTime(candidate)) return false;
   value = candidate;
-  rtcTimeValid = true;
   return true;
 }
 bool clockIsValid() {
-  if (rtcAvailable && rtcTimeValid) {
-    DateTime checked(2000, 1, 1);
-    if (readRtcNow(checked)) return true;
-  }
-  return ntp.getEpochTime() >= 1704067200UL;
+  DateTime checked(2000, 1, 1);
+  return readCurrentTime(checked);
 }
 bool scheduleClockMinutes(uint16_t &minutes) {
-  DateTime rtcNow(2000, 1, 1);
-  if (readRtcNow(rtcNow)) {
-    minutes = rtcNow.hour() * 60U + rtcNow.minute();
-    return true;
-  }
-  // A missing or power-lost DS3231 must not disable schedules when NTP is valid.
-  // NTPClient already applies TZ_OFFSET_SECONDS to getHours/getMinutes.
-  if (ntp.getEpochTime() < 1704067200UL) return false;
-  minutes = ntp.getHours() * 60U + ntp.getMinutes();
+  DateTime now(2000, 1, 1);
+  if (!readCurrentTime(now)) return false;
+  minutes = now.hour() * 60U + now.minute();
   return true;
 }
 bool relayScheduleDesired(uint8_t r, uint16_t now) {
@@ -696,15 +686,14 @@ bool validDateString(const char *value) {
 
 String currentDateString() {
   DateTime now(2000, 1, 1);
-  if (readRtcNow(now)) {
+  if (readCurrentTime(now)) {
     char out[11];
     snprintf(out, sizeof(out), "%04u-%02u-%02u", now.year(), now.month(),
              now.day());
     return String(out);
   }
-  uint32_t epoch = ntp.getEpochTime();
-  if (epoch < 1704067200UL)
-    return String();
+  uint32_t epoch = currentClockEpoch();
+  if (epoch < MIN_VALID_EPOCH) return String();
   DateTime fallbackNow(epoch);
   char out[12];
   snprintf(out, sizeof(out), "%04u-%02u-%02u", fallbackNow.year(), fallbackNow.month(), fallbackNow.day());
@@ -1050,68 +1039,40 @@ void runReminders() {
 
 uint16_t currentMinutes() {
   DateTime now(2000, 1, 1);
-  if (readRtcNow(now)) return now.hour() * 60U + now.minute();
-  return ntp.getHours() * 60U + ntp.getMinutes();
+  return readCurrentTime(now) ? now.hour() * 60U + now.minute() : 0;
 }
-String rtcIso() {
+String clockIso() {
   DateTime now(2000, 1, 1);
-  if (!readRtcNow(now)) return String();
+  if (!readCurrentTime(now)) return String();
   char b[25];
   snprintf(b, sizeof(b), "%04u-%02u-%02uT%02u:%02u:%02u+07:00", now.year(),
            now.month(), now.day(), now.hour(), now.minute(), now.second());
   return String(b);
 }
-void initRTC() {
-  Wire.begin(RTC_SDA, RTC_SCL);
-  delay(5);
-  rtcAvailable = rtc.begin();
-  if (!rtcAvailable) {
-    Serial.println(F("DS3231 not found - NTP fallback"));
+void syncNtpTime(bool force = false) {
+  if (WiFi.status() != WL_CONNECTED) return;
+  if (!force && lastNtpSyncMillis &&
+      millis() - lastNtpSyncMillis < NTP_SYNC_INTERVAL_MS) return;
+  if (!ntp.forceUpdate()) {
+    Serial.println(F("NTP sync failed; retaining last synced time if available"));
     return;
   }
-  if (rtc.lostPower()) {
-    rtcTimeValid = false;
-    Serial.println(F("DS3231 lost power - waiting for NTP sync"));
-  } else {
-    DateTime n(2000, 1, 1);
-    rtcTimeValid = readRtcNow(n);
-    if (!rtcTimeValid)
-      Serial.println(F("DS3231 returned invalid time - NTP fallback"));
-  }
-}
-void syncRTCFromNTP(bool force = false) {
-  if (!rtcAvailable || WiFi.status() != WL_CONNECTED)
+  uint32_t epoch = ntp.getEpochTime();
+  if (epoch < MIN_VALID_EPOCH) {
+    Serial.println(F("NTP returned invalid time; schedule remains disabled"));
     return;
-  if (!force && lastRtcSync &&
-      millis() - lastRtcSync < RTC_NTP_SYNC_INTERVAL_MS)
-    return;
-  if (ntp.forceUpdate()) {
-    uint32_t localEpoch = ntp.getEpochTime();
-    if (localEpoch >= 1704067200UL) {
-      rtc.adjust(DateTime(localEpoch));
-      DateTime verified(2000, 1, 1);
-      bool readBackOk = readRtcNow(verified);
-      uint32_t verifiedEpoch = readBackOk ? verified.unixtime() : 0;
-      uint32_t delta = verifiedEpoch >= localEpoch
-                           ? verifiedEpoch - localEpoch
-                           : localEpoch - verifiedEpoch;
-      if (readBackOk && delta <= 2UL) {
-        rtcTimeValid = true;
-        lastRtcSync = millis();
-        Serial.println(F("RTC synced from NTP and read-back verified"));
-      } else {
-        rtcTimeValid = false;
-        Serial.println(F("RTC sync read-back failed - NTP fallback"));
-      }
-    }
   }
+  lastNtpSyncEpoch = epoch;
+  lastNtpSyncMillis = millis();
+  ntpTimeValid = true;
+  Serial.printf("NTP synced; epoch=%lu; offline fallback armed\n", (unsigned long)epoch);
 }
 
 void reportClockStatus() {
   uint32_t epoch = ntp.getEpochTime();
   Serial.print(F("NTP: epoch="));
   Serial.print(epoch);
-  if (epoch >= 1704067200UL) {
+  if (currentClockEpoch() >= MIN_VALID_EPOCH) {
     Serial.println(F(" VALID"));
     return;
   }
@@ -1193,7 +1154,7 @@ void publishEmergencyStatus() {
   d["active"] = emergencyLock;
   d["source"] = emergencySource;
   d["timestamp"] = emergencyTimestamp / 1000UL;
-  String iso = rtcIso();
+  String iso = clockIso();
   if (iso.length()) d["time"] = iso;
   char out[192];
   serializeJson(d, out, sizeof(out));
@@ -1913,7 +1874,6 @@ void setup() {
   initFS();
   loadConfig();
   loadReminders();
-  initRTC();
   dht.begin();
   ntp.begin();
   Serial.print(F("Heap before WiFi: "));
@@ -1929,7 +1889,7 @@ void setup() {
   mqtt.setKeepAlive(30);
   // Keep both MQTT and TLS buffers small; current payloads fit comfortably.
   mqtt.setBufferSize(768);
-  syncRTCFromNTP(true);
+  syncNtpTime(true);
   reportClockStatus();
   uint16_t bootMinutes;
   if (scheduleClockMinutes(bootMinutes)) applyAutoState(bootMinutes);
@@ -1983,7 +1943,7 @@ void runSchedules() {
   if ((uint32_t)(millis() - lastSchedule) < SCHEDULE_INTERVAL_MS)
     return;
   lastSchedule = millis();
-  // Prefer the DS3231, but keep schedules running from validated NTP when RTC is unavailable.
+  // Schedule automation remains disabled after reboot until the first NTP sync.
   uint16_t scheduleMinutes;
   if (!scheduleClockMinutes(scheduleMinutes)) return;
   applyAutoState(scheduleMinutes);
@@ -2010,10 +1970,11 @@ void publishHeartbeat() {
   d["pumpRuntimeSec"] = relayOn(0) && pumpStartedAt
                              ? (millis() - pumpStartedAt) / 1000UL
                              : 0;
-  String iso = rtcIso();
-  bool rtcNowValid = rtcAvailable && rtcTimeValid && iso.length();
-  d["clockValid"] = rtcNowValid || ntp.getEpochTime() >= 1704067200UL;
-  d["rtc"] = rtcNowValid;
+  String iso = clockIso();
+  bool clockValid = ntpTimeValid && iso.length();
+  d["clockValid"] = clockValid;
+  d["rtc"] = false;
+  d["timeSource"] = clockValid ? "ntp" : "unsynced";
   d["sensorReads"] = sensorReadCount;
   d["sensorFaults"] = sensorFaultCount;
   d["sensorAgeSec"] = lastSensorValidAt
@@ -2025,7 +1986,7 @@ void publishHeartbeat() {
     d["time"] = iso;
   char out[512];
   serializeJson(d, out, sizeof(out));
-  // Retain the latest heartbeat so a freshly opened dashboard can restore RTC time immediately.
+  // Retain the latest heartbeat so a freshly opened dashboard can restore NTP time immediately.
   mqtt.publish(MQTT_BASE "/device/status", out, true);
 }
 
@@ -2039,7 +2000,7 @@ void loop() {
     if (mqtt.connected())
       mqtt.loop();
     ntp.update();
-    syncRTCFromNTP(false);
+    syncNtpTime(false);
   } else {
   }
   otaServer.handleClient();
