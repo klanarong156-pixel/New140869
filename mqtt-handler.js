@@ -123,12 +123,8 @@ class MqttHandler {
       APP_STATE.mqttConnected = false;
       this.connecting = false;
       this.dispatch('mqtt:connected', false);
-      if (this.hasCredentials()) {
-        this.dispatch('mqtt:reconnecting', true);
-        setTimeout(() => {
-          if (!APP_STATE.mqttConnected && this.hasCredentials()) this.connect();
-        }, 50);
-      }
+      // SharedWorker owns the reconnect timer and exponential backoff.
+      // Do not start a second page-level reconnect loop here.
       return;
     }
     if (message.type === 'connecting') {
@@ -329,6 +325,7 @@ class MqttHandler {
         const unlimited = Boolean(timer.unlimited) || (Boolean(timer.active) && remaining === 0);
         this.dispatch('relay:timer', { relay, active: Boolean(timer.active), unlimited, remaining });
       } catch (_) {
+        // Malformed status is not proof that the device is alive.
         this.dispatch('relay:timer', { relay, active: false, remaining: 0 });
       }
       return;
@@ -346,7 +343,7 @@ class MqttHandler {
     if (topic === this.config.topics.online) {
       if (['true', 'online', '1', 'yes'].includes(value.toLowerCase())) {
         this.markDeviceSeen('presence');
-      } else if (!APP_STATE.espLastSeen || Date.now() - APP_STATE.espLastSeen > this.config.deviceHeartbeatTimeoutMs) {
+      } else {
         this.setDeviceOnline(false, 'last-will');
       }
       return;
@@ -355,11 +352,13 @@ class MqttHandler {
       try {
         const device = JSON.parse(value);
         if (device.online === false) {
-          if (!APP_STATE.espLastSeen || Date.now() - APP_STATE.espLastSeen > this.config.deviceHeartbeatTimeoutMs) this.setDeviceOnline(false, 'device-status');
+          // An explicit offline heartbeat/retained Last Will is authoritative.
+          this.setDeviceOnline(false, 'device-status');
         } else this.markDeviceSeen('device-status');
         this.dispatch('device:data', device);
       } catch (_) {
-        this.markDeviceSeen('device-status');
+        // Do not refresh the watchdog from malformed heartbeat JSON.
+        this.dispatch('mqtt:message-error', { topic, reason: 'invalid-device-status' });
       }
       return;
     }
