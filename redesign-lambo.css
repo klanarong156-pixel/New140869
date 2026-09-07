@@ -90,10 +90,6 @@ body::before { opacity: .15; background-image: radial-gradient(rgba(36,40,45,.3)
 .mqtt-live-panel .mqtt-live-meta strong { color: #f4f5f6; }
 .mqtt-live-dot { background: #b8d8bf; box-shadow: 0 0 0 5px rgba(184,216,191,.12); }
 
-.quick-control-center { margin-top: 30px; border-radius: 22px; box-shadow: 0 20px 48px rgba(36,40,45,.16); }
-.quick-control-heading h2 { color: #f4f5f6; }
-.quick-control-heading .helper { color: rgba(244,245,246,.64); }
-
 .control-card { border-color: var(--line); background: rgba(255,255,255,.9); }
 .control-card.active { border-color: rgba(217,77,63,.42); background: linear-gradient(145deg,#fff8f6,#f3e7e5); }
 .control-card .control-name strong, .control-name strong { color: var(--text); }
@@ -149,10 +145,9 @@ footer { color: #858b90; }
   .hero::before { right: 19px; top: 17px; }
   .section { margin-top: 20px; }
   .card, .section.card, .mqtt-live-panel { border-radius: 16px; }
-  .quick-control-center { margin-top: 20px; }
   .bottom-nav { bottom: 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .card.interactive, .quick-control-card, .btn { transition: none; }
-  .card.interactive:hover, .quick-control-card:hover, .btn:hover:not(:disabled) { transform: none; }
+  .card.interactive, .btn { transition: none; }
+  .card.interactive:hover, .btn:hover:not(:disabled) { transform: none; }
 }
