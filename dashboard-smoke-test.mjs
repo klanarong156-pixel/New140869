@@ -82,6 +82,7 @@ const checks = [
   ['SharedWorker replays latest schedule status', /lastScheduleStatuses/.test(worker) && /smartfarm\/schedule\//.test(worker) && /forEach\(\(payload, topic\)/.test(worker)],
   ['Offline status is applied immediately from Last Will/heartbeat', /else \{\s*this\.setDeviceOnline\(false, 'last-will'\)/.test(handler) && /explicit offline heartbeat\/retained Last Will is authoritative/.test(handler)],
   ['Malformed device heartbeat cannot keep ESP marked online', /invalid-device-status/.test(handler) && /Do not refresh the watchdog from malformed heartbeat JSON/.test(handler)],
+  ['Emergency commands are never queued while MQTT is offline', handler.includes('smartfarm\\/emergency\\/') && /isControlCommand/.test(handler) && /mqtt:command-blocked/.test(handler)],
   ['Current app binds relay controls', /\[data-relay-toggle\]/.test(app)],
   ['Quick controls have valid relay timer markup', (index.match(/data-relay-toggle=/g) || []).length === 4 && (index.match(/class="timer-field"/g) || []).length === 4 && !/class="timer-unlimited"[^>]*>[\s\S]*?<\/label>\s*<\/label>/.test(index)],
   ['Emergency quick controls publish guarded commands', /data-emergency-stop/.test(index) && /data-emergency-reset/.test(index) && /function emergencyStop/.test(read('farm-tools.js')) && /function resetEmergencyStop/.test(read('farm-tools.js')) && /EMERGENCY_STOP/.test(read('farm-tools.js')) && /EMERGENCY_RESET/.test(read('farm-tools.js'))],

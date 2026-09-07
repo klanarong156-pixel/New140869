@@ -295,7 +295,7 @@ class MqttHandler {
         this.dispatch('mqtt:credentials-required', { configured: false, forPublish: true });
         return false;
       }
-      const isControlCommand = /^(smartfarm\/relay\/|smartfarm\/mode\/set|smartfarm\/schedule\/|smartfarm\/config\/telegram\/|smartfarm\/reminder\/|smartfarm\/ai\/alert\/set)/.test(topic);
+      const isControlCommand = /^(smartfarm\/relay\/|smartfarm\/mode\/set|smartfarm\/schedule\/|smartfarm\/config\/telegram\/|smartfarm\/reminder\/|smartfarm\/ai\/alert\/set|smartfarm\/emergency\/)/.test(topic);
       if (isControlCommand) {
         this.dispatch('mqtt:command-blocked', { topic, reason: 'not-connected' });
         this.connect();
