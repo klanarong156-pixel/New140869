@@ -338,6 +338,11 @@
       const detail = raw && raw !== '[object Object]' ? `: ${raw}` : '';
       renderMqtt(false, `MQTT เชื่อมต่อไม่สำเร็จ${detail}`);
     });
+    window.addEventListener('mqtt:publish-error', event => {
+      const topic = event.detail?.topic ? ` (${event.detail.topic})` : '';
+      const error = event.detail?.error?.message || String(event.detail?.error || 'MQTT publish failed');
+      showToast(`ส่งข้อความ MQTT ไม่สำเร็จ${topic}: ${error}`, 'error');
+    });
     window.addEventListener('esp:status', event => renderDevice(Boolean(event.detail?.online)));
     window.addEventListener('relay:status', event => {
       const { relay, status } = event.detail || {};

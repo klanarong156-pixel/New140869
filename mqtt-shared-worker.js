@@ -139,8 +139,18 @@ self.onconnect = event => {
       return;
     }
     if (message.type === 'publish') {
-      if (client?.connected) client.publish(message.topic, String(message.payload ?? ''), message.options || {});
-      else send(port, { type: 'publish-failed', topic: message.topic });
+      if (!client?.connected) {
+        send(port, { type: 'publish-failed', requestId: message.requestId, topic: message.topic, error: 'MQTT ยังไม่เชื่อมต่อ' });
+        return;
+      }
+      try {
+        client.publish(message.topic, String(message.payload ?? ''), message.options || {}, (error, packet) => {
+          if (error) send(port, { type: 'publish-error', requestId: message.requestId, topic: message.topic, error: errorMessage(error) });
+          else send(port, { type: 'publish-ack', requestId: message.requestId, topic: message.topic, packet });
+        });
+      } catch (error) {
+        send(port, { type: 'publish-error', requestId: message.requestId, topic: message.topic, error: errorMessage(error) });
+      }
       return;
     }
     if (message.type === 'disconnect') {

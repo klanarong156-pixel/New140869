@@ -6,6 +6,7 @@ class MqttHandler {
     this.bootstrapped = false;
     this.deviceTimer = null;
     this.pendingPublishes = [];
+    this.publishSequence = 0;
     this.lastConnectError = '';
     this.worker = null;
     this.usingSharedWorker = false;
@@ -16,6 +17,40 @@ class MqttHandler {
 
   dispatch(name, detail) {
     window.dispatchEvent(new CustomEvent(name, { detail }));
+  }
+
+  nextPublishId() {
+    this.publishSequence += 1;
+    return `${Date.now()}-${this.publishSequence}`;
+  }
+
+  errorMessage(error, fallback = 'MQTT publish failed') {
+    return String(error?.message || error?.reason || error || fallback);
+  }
+
+  publishDirect(topic, payload, options, requestId) {
+    if (!this.client?.connected) {
+      this.dispatch('mqtt:publish-error', { requestId, topic, error: new Error('MQTT ยังไม่เชื่อมต่อ') });
+      return false;
+    }
+    try {
+      this.client.publish(topic, payload, options, (error, packet) => {
+        if (error) {
+          this.dispatch('mqtt:publish-error', {
+            requestId,
+            topic,
+            error: new Error(this.errorMessage(error)),
+            packet
+          });
+          return;
+        }
+        this.dispatch('mqtt:publish-ack', { requestId, topic, packet });
+      });
+      return true;
+    } catch (error) {
+      this.dispatch('mqtt:publish-error', { requestId, topic, error });
+      return false;
+    }
   }
 
   getCredentials() {
@@ -155,8 +190,16 @@ class MqttHandler {
       this.dispatch('mqtt:subscribe-error', { topic: message.topic, error: new Error(message.error || 'subscribe failed') });
       return;
     }
-    if (message.type === 'publish-failed') {
-      this.dispatch('mqtt:publish-error', { topic: message.topic, error: new Error('MQTT ยังไม่เชื่อมต่อ') });
+    if (message.type === 'publish-ack') {
+      this.dispatch('mqtt:publish-ack', { requestId: message.requestId, topic: message.topic, packet: message.packet });
+      return;
+    }
+    if (message.type === 'publish-error' || message.type === 'publish-failed') {
+      this.dispatch('mqtt:publish-error', {
+        requestId: message.requestId,
+        topic: message.topic,
+        error: new Error(message.error || 'MQTT publish failed')
+      });
       return;
     }
     if (message.type === 'message') {
@@ -246,7 +289,7 @@ class MqttHandler {
       this.dispatch('mqtt:connected', true);
       this.config.allowedSubscribeTopics.forEach(topic => {
         this.client.subscribe(topic, { qos: 0 }, error => {
-          if (error) this.dispatch('mqtt:subscribe-error', { topic, error });
+          if (error) this.dispatch('mqtt:subscribe-error', { topic, error: new Error(this.errorMessage(error, 'MQTT subscribe failed')) });
         });
       });
       this.startDeviceWatchdog();
@@ -286,13 +329,14 @@ class MqttHandler {
     const queue = this.pendingPublishes.splice(0);
     queue.forEach(item => {
       if (now - item.createdAt > 30000) return;
-      if (sharedReady) this.worker?.port.postMessage({ type: 'publish', topic: item.topic, payload: item.payload, options: item.options });
-      else this.client.publish(item.topic, item.payload, item.options);
+      if (sharedReady) this.worker?.port.postMessage({ type: 'publish', requestId: item.requestId, topic: item.topic, payload: item.payload, options: item.options });
+      else this.publishDirect(item.topic, item.payload, item.options, item.requestId);
     });
   }
 
   publish(topic, payload, options = {}) {
     if (!topic) return false;
+    const requestId = this.nextPublishId();
     const connected = this.usingSharedWorker ? APP_STATE.mqttConnected : Boolean(this.client?.connected);
     if (!connected) {
       if (!this.hasCredentials()) {
@@ -305,16 +349,15 @@ class MqttHandler {
         this.connect();
         return false;
       }
-      this.pendingPublishes.push({ topic, payload: String(payload), options, createdAt: Date.now() });
+      this.pendingPublishes.push({ requestId, topic, payload: String(payload), options, createdAt: Date.now() });
       this.connect();
       return true;
     }
     if (this.usingSharedWorker) {
-      this.worker?.port.postMessage({ type: 'publish', topic, payload: String(payload), options });
+      this.worker?.port.postMessage({ type: 'publish', requestId, topic, payload: String(payload), options });
       return true;
     }
-    this.client.publish(topic, String(payload), options);
-    return true;
+    return this.publishDirect(topic, String(payload), options, requestId);
   }
 
   handleMessage(topic, payload) {
