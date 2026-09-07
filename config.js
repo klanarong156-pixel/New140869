@@ -1,8 +1,28 @@
+const MQTT_BROKER = Object.freeze({
+  protocol: 'wss:',
+  host: '650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud',
+  port: 8884,
+  path: '/mqtt'
+});
+
+const MQTT_ALLOWED_BROKER_HOSTS = Object.freeze([
+  '650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud'
+]);
+
+function buildMqttBrokerUrl(broker) {
+  if (broker.protocol !== 'wss:' || broker.port !== 8884 || broker.path !== '/mqtt') {
+    throw new Error('MQTT broker must use HiveMQ WSS on port 8884 and path /mqtt');
+  }
+  if (!MQTT_ALLOWED_BROKER_HOSTS.includes(broker.host)) {
+    throw new Error('MQTT broker host is not allowlisted');
+  }
+  return `${broker.protocol}//${broker.host}:${broker.port}${broker.path}`;
+}
+
 const MQTT_CONFIG = Object.freeze({
-  url: 'wss://650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud:8884/mqtt',
-  // Credentials must be entered by the signed-in operator and are stored only in browser session/local storage.
-  username: '',
-  password: '',
+  broker: MQTT_BROKER,
+  url: buildMqttBrokerUrl(MQTT_BROKER),
+  credentialSource: 'browser-storage',
   clientId: `SmartFarmWeb-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`,
   topics: Object.freeze({
     relaySet: relay => `smartfarm/relay/${relay}/set`,
