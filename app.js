@@ -58,9 +58,9 @@
       panel.classList.toggle('offline', !connected && !text);
       panel.classList.toggle('warning', !connected && Boolean(text));
     }
-    setText('mqttLiveLabel', label);
-    setText('mqttLiveDetail', detail);
-    setText('mqttLastUpdate', new Intl.DateTimeFormat('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date()));
+    setText(document.querySelector('[data-mqtt-live-label]'), label);
+    setText(document.querySelector('[data-mqtt-live-detail]'), detail);
+    setText(document.querySelector('[data-mqtt-last-update]'), new Intl.DateTimeFormat('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date()));
     setText('mqttStatusText', connected ? 'เชื่อมต่อกับ HiveMQ Cloud แล้ว' : detail);
   }
 
