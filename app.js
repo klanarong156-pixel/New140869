@@ -3,19 +3,6 @@
 
   const $ = id => document.getElementById(id);
   const $$ = selector => Array.from(document.querySelectorAll(selector));
-  const relayLabel = relay => window.RELAY_NAMES?.[relay] || relay;
-  const relayTimers = Object.create(null);
-  const MAX_TIMER_MINUTES = 71582;
-  const MAX_TIMER_SECONDS = MAX_TIMER_MINUTES * 60;
-
-  function formatCountdown(seconds) {
-    const total = Math.max(0, Math.floor(Number(seconds) || 0));
-    const hours = Math.floor(total / 3600);
-    const minutes = Math.floor((total % 3600) / 60);
-    const rest = total % 60;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
-  }
-
   function setText(target, value) {
     const element = typeof target === 'string' ? $(target) : target;
     if (element) element.textContent = value;
@@ -76,71 +63,6 @@
     $$('[data-device-online-card]').forEach(card => card.classList.toggle('active', Boolean(online)));
   }
 
-  function renderRelay(relay, on) {
-    $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = Boolean(on); });
-    $$(`[data-relay-state="${relay}"]`).forEach(element => { element.textContent = on ? 'กำลังทำงาน' : 'ปิดอยู่'; });
-    $$(`[data-relay-card="${relay}"]`).forEach(card => card.classList.toggle('active', Boolean(on)));
-  }
-
-  function renderRelayTimer(relay, active, remaining, unlimited = false) {
-    const seconds = Math.max(0, Math.floor(Number(remaining) || 0));
-    if (relayTimers[relay]?.interval) window.clearInterval(relayTimers[relay].interval);
-    if (!active) {
-      delete relayTimers[relay];
-      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ยังไม่ได้ตั้งเวลา'; });
-      return;
-    }
-    if (unlimited) {
-      delete relayTimers[relay];
-      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
-      return;
-    }
-    if (seconds <= 0) {
-      delete relayTimers[relay];
-      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'หมดเวลาแล้ว กำลังปิดรีเลย์'; });
-      return;
-    }
-    const state = { remaining: seconds, interval: null };
-    const paint = () => {
-      const text = state.remaining > 0
-        ? `ปิดอัตโนมัติใน ${formatCountdown(state.remaining)}`
-        : 'หมดเวลาแล้ว กำลังปิดรีเลย์';
-      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = text; });
-    };
-    paint();
-    state.interval = window.setInterval(() => {
-      state.remaining -= 1;
-      if (state.remaining <= 0) {
-        window.clearInterval(state.interval);
-        state.remaining = 0;
-      }
-      paint();
-    }, 1000);
-    relayTimers[relay] = state;
-  }
-
-  function commandRelayTimer(relay, seconds) {
-    const handler = window.mqttHandler;
-    const topic = window.MQTT_CONFIG?.topics?.relayTimerSet?.(relay);
-    if (!handler?.publish || !topic) return false;
-    const numericSeconds = Number(seconds);
-    if (seconds !== 'UNLIMITED' && (!Number.isInteger(numericSeconds) || numericSeconds < 0 || numericSeconds > MAX_TIMER_SECONDS)) {
-      showToast(`timer ต้องอยู่ระหว่าง 1–${MAX_TIMER_MINUTES.toLocaleString('th-TH')} นาที หรือเลือกไม่จำกัดเวลา`, 'warning');
-      return false;
-    }
-    const payload = seconds === 'UNLIMITED' ? 'UNLIMITED' : String(numericSeconds);
-    const sent = handler.publish(topic, payload);
-
-    if (!sent) {
-      showToast(window.APP_STATE?.mqttConnected ? 'ส่งคำสั่งไม่สำเร็จ กรุณาลองใหม่' : 'MQTT ยังไม่เชื่อมต่อ กรุณารอให้สถานะออนไลน์ก่อน', 'warning');
-      if (!window.APP_STATE?.mqttConnected) handler.showSetup?.();
-      return false;
-    }
-    if (seconds > 0 || seconds === 'UNLIMITED') renderRelay(relay, true);
-    showToast(seconds > 0 || seconds === 'UNLIMITED' ? `${relayLabel(relay)}: เปิดแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาและปิดรีเลย์แล้ว`, 'success');
-    return true;
-  }
-
   function renderEmergency(active, source = '') {
     const label = active ? `EMERGENCY STOP ACTIVE${source ? ` · ${source}` : ''}` : 'Emergency Stop ปกติ';
     $$('[data-emergency-status]').forEach(element => {
@@ -157,37 +79,6 @@
     const suffix = type === 'temperature' ? ' °C' : ' %';
     const precision = type === 'temperature' ? 1 : 0;
     $$(`[data-sensor="${type}"]`).forEach(element => { element.textContent = `${numeric.toFixed(precision)}${suffix}`; });
-  }
-
-  function commandRelay(relay, on) {
-    const handler = window.mqttHandler;
-    if (!handler?.publish || !window.MQTT_CONFIG?.topics) return false;
-    if (on) {
-      const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
-      const unlimited = document.querySelector(`[data-timer-unlimited="${relay}"]`)?.checked;
-      const minutes = Number(input?.value);
-      if (unlimited) {
-        const sent = commandRelayTimer(relay, 'UNLIMITED');
-        if (sent) renderRelay(relay, true);
-        return sent;
-      }
-      if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_TIMER_MINUTES) {
-        showToast('กรุณาตั้งเวลา 1–71,582 นาที หรือเลือกไม่จำกัดเวลา ก่อนกดเปิดรีเลย์', 'warning');
-        return false;
-      }
-      const sent = commandRelayTimer(relay, minutes * 60);
-      if (sent) renderRelay(relay, true);
-      return sent;
-    }
-    const sent = handler.publish(MQTT_CONFIG.topics.relaySet(relay), 'OFF');
-    if (!sent) {
-      showToast(window.APP_STATE?.mqttConnected ? 'ส่งคำสั่งไม่สำเร็จ กรุณาลองใหม่' : 'MQTT ยังไม่เชื่อมต่อ กรุณารอให้สถานะออนไลน์ก่อน', 'warning');
-      if (!window.APP_STATE?.mqttConnected) handler.showSetup();
-      return false;
-    }
-    renderRelay(relay, false);
-    showToast(`${relayLabel(relay)}: ส่งคำสั่งปิดแล้ว`, 'success');
-    return true;
   }
 
   function openMqttSetup() {
@@ -283,37 +174,6 @@
   }
 
   function bindControls() {
-    $$('[data-relay-toggle]').forEach(input => {
-      input.addEventListener('change', () => {
-        const relay = input.dataset.relayToggle;
-        const accepted = commandRelay(relay, input.checked);
-        if (!accepted) input.checked = !input.checked;
-      });
-    });
-    $$('[data-timer-start]').forEach(button => button.addEventListener('click', () => {
-      const relay = button.dataset.timerStart;
-      const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
-      const minutes = Number(input?.value);
-      if (document.querySelector(`[data-timer-unlimited="${relay}"]`)?.checked) {
-        commandRelayTimer(relay, 'UNLIMITED');
-        return;
-      }
-      if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_TIMER_MINUTES) {
-        showToast('กรุณาตั้งเวลา 1–71,582 นาที หรือเลือกไม่จำกัดเวลา', 'warning');
-        return;
-      }
-      commandRelayTimer(relay, minutes * 60);
-    }));
-    $$('[data-timer-cancel]').forEach(button => button.addEventListener('click', () => commandRelayTimer(button.dataset.timerCancel, 0)));
-    $$('[data-timer-preset]').forEach(button => button.addEventListener('click', () => {
-      const relay = button.dataset.timerFor;
-      const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
-      if (!input) return;
-      input.value = button.dataset.timerPreset;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      button.closest('.relay-timer')?.querySelectorAll('[data-timer-preset]').forEach(item => item.classList.toggle('active', item === button));
-    }));
-
     $$('[data-mqtt-connect]').forEach(button => button.addEventListener('click', () => {
       if (window.mqttHandler?.hasCredentials?.()) window.mqttHandler.connect();
       else openMqttSetup();
@@ -339,14 +199,6 @@
       renderMqtt(false, `MQTT เชื่อมต่อไม่สำเร็จ${detail}`);
     });
     window.addEventListener('esp:status', event => renderDevice(Boolean(event.detail?.online)));
-    window.addEventListener('relay:status', event => {
-      const { relay, status } = event.detail || {};
-      if (relay) renderRelay(relay, status);
-    });
-    window.addEventListener('relay:timer', event => {
-      const { relay, active, unlimited, remaining } = event.detail || {};
-      if (relay) renderRelayTimer(relay, active, remaining, unlimited);
-    });
     window.addEventListener('sensor:data', event => renderSensor(event.detail?.type, event.detail?.value));
     window.addEventListener('emergency:status', event => {
       const detail = event.detail || {};
@@ -374,7 +226,6 @@
     renderMqtt(Boolean(window.APP_STATE?.mqttConnected));
     renderDevice(Boolean(window.APP_STATE?.espOnline));
     renderEmergency(Boolean(window.APP_STATE?.emergencyLock));
-    Object.entries(window.APP_STATE?.relays || {}).forEach(([relay, on]) => renderRelay(relay, on));
   }
 
   function boot() {
@@ -385,7 +236,7 @@
   }
 
   window.showToast = showToast;
-  window.SmartFarmUI = { showToast, openMqttSetup, commandRelay, commandRelayTimer };
+  window.SmartFarmUI = { showToast, openMqttSetup };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
