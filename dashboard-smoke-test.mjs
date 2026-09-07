@@ -80,6 +80,8 @@ const checks = [
   ['SharedWorker replays latest device heartbeat', /lastDeviceStatus/.test(worker) && /smartfarm\/device\/status/.test(worker) && /type: 'message'/.test(worker)],
   ['SharedWorker replays latest schedule status', /lastScheduleStatuses/.test(worker) && /smartfarm\/schedule\//.test(worker) && /forEach\(\(payload, topic\)/.test(worker)],
   ['Current app binds relay controls', /\[data-relay-toggle\]/.test(app)],
+  ['Quick controls have valid relay timer markup', (index.match(/data-relay-toggle=/g) || []).length === 4 && (index.match(/class="timer-field"/g) || []).length === 4 && !/class="timer-unlimited"[^>]*>[\s\S]*?<\/label>\s*<\/label>/.test(index)],
+  ['Emergency quick controls publish guarded commands', /data-emergency-stop/.test(index) && /data-emergency-reset/.test(index) && /function emergencyStop/.test(read('farm-tools.js')) && /function resetEmergencyStop/.test(read('farm-tools.js')) && /EMERGENCY_STOP/.test(read('farm-tools.js')) && /EMERGENCY_RESET/.test(read('farm-tools.js'))],
   ['Unlimited timer command is supported', /seconds === 'UNLIMITED'/.test(app) && /UNLIMITED/.test(firmware)],
   ['Schedule payload uses slots/on/off schema', /return \{ slots: data \}/.test(schedule) && /JSON\.stringify\(payload\)/.test(schedule)],
   ['Schedule delete uses DELETE command', /scheduleSet\(activeRelay\), 'DELETE'/.test(schedule)],
