@@ -23,6 +23,7 @@ const MQTT_CONFIG = Object.freeze({
   broker: MQTT_BROKER,
   url: buildMqttBrokerUrl(MQTT_BROKER),
   credentialSource: 'browser-storage',
+  defaultUsername: 'smartfarm-device',
   clientId: `SmartFarmWeb-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`,
   topics: Object.freeze({
     relaySet: relay => `smartfarm/relay/${relay}/set`,

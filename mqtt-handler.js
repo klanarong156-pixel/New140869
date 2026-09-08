@@ -61,7 +61,7 @@ class MqttHandler {
       const remembered = localStorage.getItem(this.storageRemember) === 'true';
       const store = remembered ? localStorage : sessionStorage;
       return {
-        username: store.getItem(this.storageUser) || '',
+        username: store.getItem(this.storageUser) || this.config?.defaultUsername || '',
         password: store.getItem(this.storagePass) || '',
         remember: remembered
       };
@@ -89,7 +89,7 @@ class MqttHandler {
     try {
       const remember = localStorage.getItem(this.storageRemember) === 'true';
       const storage = remember ? localStorage : sessionStorage;
-      const usernamePresent = Boolean(String(storage.getItem(this.storageUser) || '').trim());
+      const usernamePresent = Boolean(String(storage.getItem(this.storageUser) || this.config?.defaultUsername || '').trim());
       const passwordPresent = Boolean(storage.getItem(this.storagePass));
       return {
         complete: usernamePresent && passwordPresent,

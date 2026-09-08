@@ -64,7 +64,7 @@ const functions = read('functions/index.js');
 const activeJs = files.map(read).join('\\n');
 
 const checks = [
-  ['HiveMQ WSS broker is allowlisted and credentials stay runtime-only', /protocol: 'wss:'/.test(cfg) && /port: 8884/.test(cfg) && /path: '\/mqtt'/.test(cfg) && /MQTT_ALLOWED_BROKER_HOSTS/.test(cfg) && /buildMqttBrokerUrl\(MQTT_BROKER\)/.test(cfg) && /credentialSource: 'browser-storage'/.test(cfg) && !/\b(username|password)\s*:/.test(cfg)],
+  ['HiveMQ WSS broker is allowlisted and credentials stay runtime-only', /protocol: 'wss:'/.test(cfg) && /port: 8884/.test(cfg) && /path: '\/mqtt'/.test(cfg) && /MQTT_ALLOWED_BROKER_HOSTS/.test(cfg) && /buildMqttBrokerUrl\(MQTT_BROKER\)/.test(cfg) && /credentialSource: 'browser-storage'/.test(cfg) && /defaultUsername: 'smartfarm-device'/.test(cfg) && !/\b(username|password)\s*:/.test(cfg)],
   ['All four relay IDs exist', /pump.*zone1.*lighthome.*lightsala/s.test(cfg)],
   ['Relay set topic exists', /relaySet:.*smartfarm\/relay/.test(cfg)],
   ['Relay timer topic exists', /relayTimerSet: relay =>/.test(cfg)],
