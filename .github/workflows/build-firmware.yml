@@ -26,6 +26,9 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
 
+      - name: Prepare Arduino source
+        run: mkdir -p src && cp SmartFarm_V6_PRODUCTION.ino src/main.ino
+
       - name: Build NodeMCU ESP8266 firmware
         run: pio run -e nodemcuv2
 
