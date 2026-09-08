@@ -7,6 +7,8 @@ class MqttHandler {
     this.deviceTimer = null;
     this.pendingPublishes = [];
     this.publishSequence = 0;
+    this.reconnectTimer = null;
+    this.reconnectAttempt = 0;
     this.lastConnectError = '';
     this.worker = null;
     this.usingSharedWorker = false;
@@ -26,6 +28,24 @@ class MqttHandler {
 
   errorMessage(error, fallback = 'MQTT publish failed') {
     return String(error?.message || error?.reason || error || fallback);
+  }
+
+  scheduleReconnect(reason = 'connection-lost', immediate = false) {
+    if (this.reconnectTimer || !this.hasCredentials()) return;
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    const delay = immediate ? 0 : Math.min(30000, 1000 * (2 ** Math.min(this.reconnectAttempt, 5)));
+    this.reconnectAttempt += 1;
+    this.dispatch('mqtt:reconnecting', { delay, reason });
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (this.hasCredentials() && !APP_STATE.mqttConnected) this.connect();
+    }, delay);
+  }
+
+  clearReconnect() {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.reconnectAttempt = 0;
   }
 
   publishDirect(topic, payload, options, requestId) {
@@ -153,6 +173,7 @@ class MqttHandler {
   }
 
   disconnect() {
+    this.clearReconnect();
     clearInterval(this.deviceTimer);
     this.deviceTimer = null;
     if (this.client) {
@@ -195,6 +216,7 @@ class MqttHandler {
 
   handleWorkerMessage(message = {}) {
     if (message.type === 'connect') {
+      this.clearReconnect();
       this.connecting = false;
       APP_STATE.mqttConnected = true;
       this.dispatch('mqtt:connected', true);
@@ -208,9 +230,7 @@ class MqttHandler {
       this.dispatch('mqtt:connected', false);
       if (this.hasCredentials()) {
         this.dispatch('mqtt:reconnecting', true);
-        setTimeout(() => {
-          if (!APP_STATE.mqttConnected && this.hasCredentials()) this.connect();
-        }, 50);
+        this.scheduleReconnect('worker-closed');
       }
       return;
     }
@@ -258,6 +278,7 @@ class MqttHandler {
       this.connecting = false;
       this.lastConnectError = String(message.error || '');
       this.dispatch('mqtt:error', new Error(this.lastConnectError || 'MQTT worker error'));
+      this.scheduleReconnect('worker-error');
     }
   }
 
@@ -265,7 +286,7 @@ class MqttHandler {
     if (typeof SharedWorker === 'undefined') return false;
     try {
       if (!this.worker) {
-        this.worker = new SharedWorker(`mqtt-shared-worker.js?v=1`);
+          this.worker = new SharedWorker(`mqtt-shared-worker.js?v=2`);
         this.usingSharedWorker = true;
         this.worker.port.onmessage = event => this.handleWorkerMessage(event.data || {});
         this.worker.onerror = error => {
@@ -274,7 +295,7 @@ class MqttHandler {
           this.worker = null;
           this.usingSharedWorker = false;
           this.dispatch('mqtt:error', new Error(this.lastConnectError));
-          if (this.hasCredentials()) this.connect();
+          this.scheduleReconnect('worker-crashed');
         };
         this.worker.port.start();
       }
@@ -332,6 +353,7 @@ class MqttHandler {
     }
 
     this.client.on('connect', () => {
+      this.clearReconnect();
       this.connecting = false;
       APP_STATE.mqttConnected = true;
       this.dispatch('mqtt:connected', true);
@@ -345,10 +367,12 @@ class MqttHandler {
     });
     this.client.on('message', (topic, message) => this.handleMessage(topic, message.toString()));
     this.client.on('close', () => {
+      this.client = null;
       APP_STATE.mqttConnected = false;
       this.connecting = false;
       this.dispatch('mqtt:connected', false);
       if (this.hasCredentials()) this.dispatch('mqtt:reconnecting', true);
+      this.scheduleReconnect('client-closed');
     });
     this.client.on('reconnect', () => {
       this.connecting = true;
@@ -358,6 +382,7 @@ class MqttHandler {
       this.connecting = false;
       this.lastConnectError = String(error?.message || error || '');
       this.dispatch('mqtt:error', error);
+      if (this.usingSharedWorker) this.scheduleReconnect('client-error');
     });
     return true;
   }
@@ -366,6 +391,12 @@ class MqttHandler {
     if (this.bootstrapped) return;
     this.bootstrapped = true;
     this.startDeviceWatchdog();
+    window.addEventListener('online', () => this.scheduleReconnect('browser-online', true));
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && this.hasCredentials() && !APP_STATE.mqttConnected) {
+        this.scheduleReconnect('page-visible', true);
+      }
+    });
     if (this.hasCredentials()) this.connect();
     else this.dispatch('mqtt:credentials-required', { configured: false, initial: true, status: this.getCredentialStatus() });
   }
