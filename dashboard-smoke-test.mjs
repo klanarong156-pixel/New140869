@@ -103,6 +103,7 @@ const checks = [
   ['Firmware uses same broker and base topic', /#define MQTT_SERVER/.test(firmware) && /#define MQTT_BASE "smartfarm"/.test(firmware)],
   ['Firmware recovers Wi-Fi and clears stale MQTT socket', /WIFI_RECONNECT_INTERVAL_MS/.test(firmware) && /void maintainWifi\(\)/.test(firmware) && /WiFi\.reconnect\(\)/.test(firmware) && /tls\.stop\(\)/.test(firmware)],
   ['Firmware subscribes with one simple Smart Farm wildcard', /mqtt\.subscribe\(MQTT_BASE "\/#"\)/.test(firmware) && /Subscribe smartfarm\/#/.test(firmware)],
+  ['Firmware explains MQTT auth state 4/5 without leaking secrets', /printMqttAuthDiagnosis/.test(firmware) && /MQTT DIAG: authentication\/authorization rejected/.test(firmware) && /password value is never printed/.test(firmware) && /MQTT_CONNECT_UNAUTHORIZED/.test(firmware)],
   ['Firmware accepts Telegram topics', /config\/telegram\/set/.test(firmware) && /config\/telegram\/test/.test(firmware)],
   ['Firmware accepts reminder topic and persists reminders', /reminder\/set/.test(firmware) && /smartfarm_reminders\.json/.test(firmware) && /runReminders/.test(firmware)],
   ['Firmware validates and rate-limits AI Telegram alerts', /validAiSeverity/.test(firmware) && /strlen\(text\) > 420/.test(firmware) && /duplicate/.test(firmware) && /rate_limited/.test(firmware) && /ai\/alert\/set/.test(firmware)],
