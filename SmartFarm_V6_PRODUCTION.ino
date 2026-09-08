@@ -24,7 +24,7 @@
 struct ScheduleSlot;
 
 #define SMARTFARM_VERSION "V7.1.0-FIELD-STABILITY"
-#define MQTT_SERVER "650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud"
+#define MQTT_SERVER "650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud"
 #define MQTT_PORT 8883
 #define MQTT_BASE "smartfarm"
 #define TZ_OFFSET_SECONDS (7L * 3600L)
@@ -1144,6 +1144,40 @@ void reportClockStatus() {
   Serial.println(F(" INVALID/UNSYNCED"));
 }
 
+bool verifyMqttEndpoint() {
+  Serial.print(F("MQTT VERIFY: DNS "));
+  Serial.print(MQTT_SERVER);
+  Serial.print(F(" ... "));
+  IPAddress resolved;
+  if (!WiFi.hostByName(MQTT_SERVER, resolved)) {
+    Serial.println(F("FAILED"));
+    return false;
+  }
+  Serial.print(F("OK ("));
+  Serial.print(resolved);
+  Serial.println(F(")"));
+
+  // This is raw MQTT over TLS for ESP8266; the web dashboard uses WSS 8884.
+  tls.setInsecure();
+  tls.setBufferSizes(4096, 512);
+  tls.setTimeout(10);
+  uint32_t started = millis();
+  bool tlsOk = tls.connect(MQTT_SERVER, MQTT_PORT);
+  uint32_t elapsed = millis() - started;
+  if (tlsOk) {
+    Serial.printf("MQTT VERIFY: TLS TCP %u OK (%lu ms)\n", MQTT_PORT,
+                  (unsigned long)elapsed);
+    tls.stop();
+    return true;
+  }
+  char error[128] = "";
+  int errorCode = tls.getLastSSLError(error, sizeof(error));
+  Serial.printf("MQTT VERIFY: TLS TCP %u FAILED (%lu ms), ssl=%d (%s)\n",
+                MQTT_PORT, (unsigned long)elapsed, errorCode, error);
+  tls.stop();
+  return false;
+}
+
 void diagnoseMqttTransport() {
   if ((uint32_t)(millis() - lastMqttDiagnostic) <
       MQTT_DIAGNOSTIC_INTERVAL_MS)
@@ -1155,34 +1189,7 @@ void diagnoseMqttTransport() {
   Serial.print(F(" IP="));
   Serial.println(WiFi.localIP());
 
-  IPAddress resolved;
-  if (!WiFi.hostByName(MQTT_SERVER, resolved)) {
-    Serial.println(F("MQTT DIAG: DNS resolution FAILED"));
-    return;
-  }
-  Serial.print(F("MQTT DIAG: DNS="));
-  Serial.println(resolved);
-
-  // Reuse the MQTT TLS client; creating a second BearSSL client here can
-  // exceed the ESP8266 heap immediately after a failed handshake.
-  tls.setInsecure();
-  tls.setBufferSizes(4096, 512);
-  tls.setTimeout(10);
-  uint32_t started = millis();
-  bool tcpTlsOk = tls.connect(MQTT_SERVER, MQTT_PORT);
-  uint32_t elapsed = millis() - started;
-  if (tcpTlsOk) {
-    Serial.printf("MQTT DIAG: TLS TCP 8883 OK (%lu ms)\n",
-                  (unsigned long)elapsed);
-    tls.stop();
-    return;
-  }
-
-  char error[128] = "";
-  int errorCode = tls.getLastSSLError(error, sizeof(error));
-  Serial.printf("MQTT DIAG: TLS TCP FAILED (%lu ms), ssl=%d (%s)\n",
-                (unsigned long)elapsed, errorCode, error);
-  tls.stop();
+  verifyMqttEndpoint();
 }
 
 void publishRelayStatus(uint8_t i) {
@@ -1614,6 +1621,7 @@ void connectMqtt() {
   Serial.print(MQTT_SERVER);
   Serial.print(F(":"));
   Serial.println(MQTT_PORT);
+  verifyMqttEndpoint();
   // Ensure a failed TLS handshake cannot leak a stale socket into the next try.
   tls.stop();
   bool connected = mqtt.connect(cid.c_str(), mqttUser, mqttPass,

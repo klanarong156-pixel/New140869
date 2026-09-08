@@ -1,0 +1,47 @@
+name: Build ESP8266 firmware
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'SmartFarm_V6_PRODUCTION.ino'
+      - 'platformio.ini'
+      - '.github/workflows/build-firmware.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build NodeMCU ESP8266 firmware
+        run: pio run -e nodemcuv2
+
+      - name: Copy firmware artifact
+        run: cp .pio/build/nodemcuv2/firmware.bin SmartFarm_V6_PRODUCTION_${GITHUB_SHA}.bin
+
+      - name: Verify broker hostname in source
+        run: |
+          grep -F '#define MQTT_SERVER "650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud"' SmartFarm_V6_PRODUCTION.ino
+          grep -F '#define MQTT_PORT 8883' SmartFarm_V6_PRODUCTION.ino
+          test -s SmartFarm_V6_PRODUCTION_${GITHUB_SHA}.bin
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartFarm-firmware-${{ github.sha }}
+          path: SmartFarm_V6_PRODUCTION_${{ github.sha }}.bin
+          if-no-files-found: error
+          retention-days: 30
