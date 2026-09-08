@@ -241,6 +241,13 @@
     };
     const username = field('MQTT username', 'mqttUsername', 'text', 'username');
     const password = field('MQTT password', 'mqttPassword', 'password', 'current-password');
+    username.input.value = String(credentials.username || '').trim();
+    username.input.placeholder = 'เช่น smartfarm-web';
+    password.input.placeholder = 'กรอกรหัสผ่าน MQTT';
+    const validation = document.createElement('p');
+    validation.className = 'helper';
+    validation.setAttribute('role', 'status');
+    validation.setAttribute('aria-live', 'polite');
     const rememberLabel = document.createElement('label');
     rememberLabel.className = 'check-inline field full';
     const remember = document.createElement('input');
@@ -262,15 +269,37 @@
     cancel.dataset.closeMqtt = '';
     cancel.textContent = 'ยกเลิก';
     buttons.append(submit, cancel);
-    form.append(username.wrapper, password.wrapper, rememberLabel, buttons);
+    form.append(username.wrapper, password.wrapper, validation, rememberLabel, buttons);
     card.append(head, helper, form);
     overlay.append(card);
     document.body.appendChild(overlay);
     const close = () => overlay.remove();
     overlay.querySelectorAll('[data-close-mqtt]').forEach(button => button.addEventListener('click', close));
     overlay.addEventListener('click', event => { if (event.target === overlay) close(); });
+    const validate = () => {
+      const cleanUser = username.input.value.trim();
+      const cleanPass = password.input.value;
+      const missing = [];
+      if (!cleanUser) missing.push('username');
+      if (!cleanPass) missing.push('password');
+      submit.disabled = missing.length > 0;
+      if (missing.length) {
+        validation.textContent = `กรุณากรอก ${missing.join(' และ ')} ให้ครบก่อนบันทึก`;
+        validation.className = 'helper error-text';
+        return false;
+      }
+      validation.textContent = 'ข้อมูลครบถ้วน รหัสผ่านจะถูกเก็บไว้ใน Browser Storage เท่านั้น';
+      validation.className = 'helper';
+      return true;
+    };
+    [username.input, password.input].forEach(input => input.addEventListener('input', validate));
+    validate();
     form.addEventListener('submit', event => {
       event.preventDefault();
+      if (!validate()) {
+        (username.input.value.trim() ? password.input : username.input).focus();
+        return;
+      }
       try {
         window.mqttHandler.setCredentials(username.input.value, password.input.value, remember.checked);
         close();
