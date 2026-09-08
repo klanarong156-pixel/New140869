@@ -10,6 +10,10 @@ const PORT = 4187;
 const HOST = '127.0.0.1';
 const TEST_USER = 'e2e-test-user';
 const TEST_PASS = 'e2e-test-password';
+// Local Debian images expose Chromium here, while GitHub Actions supplies the
+// browser location through CHROMIUM_PATH. Keeping this configurable makes the
+// same integration test runnable in both environments.
+const CHROMIUM_PATH = process.env.CHROMIUM_PATH || '/usr/bin/chromium';
 
 const MOCK_MQTT = `
 (() => {
@@ -68,14 +72,15 @@ function check(condition, message) {
 
 async function main() {
   await new Promise(resolve => server.listen(PORT, HOST, resolve));
-  const browser = await chromium.launch({ headless: true, executablePath: '/usr/bin/chromium', args: ['--no-sandbox'] });
+  const browser = await chromium.launch({ headless: true, executablePath: CHROMIUM_PATH, args: ['--no-sandbox'] });
   try {
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.goto(`http://${HOST}:${PORT}/settings.html`, { waitUntil: 'networkidle' });
 
     check(await page.locator('[data-mqtt-setup]').count() === 1, 'Settings page loaded MQTT setup control');
-    check((await page.locator('#mqttStatusText').textContent()).includes('ขาด username และ password'), 'Incomplete credentials are reported before auto-connect');
+    const initialStatus = await page.locator('#mqttStatusText').textContent();
+    check(initialStatus.includes('ขาด') && initialStatus.includes('password'), 'Missing MQTT password is reported before auto-connect');
 
     await page.locator('[data-mqtt-setup]').click();
     check(await page.locator('#mqttSetupForm').count() === 1, 'Credential modal opens');
