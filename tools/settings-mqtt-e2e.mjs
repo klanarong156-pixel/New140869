@@ -79,7 +79,8 @@ async function main() {
     await page.goto(`http://${HOST}:${PORT}/settings.html`, { waitUntil: 'networkidle' });
 
     check(await page.locator('[data-mqtt-setup]').count() === 1, 'Settings page loaded MQTT setup control');
-    check((await page.locator('#mqttStatusText').textContent()).includes('ขาด username และ password'), 'Incomplete credentials are reported before auto-connect');
+    const initialStatus = await page.locator('#mqttStatusText').textContent();
+    check(initialStatus.includes('ขาด') && initialStatus.includes('password'), 'Missing MQTT password is reported before auto-connect');
 
     await page.locator('[data-mqtt-setup]').click();
     check(await page.locator('#mqttSetupForm').count() === 1, 'Credential modal opens');
