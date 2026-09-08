@@ -144,11 +144,21 @@ node --check app.js
 node --check farm-analytics.js
 node dashboard-smoke-test.mjs
 node usage-reset-calculation-test.mjs
+node schedule-regression-test.mjs
+node ai-advisor-regression-test.mjs
+node firmware-logic-regression-test.mjs
+node e2e-navigation-test.mjs
+npm --prefix functions run lint
 git diff --check
 ```
+
+GitHub Actions รันชุดตรวจสอบเดียวกันทุก push และ pull request รวมถึง simulated
+browser integration สำหรับหน้า Settings/MQTT. งาน browser test ใช้ Chrome ที่
+workflow ติดตั้งและส่งตำแหน่ง executable ผ่าน `CHROMIUM_PATH`; ในเครื่อง local
+ให้ติดตั้ง `playwright-core` และ Chromium ก่อนรัน `node tools/settings-mqtt-e2e.mjs`.
 
 ก่อนแก้ระบบครั้งต่อไป ให้ตรวจ `BOARD_REFERENCE.md`, firmware, `config.js` และ smoke test พร้อมกัน หากเปลี่ยน pin, topic, ชื่อรีเลย์, storage key หรือ DOM id ต้องอัปเดตเอกสารและ regression assertion ใน commit เดียวกัน
 
 ## สถานะการตรวจสอบล่าสุด
 
-Dashboard runtime contract ผ่าน **92 รายการ** ในรอบเอกสารนี้ และ repository ต้องไม่มี credential จริงหรือไฟล์ build ที่ไม่ผ่านการตรวจสอบถูก push ขึ้น GitHub
+Dashboard runtime contract ผ่าน **101 รายการ** ในรอบเอกสารนี้ และ repository ต้องไม่มี credential จริงหรือไฟล์ build ที่ไม่ผ่านการตรวจสอบถูก push ขึ้น GitHub
