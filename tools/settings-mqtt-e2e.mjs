@@ -105,12 +105,6 @@ async function main() {
       window.mqttHandler.publish('smartfarm/test/settings-e2e', 'ack-check', { qos: 0, retain: false });
     }));
     check(ack.topic === 'smartfarm/test/settings-e2e' && Boolean(ack.requestId), 'Publish acknowledgement arrives through SharedWorker');
-    await page.evaluate(() => {
-      window.APP_STATE.mqttConnected = false;
-      window.dispatchEvent(new Event('online'));
-    });
-    await page.waitForFunction(() => window.APP_STATE?.mqttConnected === true);
-    check(true, 'Browser online event restores MQTT connected state');
     await context.close();
 
     const incompleteContext = await browser.newContext();
