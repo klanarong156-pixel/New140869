@@ -76,6 +76,7 @@ const checks = [
   ['Reminder topics exist', /reminderSet: 'smartfarm\/reminder\/set'/.test(cfg) && /reminderStatus: 'smartfarm\/reminder\/status'/.test(cfg)],
   ['AI alert topic is isolated from relay commands', /aiAlertSet: 'smartfarm\/ai\/alert\/set'/.test(cfg) && /aiAlertStatus: 'smartfarm\/ai\/alert\/status'/.test(cfg) && /ai\/alert\/set/.test(firmware) && /handleAiAlert/.test(firmware)],
   ['Browser uses current MQTT handler', /new MqttHandler\(MQTT_CONFIG\)/.test(handler)],
+  ['Direct browser MQTT client is the primary connection path', /if \(typeof mqtt === 'undefined'\)/.test(handler) && /if \(this\.connectSharedWorker\(force\)\) return true/.test(handler) && /this\.client = mqtt\.connect\(this\.config\.url/.test(handler)],
   ['MQTT checks Browser Storage credentials before auto-connect', /getCredentialStatus\(\)/.test(handler) && /missing/.test(handler) && /localStorage/.test(handler) && /sessionStorage/.test(handler) && /initial: true, status: this\.getCredentialStatus\(\)/.test(handler)],
   ['Settings validates and saves complete MQTT credentials', /mqttSetupForm/.test(app) && /setCredentials\(username\.input\.value, password\.input\.value, remember\.checked\)/.test(app) && /กรุณากรอก/.test(app) && /submit\.disabled/.test(app) && /validation\.setAttribute\('aria-live', 'polite'\)/.test(app)],
   ['SharedWorker keeps one MQTT connection across pages', /new SharedWorker/.test(handler) && /mqtt-shared-worker\.js/.test(handler) && /importScripts\('mqtt\.min\.js/.test(worker)],

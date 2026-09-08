@@ -97,14 +97,14 @@ async function main() {
     }));
     check(storage.sessionUser === TEST_USER && storage.sessionPass === TEST_PASS, 'Credentials are saved in sessionStorage when remember is off');
     check(storage.localUser === null && storage.localPass === null, 'Credentials are not copied to localStorage by default');
-    check(storage.connected === true, 'SharedWorker mock reports MQTT connected');
+    check(storage.connected === true, 'Direct MQTT client mock reports MQTT connected');
 
     const ack = await page.evaluate(async () => new Promise(resolve => {
       const listener = event => { window.removeEventListener('mqtt:publish-ack', listener); resolve({ requestId: event.detail?.requestId, topic: event.detail?.topic }); };
       window.addEventListener('mqtt:publish-ack', listener);
       window.mqttHandler.publish('smartfarm/test/settings-e2e', 'ack-check', { qos: 0, retain: false });
     }));
-    check(ack.topic === 'smartfarm/test/settings-e2e' && Boolean(ack.requestId), 'Publish acknowledgement arrives through SharedWorker');
+    check(ack.topic === 'smartfarm/test/settings-e2e' && Boolean(ack.requestId), 'Publish acknowledgement arrives through the primary MQTT client path');
     await context.close();
 
     const incompleteContext = await browser.newContext();

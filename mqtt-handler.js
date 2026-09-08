@@ -306,8 +306,10 @@ class MqttHandler {
     }
     if (!force && (this.client?.connected || this.connecting || (this.usingSharedWorker && APP_STATE.mqttConnected))) return true;
     if (force && (this.client || this.worker)) this.disconnect();
-    if (this.connectSharedWorker(force)) return true;
+    // Keep the original browser MQTT path as the primary connection method.
+    // SharedWorker remains available as a fallback for browsers without mqtt.js.
     if (typeof mqtt === 'undefined') {
+      if (this.connectSharedWorker(force)) return true;
       this.dispatch('mqtt:error', new Error('ไม่พบ MQTT library'));
       return false;
     }
