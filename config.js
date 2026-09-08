@@ -44,18 +44,9 @@ const MQTT_CONFIG = Object.freeze({
     emergencySet: 'smartfarm/emergency/set',
     emergencyStatus: 'smartfarm/emergency/status'
   }),
-  allowedSubscribeTopics: Object.freeze([
-    'smartfarm/relay/+/status',
-    'smartfarm/relay/+/timer/status',
-    'smartfarm/sensor/dht11',
-    'smartfarm/status/online',
-    'smartfarm/device/status',
-    'smartfarm/config/telegram/status',
-    'smartfarm/schedule/+/status',
-    'smartfarm/reminder/status',
-    'smartfarm/ai/alert/status',
-    'smartfarm/emergency/status'
-  ]),
+  // Keep the original simple Smart Farm contract: one subscription filter.
+  // HiveMQ ACL must allow this same filter for the shared credential.
+  allowedSubscribeTopics: Object.freeze(['smartfarm/#']),
   deviceHeartbeatTimeoutMs: 25000
 });
 
