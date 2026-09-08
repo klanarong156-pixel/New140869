@@ -1630,24 +1630,16 @@ void connectMqtt() {
   if (connected) {
     mqttAuthFailures = 0;
     mqtt.publish(MQTT_BASE "/status/online", "true", true);
-    bool s1 = mqtt.subscribe(MQTT_BASE "/relay/+/set");
-    bool sTimer = mqtt.subscribe(MQTT_BASE "/relay/+/timer/set");
-    bool s3 = mqtt.subscribe(MQTT_BASE "/schedule/+/set");
-    bool s4 = mqtt.subscribe(MQTT_BASE "/config/telegram/set");
-    bool s5 = mqtt.subscribe(MQTT_BASE "/config/telegram/test");
-    bool s6 = mqtt.subscribe(MQTT_BASE "/reminder/set");
-    bool s7 = mqtt.subscribe(MQTT_BASE "/emergency/set");
-    bool s8 = mqtt.subscribe(MQTT_BASE "/ai/alert/set");
+    // Keep the original simple ACL contract: one subscription filter.
+    // The callback still acts only on recognized command topics.
+    bool sAll = mqtt.subscribe(MQTT_BASE "/#");
     publishStatus();
     publishTelegramStatus();
     publishReminderStatus("online");
     publishAiAlertStatus("online");
     Serial.println(F("MQTT: Connected"));
     queueTelegram(F("เชื่อมต่อ MQTT สำเร็จ"));
-    Serial.printf("MQTT: Subscribe relay=%s timer=%s schedule=%s telegram=%s/%s reminder=%s emergency=%s ai=%s\n",
-                  s1 ? "OK" : "FAIL", sTimer ? "OK" : "FAIL",
-                  s3 ? "OK" : "FAIL", s4 ? "OK" : "FAIL", s5 ? "OK" : "FAIL",
-                  s6 ? "OK" : "FAIL", s7 ? "OK" : "FAIL", s8 ? "OK" : "FAIL");
+    Serial.printf("MQTT: Subscribe smartfarm/#=%s\n", sAll ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
     mqttConnectFailures++;

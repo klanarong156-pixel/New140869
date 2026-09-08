@@ -102,7 +102,7 @@ const checks = [
   ['Backup excludes secrets and supports restore', /SECRET_KEY/.test(tools) && /downloadJson/.test(tools) && /FirebaseDB\.put/.test(tools)],
   ['Firmware uses same broker and base topic', /#define MQTT_SERVER/.test(firmware) && /#define MQTT_BASE "smartfarm"/.test(firmware)],
   ['Firmware recovers Wi-Fi and clears stale MQTT socket', /WIFI_RECONNECT_INTERVAL_MS/.test(firmware) && /void maintainWifi\(\)/.test(firmware) && /WiFi\.reconnect\(\)/.test(firmware) && /tls\.stop\(\)/.test(firmware)],
-  ['Firmware subscribes to relay/timer/schedule topics', /relay\/\+\/set/.test(firmware) && /timer\/set/.test(firmware) && /schedule\/\+\/set/.test(firmware)],
+  ['Firmware subscribes with one simple Smart Farm wildcard', /mqtt\.subscribe\(MQTT_BASE "\/#"\)/.test(firmware) && /Subscribe smartfarm\/#/.test(firmware)],
   ['Firmware accepts Telegram topics', /config\/telegram\/set/.test(firmware) && /config\/telegram\/test/.test(firmware)],
   ['Firmware accepts reminder topic and persists reminders', /reminder\/set/.test(firmware) && /smartfarm_reminders\.json/.test(firmware) && /runReminders/.test(firmware)],
   ['Firmware validates and rate-limits AI Telegram alerts', /validAiSeverity/.test(firmware) && /strlen\(text\) > 420/.test(firmware) && /duplicate/.test(firmware) && /rate_limited/.test(firmware) && /ai\/alert\/set/.test(firmware)],
