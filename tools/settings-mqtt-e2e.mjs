@@ -10,6 +10,10 @@ const PORT = 4187;
 const HOST = '127.0.0.1';
 const TEST_USER = 'e2e-test-user';
 const TEST_PASS = 'e2e-test-password';
+// Local Debian images expose Chromium here, while GitHub Actions supplies the
+// browser location through CHROMIUM_PATH. Keeping this configurable makes the
+// same integration test runnable in both environments.
+const CHROMIUM_PATH = process.env.CHROMIUM_PATH || '/usr/bin/chromium';
 
 const MOCK_MQTT = `
 (() => {
@@ -68,14 +72,25 @@ function check(condition, message) {
 
 async function main() {
   await new Promise(resolve => server.listen(PORT, HOST, resolve));
-  const browser = await chromium.launch({ headless: true, executablePath: '/usr/bin/chromium', args: ['--no-sandbox'] });
+  const browser = await chromium.launch({ headless: true, executablePath: CHROMIUM_PATH, args: ['--no-sandbox'] });
   try {
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.goto(`http://${HOST}:${PORT}/settings.html`, { waitUntil: 'networkidle' });
 
     check(await page.locator('[data-mqtt-setup]').count() === 1, 'Settings page loaded MQTT setup control');
-    check((await page.locator('#mqttStatusText').textContent()).includes('ขาด username และ password'), 'Incomplete credentials are reported before auto-connect');
+    await page.waitForFunction(() => {
+      const status = document.querySelector('#mqttStatusText')?.textContent || '';
+      return status.includes('ขาด') && status.includes('password');
+    });
+    const initialState = await page.evaluate(() => ({
+      status: window.mqttHandler?.getCredentialStatus?.(),
+      hasCredentials: window.mqttHandler?.hasCredentials?.(),
+      connected: window.APP_STATE?.mqttConnected
+    }));
+    check(initialState.status?.usernamePresent === true, 'Default MQTT username is available before setup');
+    check(initialState.status?.passwordPresent === false && initialState.status?.missing?.includes('password'), 'Missing MQTT password is reported before auto-connect');
+    check(initialState.hasCredentials === false && initialState.connected === false, 'MQTT does not connect with only the default username');
 
     await page.locator('[data-mqtt-setup]').click();
     check(await page.locator('#mqttSetupForm').count() === 1, 'Credential modal opens');
@@ -110,6 +125,12 @@ async function main() {
     const incompleteContext = await browser.newContext();
     const incompletePage = await incompleteContext.newPage();
     await incompletePage.goto(`http://${HOST}:${PORT}/settings.html`, { waitUntil: 'networkidle' });
+    const isolatedState = await incompletePage.evaluate(() => ({
+      hasCredentials: window.mqttHandler?.hasCredentials?.(),
+      password: sessionStorage.getItem('smartfarm.mqtt.password'),
+      connected: window.APP_STATE?.mqttConnected
+    }));
+    check(isolatedState.hasCredentials === false && isolatedState.password === null && isolatedState.connected === false, 'Session-only credentials are isolated from a new browser context');
     await incompletePage.locator('[data-mqtt-setup]').click();
     await incompletePage.locator('#mqttUsername').fill(TEST_USER);
     await incompletePage.locator('#mqttSetupForm').dispatchEvent('submit');
