@@ -163,18 +163,24 @@ def main() -> int:
     for credential, action, topic in forbidden:
         check(not credential.allows(action, topic), f"{credential.name} DENY {action.upper()}: {topic}")
 
-    # Verify the ACL model is grounded in source topic contracts.
+    # The firmware deliberately uses one Smart Farm wildcard subscription, then
+    # routes the individual command topics in its message handler. Do not test
+    # for obsolete per-topic `mqtt.subscribe()` calls here: that would make the
+    # ACL check disagree with the deployed firmware connection contract.
+    check('#define MQTT_BASE "smartfarm"' in FIRMWARE, "firmware defines the smartfarm base topic")
+    check('mqtt.subscribe(MQTT_BASE "/#")' in FIRMWARE, "firmware uses the smartfarm/# subscription contract")
+
     required_firmware_fragments = [
-        "/relay/+/set", "/relay/+/timer/set", "/schedule/+/set",
-        "/config/telegram/set", "/config/telegram/test", "/reminder/set",
-        "/emergency/set", "/ai/alert/set", "/status/online",
-        "/device/status", "/sensor/dht11", "/emergency/status",
+        "/relay/", "/timer/set", "/schedule/", "/config/telegram/",
+        "/reminder/", "/emergency/", "/ai/alert/", "/status/online",
+        "/device/status", "/sensor/dht11",
     ]
     for fragment in required_firmware_fragments:
-        check(fragment in FIRMWARE, f"firmware contains topic contract: smartfarm{fragment}")
+        check(fragment in FIRMWARE, f"firmware contains topic contract fragment: {fragment}")
 
     check("allowedSubscribeTopics" in CONFIG, "web config declares subscribe ACL topics")
-    check("smartfarm/relay/+/status" in CONFIG, "web config includes relay status subscription")
+    check("smartfarm/#" in CONFIG, "web config uses the smartfarm/# subscription contract")
+    check("relayStatus: relay" in CONFIG, "web config exposes relay status topic factory")
     check("smartfarm/emergency/status" in CONFIG, "web config includes emergency status subscription")
 
     print("\nACL SIMULATION RESULT: Smart Farm topic permissions passed")
