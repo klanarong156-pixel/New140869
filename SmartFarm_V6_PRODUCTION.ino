@@ -1892,6 +1892,33 @@ void setupOtaHttpServer() {
   Serial.println(F("/"));
 }
 
+void clearSavedWifiSettings(const __FlashStringHelper *source) {
+  Serial.print(source);
+  Serial.println(F("; clearing saved Wi-Fi settings"));
+  mqtt.disconnect();
+  WiFiManager wm;
+  wm.resetSettings();
+  WiFi.disconnect(true);
+  delay(500);
+  ESP.restart();
+}
+
+bool resetWifiIfButtonHeldAtBoot() {
+  if (digitalRead(WIFI_RESET_BUTTON) != LOW) return false;
+  Serial.println(F("WiFi reset button detected at boot; hold for 5 seconds"));
+  uint32_t startedAt = millis();
+  while (digitalRead(WIFI_RESET_BUTTON) == LOW) {
+    if ((uint32_t)(millis() - startedAt) >= WIFI_RESET_HOLD_MS) {
+      clearSavedWifiSettings(F("BOOT WiFi reset confirmed"));
+      return true;
+    }
+    delay(25);
+    yield();
+  }
+  Serial.println(F("WiFi reset cancelled before 5 seconds"));
+  return false;
+}
+
 void handleWifiResetButton() {
   const bool pressed = digitalRead(WIFI_RESET_BUTTON) == LOW;
 
@@ -1912,13 +1939,7 @@ void handleWifiResetButton() {
   if ((uint32_t)(millis() - wifiResetStartedAt) < WIFI_RESET_HOLD_MS)
     return;
 
-  Serial.println(F("WiFi reset confirmed; clearing saved WiFi settings"));
-  mqtt.disconnect();
-  WiFiManager wm;
-  wm.resetSettings();
-  WiFi.disconnect(true);
-  delay(500);
-  ESP.restart();
+  clearSavedWifiSettings(F("WiFi reset confirmed"));
 }
 
 void handleSerialCommands() {
@@ -1926,19 +1947,13 @@ void handleSerialCommands() {
   String command = Serial.readStringUntil('\n');
   command.trim();
   command.toUpperCase();
-  if (command == "RESET_WIFI") {
-    Serial.println(F("SERIAL: RESET_WIFI received; clearing saved Wi-Fi settings"));
-    mqtt.disconnect();
-    WiFiManager wm;
-    wm.resetSettings();
-    WiFi.disconnect(true);
-    delay(500);
-    ESP.restart();
+  if (command == "RESET_WIFI" || command == "RESET WIFI" || command == "WIFI_RESET") {
+    clearSavedWifiSettings(F("SERIAL WiFi reset received"));
   } else if (command == "OPEN_AP") {
     Serial.println(F("SERIAL: OPEN_AP received; opening SmartFarm_Setup"));
     openMqttSetupPortal();
   } else {
-    Serial.println(F("SERIAL: commands are RESET_WIFI or OPEN_AP"));
+    Serial.println(F("SERIAL: commands are RESET_WIFI, RESET WIFI, WIFI_RESET or OPEN_AP"));
   }
 }
 
@@ -1947,6 +1962,8 @@ void setupWifi() {
   // Keep the selected Wi-Fi credentials in flash across power cycles.
   WiFi.setAutoReconnect(true);
   WiFi.persistent(true);
+  pinMode(WIFI_RESET_BUTTON, INPUT_PULLUP);
+  resetWifiIfButtonHeldAtBoot();
   WiFiManager wm;
   wm.setConfigPortalTimeout(WIFI_PORTAL_TIMEOUT_SECONDS);
   loadSecrets();
