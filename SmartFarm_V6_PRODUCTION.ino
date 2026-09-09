@@ -42,7 +42,8 @@ struct ScheduleSlot;
 #define WIFI_RESET_BUTTON D1
 
 const uint32_t WIFI_RESET_HOLD_MS = 5000UL;
-// Temporary recovery mode: keep SmartFarm_Setup open until Wi-Fi is saved.
+// First boot opens SmartFarm_Setup; WiFiManager saves the selected SSID and
+// password in ESP8266 flash so later boots reconnect to the saved network.
 const uint16_t WIFI_PORTAL_TIMEOUT_SECONDS = 0;
 const uint32_t MQTT_RECONNECT_MS = 5000UL;
 const uint32_t SENSOR_INTERVAL_MS = 30000UL;
@@ -1943,6 +1944,7 @@ void handleSerialCommands() {
 
 void setupWifi() {
   WiFi.mode(WIFI_STA);
+  // Keep the selected Wi-Fi credentials in flash across power cycles.
   WiFi.setAutoReconnect(true);
   WiFi.persistent(true);
   WiFiManager wm;
@@ -1960,7 +1962,7 @@ void setupWifi() {
   wm.addParameter(&pTelegramToken);
   wm.addParameter(&pTelegramChat);
   wm.addParameter(&pName);
-  Serial.println(F("WiFiManager: connecting to saved AP..."));
+  Serial.println(F("WiFiManager: connecting to saved AP (credentials persist in flash)..."));
   if (!wm.autoConnect("SmartFarm_Setup")) {
     Serial.println(F("WiFiManager portal failed - restarting"));
     delay(100);
