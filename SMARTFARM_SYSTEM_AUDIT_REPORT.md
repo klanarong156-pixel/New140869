@@ -100,8 +100,7 @@ Firmware คอมไพล์ผ่านสำหรับ `esp8266:esp8266:no
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `SmartFarm_V6_PRODUCTION.ino` | source firmware รุ่นตรวจสอบล่าสุด |
-| `SmartFarm_V6_PRODUCTION.ino` | ต้อง compile ใหม่ก่อนใช้เป็น binary สำหรับ HTTP OTA |
+| `SmartFarm_V6_PRODUCTION1.ino` | source firmware รุ่นตรวจสอบล่าสุด และต้อง compile ใหม่ก่อนใช้เป็น binary สำหรับ HTTP OTA |
 | `SMARTFARM_SYSTEM_AUDIT_REPORT.md` | รายงานฉบับนี้ |
 | `dashboard-smoke-test.mjs` | smoke test contract ของ Dashboard |
 | `ota.html` | หน้า OTA แบบ browser upload รุ่นปรับปรุง |

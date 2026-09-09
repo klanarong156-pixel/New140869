@@ -11,7 +11,7 @@ Current source changes requiring validation
 - Dashboard pin-map content was aligned to the current firmware: DHT11=D2, DS3231 SDA=D3, DS3231 SCL=D4, relays D5–D8.
 
 Required validation before production use
-1. Compile SmartFarm_V6_PRODUCTION.ino for esp8266:esp8266:nodemcuv2 with the project libraries.
+1. Compile SmartFarm_V6_PRODUCTION1.ino for esp8266:esp8266:nodemcuv2 with the project libraries.
 2. Flash a test NodeMCU and verify boot state: all relays are OFF.
 3. Verify MQTT connect, retained relay/timer/schedule/emergency statuses, and DHT11 heartbeat.
 4. Verify all four schedule slots for every relay when the local clock is valid, including an overnight slot.

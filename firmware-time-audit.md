@@ -6,4 +6,4 @@
 - `currentDateString()` และ heartbeat ใช้ RTC ก่อน แล้ว fallback ไป NTP เช่นเดียวกัน
 - `setup()` เรียก `ntp.begin()` ก่อนซิงค์ และ `loop()` เรียก `ntp.update()` กับ `syncRTCFromNTP(false)` เมื่อ Wi-Fi เชื่อมต่อ
 - จุดที่ควรปรับปรุงคือเพิ่มความชัดเจนของสถานะ NTP ว่าเคย sync สำเร็จแล้วหรือไม่, เพิ่ม NTP server สำรอง, ไม่ถือค่า `getEpochTime()` ที่อาจเป็นค่าเก่าหรือยังไม่ sync ว่าเป็นเวลาปัจจุบันโดยอัตโนมัติ และรายงานสถานะ clock source ใน heartbeat ให้หน้าเว็บแยกได้ชัดเจน
-- โค้ดมีไฟล์ `SmartFarm_V6_PRODUCTION.ino` และระบบทดสอบเชิง static/regression แต่ไม่พบ PlatformIO/Arduino CLI ใน repo สำหรับคอมไพล์จริงภายใน sandbox
+- โค้ดมีไฟล์ `SmartFarm_V6_PRODUCTION1.ino` และระบบทดสอบเชิง static/regression แต่ไม่พบ PlatformIO/Arduino CLI ใน repo สำหรับคอมไพล์จริงภายใน sandbox

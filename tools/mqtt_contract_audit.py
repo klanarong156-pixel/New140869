@@ -1,7 +1,7 @@
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-firmware = (root / 'SmartFarm_V6_PRODUCTION.ino').read_text()
+firmware = (root / 'SmartFarm_V6_PRODUCTION1.ino').read_text()
 config = (root / 'config.js').read_text()
 app = (root / 'app.js').read_text()
 handler = (root / 'mqtt-handler.js').read_text()

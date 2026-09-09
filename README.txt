@@ -22,7 +22,7 @@ SmartFarm เป็นระบบควบคุมฟาร์มที่ป�
 
 ## บอร์ดและ Pin map
 
-แหล่งอ้างอิงหลักของการต่อบอร์ดอยู่ที่ [`BOARD_REFERENCE.md`](BOARD_REFERENCE.md) และต้องสอดคล้องกับ `SmartFarm_V6_PRODUCTION.ino` กับ `config.js`
+แหล่งอ้างอิงหลักของการต่อบอร์ดอยู่ที่ [`BOARD_REFERENCE.md`](BOARD_REFERENCE.md) และต้องสอดคล้องกับ `SmartFarm_V6_PRODUCTION1.ino` กับ `config.js`
 
 | อุปกรณ์ | NodeMCU | GPIO/ADC | พฤติกรรม |
 |---|---|---:|---|
@@ -121,7 +121,7 @@ MQTT username/password ของ Dashboard ต้องกรอกโดยผ�
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `SmartFarm_V6_PRODUCTION.ino` | Firmware หลักของ ESP8266 |
+| `SmartFarm_V6_PRODUCTION1.ino` | Firmware หลักของ ESP8266 |
 | `config.js` | MQTT config, topics, pins, relay names และ APP_STATE |
 | `app.js` | Dashboard lifecycle, MQTT UI และสถานะหลัก |
 | `farm-analytics.js` | telemetry, relay runtime, ค่าไฟ และประวัติการใช้งาน |

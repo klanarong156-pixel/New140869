@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FIRMWARE = (ROOT / "SmartFarm_V6_PRODUCTION.ino").read_text()
+FIRMWARE = (ROOT / "SmartFarm_V6_PRODUCTION1.ino").read_text()
 CONFIG = (ROOT / "config.js").read_text()
 
 RELAYS = ("pump", "zone1", "lighthome", "lightsala")

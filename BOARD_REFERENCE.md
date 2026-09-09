@@ -2,7 +2,7 @@
 
 เอกสารนี้เป็น **แหล่งอ้างอิงกลางของบอร์ด** สำหรับ SmartFarm และต้องปรับพร้อมเฟิร์มแวร์ทุกครั้งที่มีการเปลี่ยนขา, รีเลย์, เซนเซอร์ หรือ MQTT contract
 
-> Source of truth: `SmartFarm_V6_PRODUCTION.ino` และ `config.js`
+> Source of truth: `SmartFarm_V6_PRODUCTION1.ino` และ `config.js`
 
 ## ภาพรวมบอร์ด
 
@@ -77,6 +77,6 @@
 
 ## การแก้ไขเอกสารครั้งต่อไป
 
-เมื่อเปลี่ยน pin หรืออุปกรณ์ ให้แก้ตามลำดับ: `SmartFarm_V6_PRODUCTION.ino` → `config.js` (`HARDWARE_PINS`/topics) → `settings.html` Pin map → เอกสารนี้ → `dashboard-smoke-test.mjs` จากนั้นรัน syntax check และ smoke test ก่อน commit
+เมื่อเปลี่ยน pin หรืออุปกรณ์ ให้แก้ตามลำดับ: `SmartFarm_V6_PRODUCTION1.ino` → `config.js` (`HARDWARE_PINS`/topics) → `settings.html` Pin map → เอกสารนี้ → `dashboard-smoke-test.mjs` จากนั้นรัน syntax check และ smoke test ก่อน commit
 
 ไม่ควรใส่ MQTT password, OTA password, Telegram Bot Token หรือ secret ใด ๆ ในเอกสารหรือ repository

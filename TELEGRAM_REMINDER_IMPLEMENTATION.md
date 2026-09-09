@@ -60,8 +60,8 @@ ESP8266 รองรับรายการ reminder สูงสุด 8 ง�
 
 ## ไฟล์ที่เพิ่มหรือแก้
 
-ส่วน UI อยู่ใน `index.html`, `schedule.html`, `settings.html` และ `app.css` ส่วน logic หน้าเว็บอยู่ใน `crop-reminders.js`, `crop-plots.js`, `farm-analytics.js` และ `farm-tools.js` ส่วน connection bridge อยู่ใน `mqtt-shared-worker.js` ส่วน scheduler และ Telegram delivery อยู่ใน `SmartFarm_V6_PRODUCTION.ino` และ contract อยู่ใน `MQTT_CONTRACT_V6.md`
+ส่วน UI อยู่ใน `index.html`, `schedule.html`, `settings.html` และ `app.css` ส่วน logic หน้าเว็บอยู่ใน `crop-reminders.js`, `crop-plots.js`, `farm-analytics.js` และ `farm-tools.js` ส่วน connection bridge อยู่ใน `mqtt-shared-worker.js` ส่วน scheduler และ Telegram delivery อยู่ใน `SmartFarm_V6_PRODUCTION1.ino` และ contract อยู่ใน `MQTT_CONTRACT_V6.md`
 
 การสำรองข้อมูลจากหน้า **ตั้งค่า** จะเก็บข้อมูลรอบปลูก งานเตือน แปลง และ analytics ที่ไม่เป็นความลับลงไฟล์ JSON โดยจงใจไม่รวม MQTT password, Firebase token, Telegram Bot Token หรือ credential ใด ๆ การนำเข้าจะเขียนกลับ local storage และ Firebase เฉพาะเมื่อผู้ใช้ล็อกอินอยู่
 
-> ก่อนใช้งานจริงต้อง compile และอัปโหลด firmware จาก `SmartFarm_V6_PRODUCTION.ino` ไปยัง ESP8266 ก่อน ระบบหน้าเว็บอย่างเดียวจะยังไม่ทำให้ ESP8266 ส่ง reminder ได้ หลังอัปโหลดให้ทดสอบ Telegram, รีเลย์ และช่วงเงียบกับอุปกรณ์จริง เนื่องจาก static test ไม่สามารถยืนยันการทำงานของปั๊ม/รีเลย์หรือการส่งข้อความผ่านเครือข่ายจริงได้
+> ก่อนใช้งานจริงต้อง compile และอัปโหลด firmware จาก `SmartFarm_V6_PRODUCTION1.ino` ไปยัง ESP8266 ก่อน ระบบหน้าเว็บอย่างเดียวจะยังไม่ทำให้ ESP8266 ส่ง reminder ได้ หลังอัปโหลดให้ทดสอบ Telegram, รีเลย์ และช่วงเงียบกับอุปกรณ์จริง เนื่องจาก static test ไม่สามารถยืนยันการทำงานของปั๊ม/รีเลย์หรือการส่งข้อความผ่านเครือข่ายจริงได้

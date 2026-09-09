@@ -1,6 +1,6 @@
 # Hardware reference · Smart Farm V7.1 Field Stability
 
-ตารางนี้ต้องอ่านร่วมกับ `SmartFarm_V6_PRODUCTION.ino` ซึ่งเป็นแหล่งอ้างอิงของ pin map ที่ใช้งานจริง
+ตารางนี้ต้องอ่านร่วมกับ `SmartFarm_V6_PRODUCTION1.ino` ซึ่งเป็นแหล่งอ้างอิงของ pin map ที่ใช้งานจริง
 
 | Function | NodeMCU | GPIO | Status |
 | --- | --- | ---: | --- |
