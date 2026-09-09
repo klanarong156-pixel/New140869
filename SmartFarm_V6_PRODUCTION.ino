@@ -44,7 +44,8 @@ struct ScheduleSlot;
 const uint32_t WIFI_RESET_HOLD_MS = 5000UL;
 // First boot opens SmartFarm_Setup; WiFiManager saves the selected SSID and
 // password in ESP8266 flash so later boots reconnect to the saved network.
-const uint16_t WIFI_PORTAL_TIMEOUT_SECONDS = 0;
+// Close the portal after three minutes when no setup is completed.
+const uint16_t WIFI_PORTAL_TIMEOUT_SECONDS = 180;
 const uint32_t MQTT_RECONNECT_MS = 5000UL;
 const uint32_t SENSOR_INTERVAL_MS = 30000UL;
 const uint32_t HEARTBEAT_INTERVAL_MS = 10000UL;
