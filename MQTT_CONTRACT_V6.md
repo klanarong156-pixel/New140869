@@ -1,4 +1,4 @@
-# Smart Farm V7.1 MQTT contract
+# Smart Farm V7.1 / MQTT Contract V1.0 compatibility
 
 เฟิร์มแวร์ `V7.1.0-FIELD-STABILITY` และเว็บแอป V7.1 ใช้ topic ต่อไปนี้
 
@@ -8,7 +8,7 @@
 | Emergency latch | `smartfarm/emergency/set` | `smartfarm/emergency/status` | `EMERGENCY_STOP` or `EMERGENCY_RESET` |
 | Schedule | `smartfarm/schedule/{relay}/set` | `smartfarm/schedule/{relay}/status` | JSON slots or `DELETE` |
 | Presence | — | `smartfarm/status/online` | retained `true` / LWT `false` |
-| Heartbeat | — | `smartfarm/device/status` | device JSON every 10 seconds |
+| Heartbeat | — | `smartfarm/status/device` | device JSON every 10 seconds |
 | Sensor | — | `smartfarm/sensor/dht11` | temperature/humidity JSON |
 | Telegram configuration | `smartfarm/config/telegram/set` | `smartfarm/config/telegram/status` | JSON `{ "botToken": "...", "chatId": "..." }`; status JSON reports `configured` |
 | Telegram test | `smartfarm/config/telegram/test` | — | any payload triggers a test message |
@@ -73,3 +73,7 @@ The dashboard source contains no MQTT username or password. An operator enters c
 > A static web client cannot protect a shared broker credential from a person who can use that credential in a browser. Configure HiveMQ ACLs and rotate any password that was committed in a prior repository revision.
 
 The active hardware time map is DHT11 on D2/GPIO4 and DS3231 I²C on D3/GPIO0 plus D4/GPIO2. Firmware MQTT uses HiveMQ Cloud TLS on port 8883; the current `setInsecure()` configuration encrypts the transport but skips server-certificate validation. At boot, the firmware reports NTP epoch validity. When PubSubClient returns `MQTT_CONNECT_FAILED` (`state=-2`), it additionally reports DNS resolution and a separate TLS/TCP probe so an operator can distinguish network/TLS failure from MQTT authentication failure.
+
+## MQTT Contract V1.0 compatibility additions
+
+The device also publishes retained `smartfarm/status/device` data with `device_id`, `wifi`, `mqtt`, `uptime`, and `rssi`; retained mode status on `smartfarm/mode/status`; real-time Bangkok time on `smartfarm/time`; and validation failures on `smartfarm/system/error`. DHT11 packets include numeric `temperature` and `humidity`, units, and an ISO 8601 timestamp when the clock is valid.

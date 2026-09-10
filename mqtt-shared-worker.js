@@ -100,7 +100,7 @@ function connect(force = false) {
   nextClient.on('message', (topic, message) => {
     if (client !== nextClient) return;
     const payload = message.toString();
-    if (topic === 'smartfarm/device/status') lastDeviceStatus = payload;
+    if (topic === 'smartfarm/status/device') lastDeviceStatus = payload;
     if (topic.startsWith('smartfarm/schedule/') && topic.endsWith('/status'))
       lastScheduleStatuses.set(topic, payload);
     broadcast({ type: 'message', topic, payload });
@@ -133,7 +133,7 @@ self.onconnect = event => {
       connectionConfig = message.config || connectionConfig;
       connectionCredentials = message.credentials || connectionCredentials;
       connect(Boolean(message.force));
-      if (lastDeviceStatus) send(port, { type: 'message', topic: 'smartfarm/device/status', payload: lastDeviceStatus });
+      if (lastDeviceStatus) send(port, { type: 'message', topic: 'smartfarm/status/device', payload: lastDeviceStatus });
       lastScheduleStatuses.forEach((payload, topic) => send(port, { type: 'message', topic, payload }));
       if (client?.connected) send(port, { type: 'connect' });
       return;

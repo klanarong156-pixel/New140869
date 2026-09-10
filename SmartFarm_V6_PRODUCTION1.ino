@@ -78,6 +78,7 @@ uint32_t wifiReconnectRequests = 0, mqttConnectAttempts = 0,
          mqttConnectFailures = 0;
 uint8_t mqttAuthFailures = 0;
 bool mqttPortalOpened = false;
+bool autoMode = true;
 bool mqttConfigReported = false;
 bool otaHttpRestartPending = false;
 unsigned long otaHttpRestartAt = 0;
@@ -318,6 +319,9 @@ static const uint32_t MAX_TIMER_SECONDS = 4294967UL;
 void relaySet(uint8_t i, bool on);
 void publishRelayStatus(uint8_t i);
 void publishEmergencyStatus();
+void publishModeStatus();
+void publishSystemError(const char *code, const char *message);
+void publishTimeStatus();
 bool relayHasSchedule(uint8_t r);
 bool readRtcNow(DateTime &value);
 bool scheduleClockMinutes(uint16_t &minutes);
@@ -1237,6 +1241,45 @@ void publishScheduleStatus(uint8_t r) {
   String t = String(MQTT_BASE) + "/schedule/" + relayNames[r] + "/status";
   mqtt.publish(t.c_str(), out, true);
 }
+void publishModeStatus() {
+  if (!mqtt.connected()) return;
+  mqtt.publish(MQTT_BASE "/mode/status", autoMode ? "AUTO" : "MANUAL", true);
+}
+void publishSystemError(const char *code, const char *message) {
+  if (!mqtt.connected()) return;
+  StaticJsonDocument<256> d;
+  d["code"] = code ? code : "UNKNOWN";
+  d["message"] = message ? message : "Unknown error";
+  String iso = rtcIso();
+  if (iso.length()) d["timestamp"] = iso;
+  char out[256];
+  serializeJson(d, out, sizeof(out));
+  mqtt.publish(MQTT_BASE "/system/error", out, false);
+}
+void publishTimeStatus() {
+  if (!mqtt.connected()) return;
+  String iso = rtcIso();
+  if (!iso.length() && ntpTimeValid) {
+    time_t epoch = ntp.getEpochTime();
+    struct tm *tmv = gmtime(&epoch);
+    if (tmv) {
+      char fallback[32];
+      snprintf(fallback, sizeof(fallback), "%04d-%02d-%02dT%02d:%02d:%02d+07:00",
+               tmv->tm_year + 1900, tmv->tm_mon + 1, tmv->tm_mday,
+               tmv->tm_hour, tmv->tm_min, tmv->tm_sec);
+      iso = fallback;
+    }
+  }
+  if (!iso.length()) return;
+  StaticJsonDocument<192> d;
+  d["date"] = iso.substring(0, 10);
+  d["time"] = iso.substring(11, 19);
+  d["timezone"] = "Asia/Bangkok";
+  d["utc_offset"] = 7;
+  char out[192];
+  serializeJson(d, out, sizeof(out));
+  mqtt.publish(MQTT_BASE "/time", out, false);
+}
 void publishEmergencyStatus() {
   if (!mqtt.connected())
     return;
@@ -1281,8 +1324,11 @@ void publishStatus() {
     publishScheduleStatus(i);
   }
   publishEmergencyStatus();
+  publishModeStatus();
+  publishTimeStatus();
 }
 void applyAutoState(uint16_t now) {
+  if (!autoMode) return;
   if (emergencyLock || otaUpdateInProgress) {
     for (uint8_t i = 0; i < RELAY_COUNT; i++) relaySetRaw(i, false);
     return;
@@ -1460,6 +1506,16 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     Serial.printf("MQTT RX: topic=%s payload=%s\n", t.c_str(), logMsg.c_str());
   }
 
+  if (t == MQTT_BASE "/mode/set") {
+    if (msg.equalsIgnoreCase("AUTO")) autoMode = true;
+    else if (msg.equalsIgnoreCase("MANUAL")) autoMode = false;
+    else {
+      publishSystemError("INVALID_COMMAND", "Invalid mode command");
+      return;
+    }
+    publishModeStatus();
+    return;
+  }
   if (t == MQTT_BASE "/emergency/set") {
     if (msg.equalsIgnoreCase("STOP") || msg.equalsIgnoreCase("EMERGENCY_STOP"))
       engageEmergencyStop("mqtt");
@@ -1524,6 +1580,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     else {
       Serial.printf("MQTT RELAY: invalid payload relay=%s payload=%s\n",
                     n.c_str(), msg.c_str());
+      publishSystemError("INVALID_COMMAND", "Invalid relay command");
       return;
     }
     publishRelayStatus((uint8_t)i);
@@ -2104,12 +2161,16 @@ void publishHeartbeat() {
   if (!mqtt.connected())
     return;
   StaticJsonDocument<512> d;
+  d["device_id"] = deviceName;
   d["online"] = true;
+  d["wifi"] = WiFi.status() == WL_CONNECTED;
+  d["mqtt"] = mqtt.connected();
   d["firmware"] = SMARTFARM_VERSION;
   d["heap"] = ESP.getFreeHeap();
   d["heapMaxBlock"] = ESP.getMaxFreeBlockSize();
   d["heapFrag"] = ESP.getHeapFragmentation();
   d["rssi"] = WiFi.RSSI();
+  d["uptime"] = millis() / 1000UL;
   d["uptimeSec"] = millis() / 1000UL;
   d["resetReason"] = ESP.getResetReason();
   d["wifiReconnects"] = wifiReconnectRequests;
@@ -2139,7 +2200,7 @@ void publishHeartbeat() {
   char out[512];
   serializeJson(d, out, sizeof(out));
   // Retain the latest heartbeat so a freshly opened dashboard can restore RTC time immediately.
-  mqtt.publish(MQTT_BASE "/device/status", out, true);
+  mqtt.publish(MQTT_BASE "/status/device", out, true);
 }
 
 void loop() {
@@ -2178,7 +2239,11 @@ void loop() {
       StaticJsonDocument<160> d;
       d["temperature"] = c;
       d["humidity"] = h;
-      char out[160];
+      d["unit_temperature"] = "C";
+      d["unit_humidity"] = "%";
+      String sensorIso = rtcIso();
+      if (sensorIso.length()) d["timestamp"] = sensorIso;
+      char out[256];
       serializeJson(d, out, sizeof(out));
       mqtt.publish(MQTT_BASE "/sensor/dht11", out, false);
     }

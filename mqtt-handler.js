@@ -456,6 +456,28 @@ class MqttHandler {
       }
       return;
     }
+    if (topic === this.config.topics.modeStatus) {
+      const mode = value.toUpperCase();
+      if (mode === 'AUTO' || mode === 'MANUAL') {
+        this.markDeviceSeen('mode-status');
+        this.dispatch('mode:status', mode);
+      }
+      return;
+    }
+    if (topic === this.config.topics.time) {
+      try {
+        this.dispatch('time:data', JSON.parse(value));
+      } catch (_) { /* Ignore malformed time packet. */ }
+      return;
+    }
+    if (topic === this.config.topics.error) {
+      try {
+        this.dispatch('system:error', JSON.parse(value));
+      } catch (_) {
+        this.dispatch('system:error', { code: 'INVALID_JSON', message: value });
+      }
+      return;
+    }
     if (topic === this.config.topics.emergencyStatus) {
       try {
         const emergency = JSON.parse(value);
