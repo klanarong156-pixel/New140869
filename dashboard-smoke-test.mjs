@@ -64,7 +64,7 @@ const functions = read('functions/index.js');
 const activeJs = files.map(read).join('\\n');
 
 const checks = [
-  ['HiveMQ WSS broker is allowlisted and credentials stay runtime-only', /protocol: 'wss:'/.test(cfg) && /port: 8884/.test(cfg) && /path: '\/mqtt'/.test(cfg) && /MQTT_ALLOWED_BROKER_HOSTS/.test(cfg) && /buildMqttBrokerUrl\(MQTT_BROKER\)/.test(cfg) && /credentialSource: 'browser-storage'/.test(cfg) && /defaultUsername: 'smartfarm-device'/.test(cfg) && !/\b(username|password)\s*:/.test(cfg)],
+  ['HiveMQ WSS broker is allowlisted and credentials stay runtime-only', /protocol: 'wss:'/.test(cfg) && /port: 8884/.test(cfg) && /path: '\/mqtt'/.test(cfg) && /MQTT_ALLOWED_BROKER_HOSTS/.test(cfg) && /buildMqttBrokerUrl\(MQTT_BROKER\)/.test(cfg) && /credentialSource: 'browser-storage'/.test(cfg) && /defaultUsername: 'smartfarm'/.test(cfg) && !/\b(username|password)\s*:/.test(cfg)],
   ['All four relay IDs exist', /pump.*zone1.*lighthome.*lightsala/s.test(cfg)],
   ['Relay set topic exists', /relaySet:.*smartfarm\/relay/.test(cfg)],
   ['Relay timer topic exists', /relayTimerSet: relay =>/.test(cfg)],
@@ -104,7 +104,7 @@ const checks = [
   ['Firmware recovers Wi-Fi and clears stale MQTT socket', /WIFI_RECONNECT_INTERVAL_MS/.test(firmware) && /void maintainWifi\(\)/.test(firmware) && /WiFi\.reconnect\(\)/.test(firmware) && /tls\.stop\(\)/.test(firmware)],
   ['Firmware subscribes with one simple Smart Farm wildcard', /mqtt\.subscribe\(MQTT_BASE "\/#"\)/.test(firmware) && /Subscribe smartfarm\/#/.test(firmware)],
   ['Firmware explains MQTT auth state 4/5 without leaking secrets', /printMqttAuthDiagnosis/.test(firmware) && /MQTT DIAG: authentication\/authorization rejected/.test(firmware) && /password value is never printed/.test(firmware) && /MQTT_CONNECT_UNAUTHORIZED/.test(firmware)],
-  ['Firmware supports smartfarm-device username and stable unique Client ID', /MQTT_RECOMMENDED_USERNAME\[\] = "smartfarm-device"/.test(firmware) && /normalizeMqttUsername/.test(firmware) && /buildMqttClientId/.test(firmware) && /mqtt\.connect\(clientId, mqttUser, mqttPass/.test(firmware)],
+  ['Firmware supports smartfarm username and stable unique Client ID', /MQTT_RECOMMENDED_USERNAME\[\] = "smartfarm"/.test(firmware) && /normalizeMqttUsername/.test(firmware) && /buildMqttClientId/.test(firmware) && /mqtt\.connect\(clientId, mqttUser, mqttPass/.test(firmware)],
   ['Firmware accepts Telegram topics', /config\/telegram\/set/.test(firmware) && /config\/telegram\/test/.test(firmware)],
   ['Firmware accepts reminder topic and persists reminders', /reminder\/set/.test(firmware) && /smartfarm_reminders\.json/.test(firmware) && /runReminders/.test(firmware)],
   ['Firmware validates and rate-limits AI Telegram alerts', /validAiSeverity/.test(firmware) && /strlen\(text\) > 420/.test(firmware) && /duplicate/.test(firmware) && /rate_limited/.test(firmware) && /ai\/alert\/set/.test(firmware)],

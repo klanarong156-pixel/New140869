@@ -9,7 +9,7 @@ Required:
   HIVEMQ_PASSWORD
 
 Optional:
-  HIVEMQ_HOST       default: 650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud
+  HIVEMQ_HOST       default: 25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud
   HIVEMQ_PORT       default: 8884 (HiveMQ WSS)
   HIVEMQ_PATH       default: /mqtt
   HIVEMQ_TOPIC      default: smartfarm/test/connectivity
@@ -31,7 +31,7 @@ except ImportError:
     print("ERROR: missing dependency paho-mqtt; install with: python3 -m pip install --user paho-mqtt", file=sys.stderr)
     raise SystemExit(2)
 
-DEFAULT_HOST = "650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud"
+DEFAULT_HOST = "25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud"
 DEFAULT_PORT = 8884
 DEFAULT_PATH = "/mqtt"
 DEFAULT_TOPIC = "smartfarm/test/connectivity"

@@ -6,7 +6,7 @@
 
 | รายการ | ค่า |
 |---|---|
-| Secure WebSocket URL | `wss://650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud:8884/mqtt` |
+| Secure WebSocket URL | `wss://25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud:8884/mqtt` |
 | Protocol | MQTT over WebSocket with TLS |
 | MQTT base topic | `smartfarm` |
 | Permission ที่ควรใช้ | Subscribe Only |
@@ -34,7 +34,7 @@
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
   const client = mqtt.connect(
-    'wss://650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud:8884/mqtt',
+    'wss://25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud:8884/mqtt',
     {
       username: 'READ_ONLY_USERNAME',
       password: 'READ_ONLY_PASSWORD',

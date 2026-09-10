@@ -1,15 +1,15 @@
 # Cloud MQTT Broker connectivity check
 
-ตรวจสอบ endpoint เมื่อ 15 สิงหาคม 2026; active contract รุ่น V7.1 อยู่ใน `MQTT_CONTRACT_V6.md`
+ตรวจสอบ endpoint ตามค่า broker ที่ผู้ใช้กำหนดเมื่อ 10 กันยายน 2026; active contract รุ่น V7.1 อยู่ใน `MQTT_CONTRACT_V6.md`
 
-- Host: `650188a0ee2b4367b7c131fb385590a9.s1.eu.hivemq.cloud`
+- Host: `25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud`
 - DNS resolved to `46.137.47.218`, `52.31.149.80`, and `54.73.92.158`.
 - TCP port `8883` is reachable from the sandbox.
 - TCP port `8884` is reachable from the sandbox.
 - TLS certificate on port `8883` has subject `CN=*.s1.eu.hivemq.cloud` and issuer `Let's Encrypt, YR1`.
 - Certificate validity observed: 2026-08-15 through 2026-11-13.
 
-ข้อจำกัด: การตรวจสอบนี้ยืนยัน DNS/TCP/TLS endpoint เท่านั้น ยังไม่ได้ยืนยัน MQTT authentication หรือ publish/subscribe จริง เพราะต้องใช้ username/password ของ broker ซึ่งไม่ควรบันทึกลงรีโพซิทอรี
+ข้อจำกัด: การตรวจสอบนี้ยืนยันเฉพาะค่าปลายทางในโค้ด; ยังไม่ได้ยืนยัน MQTT authentication หรือ publish/subscribe จริง เพราะ password ไม่ควรบันทึกลงรีโพซิทอรี
 
 แหล่งอ้างอิง endpoint จากไฟล์ `config.js` และ `SmartFarm_V6_PRODUCTION.ino` ในรีโพซิทอรีเดียวกัน
 

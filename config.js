@@ -1,12 +1,12 @@
 const MQTT_BROKER = Object.freeze({
   protocol: 'wss:',
-  host: '650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud',
+  host: '25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud',
   port: 8884,
   path: '/mqtt'
 });
 
 const MQTT_ALLOWED_BROKER_HOSTS = Object.freeze([
-  '650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud'
+  '25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud'
 ]);
 
 function buildMqttBrokerUrl(broker) {
@@ -23,7 +23,7 @@ const MQTT_CONFIG = Object.freeze({
   broker: MQTT_BROKER,
   url: buildMqttBrokerUrl(MQTT_BROKER),
   credentialSource: 'browser-storage',
-  defaultUsername: 'smartfarm-device',
+  defaultUsername: 'smartfarm',
   clientId: `SmartFarmWeb-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`,
   topics: Object.freeze({
     relaySet: relay => `smartfarm/relay/${relay}/set`,

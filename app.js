@@ -242,7 +242,7 @@
     const username = field('MQTT username', 'mqttUsername', 'text', 'username');
     const password = field('MQTT password', 'mqttPassword', 'password', 'current-password');
     username.input.value = String(credentials.username || MQTT_CONFIG.defaultUsername || '').trim();
-    username.input.placeholder = 'smartfarm-device';
+    username.input.placeholder = 'smartfarm';
     password.input.placeholder = 'กรอกรหัสผ่าน MQTT';
     const validation = document.createElement('p');
     validation.className = 'helper';

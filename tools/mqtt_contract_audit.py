@@ -8,7 +8,7 @@ handler = (root / 'mqtt-handler.js').read_text()
 contract = (root / 'MQTT_CONTRACT_V6.md').read_text()
 
 checks = {
-    'broker hostname': '650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud' in firmware and '650188a0e2b4367b7c131fb385590a9.s1.eu.hivemq.cloud' in config,
+    'broker hostname': '25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud' in firmware and '25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud' in config,
     'TLS ports': '#define MQTT_PORT 8883' in firmware and "port: 8884" in config and "path: '/mqtt'" in config,
     'base topic': '#define MQTT_BASE "smartfarm"' in firmware and "smartfarm/" in config,
     'simple wildcard subscription': "allowedSubscribeTopics: Object.freeze(['smartfarm/#'])" in config and 'mqtt.subscribe(MQTT_BASE "/#")' in firmware,

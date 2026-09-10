@@ -111,7 +111,7 @@ def check(condition: bool, message: str) -> None:
 
 def main() -> int:
     device = SimulatedCredential(
-        "smartfarm-device",
+        "smartfarm",
         (
             Permission("subscribe", "smartfarm/relay/+/set"),
             Permission("subscribe", "smartfarm/relay/+/timer/set"),
@@ -173,7 +173,7 @@ def main() -> int:
     required_firmware_fragments = [
         "/relay/", "/timer/set", "/schedule/", "/config/telegram/",
         "/reminder/", "/emergency/", "/ai/alert/", "/status/online",
-        "/device/status", "/sensor/dht11",
+        "status/device", "/sensor/dht11",
     ]
     for fragment in required_firmware_fragments:
         check(fragment in FIRMWARE, f"firmware contains topic contract fragment: {fragment}")
