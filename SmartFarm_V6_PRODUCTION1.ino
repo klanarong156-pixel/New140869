@@ -1526,8 +1526,10 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     return;
   }
   if (t == MQTT_BASE "/config/telegram/set") {
-    if (!handleTelegramConfig(msg))
+    if (!handleTelegramConfig(msg)) {
       Serial.println(F("Telegram CONFIG: invalid payload"));
+      publishSystemError("INVALID_JSON", "Invalid Telegram configuration");
+    }
     return;
   }
   if (t == MQTT_BASE "/config/telegram/test") {
@@ -1543,6 +1545,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     if (!handleReminderMessage(msg)) {
       Serial.println(F("Reminder: invalid payload"));
       publishReminderStatus("error", -1, "invalid payload");
+      publishSystemError("INVALID_JSON", "Invalid reminder payload");
     }
     return;
   }
@@ -1560,6 +1563,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     if (!valid || !startRelayTimer((uint8_t)i, seconds, unlimited)) {
       Serial.printf("MQTT TIMER: rejected relay=%s payload=%s\n", n.c_str(), msg.c_str());
       publishRelayTimerStatus((uint8_t)i);
+      publishSystemError("INVALID_COMMAND", "Invalid relay timer command");
       return;
     }
     Serial.printf("MQTT TIMER: relay=%s seconds=%lu unlimited=%s\n", n.c_str(),
@@ -1601,11 +1605,14 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       for (uint8_t s = 0; s < SLOT_COUNT; s++)
         schedules[r][s] = {false, 0, 0, 0, 0};
     } else {
-      if (deserializeJson(d, msg))
+      if (deserializeJson(d, msg)) {
+        publishSystemError("INVALID_JSON", "Invalid schedule JSON");
         return;
+      }
       JsonArray slots = d["slots"].as<JsonArray>();
       if (slots.isNull() || slots.size() > SLOT_COUNT) {
         Serial.printf("Schedule: rejected relay=%s reason=slot-count\n", relayNames[r]);
+        publishSystemError("SCHEDULE_ERROR", "Invalid schedule slot count");
         queueTelegram(String("ปฏิเสธตารางของรีเลย์ ") + relayNames[r] + " เนื่องจากจำนวนช่วงเวลาไม่ถูกต้อง");
         return;
       }
@@ -2161,7 +2168,7 @@ void publishHeartbeat() {
   if (!mqtt.connected())
     return;
   StaticJsonDocument<512> d;
-  d["device_id"] = deviceName;
+  d["device_id"] = deviceName[0] ? deviceName : "esp8266-01";
   d["online"] = true;
   d["wifi"] = WiFi.status() == WL_CONNECTED;
   d["mqtt"] = mqtt.connected();
