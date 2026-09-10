@@ -158,6 +158,11 @@ select option { color:#102219; background:#eaf7ee; }
 .notice.success { border-color:rgba(90,218,138,.28); background:rgba(62,190,105,.10); color:#b7e9c9; }
 .notice.warning { border-color:rgba(255,205,110,.29); background:rgba(255,198,90,.09); color:#ffe0a7; }
 .notice.danger { border-color:rgba(255,129,146,.30); background:rgba(255,129,146,.09); color:#ffbfc8; }
+.health-alarm-center { display:grid; gap:3px; margin:0 0 14px; padding:12px 13px; border:1px solid var(--line); border-radius:13px; background:rgba(255,255,255,.035); color:var(--muted); font-size:13px; }
+.health-alarm-center strong { color:var(--text); }
+.health-alarm-center.success { border-color:rgba(90,218,138,.28); background:rgba(62,190,105,.10); color:#b7e9c9; }
+.health-alarm-center.warning { border-color:rgba(255,205,110,.29); background:rgba(255,198,90,.09); color:#ffe0a7; }
+.health-alarm-center.danger { border-color:rgba(255,129,146,.30); background:rgba(255,129,146,.09); color:#ffbfc8; }
 
 .mode-switch { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:6px; border:1px solid var(--line); border-radius:16px; background:rgba(2,14,8,.30); }
 .mode-switch .btn { min-height:46px; }

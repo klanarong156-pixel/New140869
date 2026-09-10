@@ -255,6 +255,36 @@
     });
   }
 
+  function renderHealthAlarm(device) {
+    const panel = $('systemAlarmCenter');
+    const summary = $('systemAlarmSummary');
+    if (!panel || !summary) return;
+    const alarms = [];
+    const heap = Number(device.freeHeap ?? device.heap);
+    const frag = Number(device.heapFrag);
+    const rssi = Number(device.rssi);
+    const sensorAge = Number(device.sensorAgeSec);
+    const mqttFailures = Number(device.mqttFailures) || 0;
+    if (!state.lastSeenAt) alarms.push('ยังไม่มี heartbeat จาก ESP8266');
+    else if (!state.esp) alarms.push('ESP8266 ออฟไลน์หรือ heartbeat ขาดหาย');
+    if (!state.mqtt) alarms.push('MQTT Dashboard ไม่ได้เชื่อมต่อ');
+    if (Number.isFinite(rssi) && rssi <= -80) alarms.push(`Wi‑Fi RSSI ต่ำ (${rssi} dBm)`);
+    if (Number.isFinite(heap) && heap < 12000) alarms.push(`Free heap ต่ำ (${heap} bytes)`);
+    if (Number.isFinite(frag) && frag >= 35) alarms.push(`Heap fragmentation สูง (${frag}%)`);
+    if (Number.isFinite(sensorAge) && sensorAge > 90) alarms.push(`DHT11 ไม่มีข้อมูล ${Math.round(sensorAge)} วินาที`);
+    if (mqttFailures >= 5) alarms.push(`MQTT reconnect failure สะสม ${mqttFailures} ครั้ง`);
+    if (device.emergencyLock === true) alarms.push('Emergency Stop กำลังล็อกระบบ');
+    panel.classList.remove('success', 'warning', 'danger');
+    if (alarms.some(item => item.includes('Emergency') || item.includes('ออฟไลน์'))) {
+      panel.classList.add('danger');
+    } else if (alarms.length) {
+      panel.classList.add('warning');
+    } else {
+      panel.classList.add('success');
+    }
+    summary.textContent = alarms.length ? alarms.join(' · ') : 'ไม่พบ alarm จาก heartbeat ล่าสุด';
+  }
+
   function renderSystem() {
     const device = state.lastDevice || {};
     setText('systemMqttDetail', state.mqtt ? 'เชื่อมต่อแล้ว' : 'ยังไม่เชื่อมต่อ');
@@ -282,6 +312,7 @@
     const resetReason = device.resetReason ? String(device.resetReason).slice(0, 26) : 'ยังไม่ทราบ';
     setText('systemReconnectDetail', `${resetReason} · Wi‑Fi ${wifiReconnects} · MQTT ${mqttConnects}/${mqttFailures}`);
     setText('systemLastSeen', state.lastSeenAt ? formatTime(state.lastSeenAt) : 'ยังไม่มี heartbeat');
+    renderHealthAlarm(device);
     setText('analyticsUpdatedAt', state.sensors.length ? formatTime(state.sensors.at(-1).at) : 'ยังไม่มีข้อมูล');
   }
 
