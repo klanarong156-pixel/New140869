@@ -373,6 +373,16 @@ footer { color: #898171; }
 .dashboard-page .mqtt-live-panel .mqtt-live-dot { background: #bd6670; box-shadow: 0 0 0 5px rgba(189, 102, 112, .16); }
 .dashboard-page .mqtt-live-panel.online .mqtt-live-dot { background: #b9d9b6; box-shadow: 0 0 0 5px rgba(185, 217, 182, .16); }
 .dashboard-page .mqtt-live-panel.warning .mqtt-live-dot { background: #e0ad55; box-shadow: 0 0 0 5px rgba(224, 173, 85, .16); }
+.dashboard-page .mqtt-command-status {
+  margin: 5px 0 0;
+  color: rgba(255, 248, 234, .58);
+  font: 500 10px/1.35 "DM Mono", monospace;
+}
+.dashboard-page .mqtt-command-status[data-state="pending"],
+.dashboard-page .mqtt-command-status[data-state="queued"] { color: #e0ad55; }
+.dashboard-page .mqtt-command-status[data-state="acknowledged"] { color: #b9d9b6; }
+.dashboard-page .mqtt-command-status[data-state="blocked"],
+.dashboard-page .mqtt-command-status[data-state="error"] { color: #e6a297; }
 
 .dashboard-page #control {
   padding: 20px;

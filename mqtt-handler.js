@@ -28,6 +28,27 @@ class MqttHandler {
     return String(error?.message || error?.reason || error || fallback);
   }
 
+  isImportantCommand(topic) {
+    return /^(?:smartfarm\/relay\/[^/]+\/(?:set|timer\/set)|smartfarm\/schedule\/[^/]+\/set|smartfarm\/(?:emergency|mode)\/set|smartfarm\/config\/telegram\/(?:set|test)|smartfarm\/reminder\/set|smartfarm\/ai\/alert\/set)$/.test(String(topic || ''));
+  }
+
+  publishOptions(topic, options = {}) {
+    const important = this.isImportantCommand(topic);
+    return {
+      ...options,
+      qos: important ? 1 : Math.max(0, Math.min(2, Number(options.qos) || 0)),
+      retain: important ? false : Boolean(options.retain)
+    };
+  }
+
+  dispatchCommandStatus(state, detail = {}) {
+    this.dispatch('mqtt:command-status', {
+      state,
+      important: this.isImportantCommand(detail.topic),
+      ...detail
+    });
+  }
+
   publishDirect(topic, payload, options, requestId) {
     if (!this.client?.connected) {
       this.dispatch('mqtt:publish-error', { requestId, topic, error: new Error('MQTT ยังไม่เชื่อมต่อ') });
@@ -36,6 +57,7 @@ class MqttHandler {
     try {
       this.client.publish(topic, payload, options, (error, packet) => {
         if (error) {
+          this.dispatchCommandStatus('error', { requestId, topic, error: this.errorMessage(error) });
           this.dispatch('mqtt:publish-error', {
             requestId,
             topic,
@@ -44,10 +66,12 @@ class MqttHandler {
           });
           return;
         }
+        this.dispatchCommandStatus('acknowledged', { requestId, topic, qos: packet?.qos ?? options?.qos ?? 0 });
         this.dispatch('mqtt:publish-ack', { requestId, topic, packet });
       });
       return true;
     } catch (error) {
+      this.dispatchCommandStatus('error', { requestId, topic, error: this.errorMessage(error) });
       this.dispatch('mqtt:publish-error', { requestId, topic, error });
       return false;
     }
@@ -239,10 +263,12 @@ class MqttHandler {
       return;
     }
     if (message.type === 'publish-ack') {
+      this.dispatchCommandStatus('acknowledged', { requestId: message.requestId, topic: message.topic, qos: message.packet?.qos ?? 0 });
       this.dispatch('mqtt:publish-ack', { requestId: message.requestId, topic: message.topic, packet: message.packet });
       return;
     }
     if (message.type === 'publish-error' || message.type === 'publish-failed') {
+      this.dispatchCommandStatus('error', { requestId: message.requestId, topic: message.topic, error: message.error || 'MQTT publish failed' });
       this.dispatch('mqtt:publish-error', {
         requestId: message.requestId,
         topic: message.topic,
@@ -387,6 +413,8 @@ class MqttHandler {
   publish(topic, payload, options = {}) {
     if (!topic) return false;
     const requestId = this.nextPublishId();
+    const publishOptions = this.publishOptions(topic, options);
+    const important = this.isImportantCommand(topic);
     const connected = this.usingSharedWorker ? APP_STATE.mqttConnected : Boolean(this.client?.connected);
     if (!connected) {
       if (!this.hasCredentials()) {
@@ -395,19 +423,22 @@ class MqttHandler {
       }
       const isControlCommand = /^(smartfarm\/relay\/|smartfarm\/mode\/set|smartfarm\/schedule\/|smartfarm\/config\/telegram\/|smartfarm\/reminder\/|smartfarm\/ai\/alert\/set)/.test(topic);
       if (isControlCommand) {
+        this.dispatchCommandStatus('blocked', { requestId, topic, qos: publishOptions.qos, reason: 'not-connected' });
         this.dispatch('mqtt:command-blocked', { topic, reason: 'not-connected' });
         this.connect();
         return false;
       }
-      this.pendingPublishes.push({ requestId, topic, payload: String(payload), options, createdAt: Date.now() });
+      this.pendingPublishes.push({ requestId, topic, payload: String(payload), options: publishOptions, createdAt: Date.now() });
+      this.dispatchCommandStatus('queued', { requestId, topic, qos: publishOptions.qos });
       this.connect();
       return true;
     }
+    this.dispatchCommandStatus('pending', { requestId, topic, qos: publishOptions.qos, important });
     if (this.usingSharedWorker) {
-      this.worker?.port.postMessage({ type: 'publish', requestId, topic, payload: String(payload), options });
+      this.worker?.port.postMessage({ type: 'publish', requestId, topic, payload: String(payload), options: publishOptions });
       return true;
     }
-    return this.publishDirect(topic, String(payload), options, requestId);
+    return this.publishDirect(topic, String(payload), publishOptions, requestId);
   }
 
   handleMessage(topic, payload) {

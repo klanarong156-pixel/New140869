@@ -110,6 +110,12 @@ async function main() {
       window.mqttHandler.publish('smartfarm/test/settings-e2e', 'ack-check', { qos: 0, retain: false });
     }));
     check(ack.topic === 'smartfarm/test/settings-e2e' && Boolean(ack.requestId), 'Publish acknowledgement arrives through the primary MQTT client path');
+    const criticalAck = await page.evaluate(async () => new Promise(resolve => {
+      const listener = event => { window.removeEventListener('mqtt:publish-ack', listener); resolve({ topic: event.detail?.topic, qos: event.detail?.packet?.qos, retain: event.detail?.packet?.retain }); };
+      window.addEventListener('mqtt:publish-ack', listener);
+      window.mqttHandler.publish('smartfarm/relay/pump/set', 'ON');
+    }));
+    check(criticalAck.topic === 'smartfarm/relay/pump/set' && criticalAck.qos === 1 && criticalAck.retain === false, 'Critical relay command uses QoS 1 without retain');
     await context.close();
 
     const incompleteContext = await browser.newContext();

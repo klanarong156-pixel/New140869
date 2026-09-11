@@ -394,6 +394,22 @@
       const error = event.detail?.error?.message || String(event.detail?.error || 'MQTT publish failed');
       showToast(`ส่งข้อความ MQTT ไม่สำเร็จ${topic}: ${error}`, 'error');
     });
+    window.addEventListener('mqtt:command-status', event => {
+      const detail = event.detail || {};
+      if (!detail.important) return;
+      const labels = {
+        queued: 'คำสั่งสำคัญรอการเชื่อมต่อ',
+        pending: 'กำลังส่งคำสั่งสำคัญ · รอ broker ยืนยัน',
+        acknowledged: 'ส่งคำสั่งสำคัญสำเร็จ · broker ยืนยันแล้ว',
+        blocked: 'ยังไม่ส่งคำสั่ง · MQTT ยังไม่เชื่อมต่อ',
+        error: `ส่งคำสั่งไม่สำเร็จ${detail.error ? ` · ${detail.error}` : ''}`
+      };
+      const element = document.querySelector('[data-mqtt-command-status]');
+      if (element) {
+        element.textContent = labels[detail.state] || 'สถานะคำสั่ง MQTT';
+        element.dataset.state = detail.state || '';
+      }
+    });
     window.addEventListener('esp:status', event => renderDevice(Boolean(event.detail?.online)));
     window.addEventListener('relay:status', event => {
       const { relay, status } = event.detail || {};
