@@ -17,3 +17,40 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* The compact desktop rule makes relay-timer a two-column grid. On narrow
+   cards that places the opened fields beside the summary and clips content. */
+.dashboard-page #control .relay-timer {
+  display: block;
+}
+
+.dashboard-page #control .relay-timer .timer-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+.dashboard-page #control .relay-timer .timer-input-field,
+.dashboard-page #control .relay-timer .timer-input-wrap,
+.dashboard-page #control .relay-timer .timer-input-wrap input {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 560px) {
+  .dashboard-page #control .relay-timer {
+    width: 100%;
+  }
+
+  .dashboard-page #control .relay-timer .timer-presets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-page #control .relay-timer .timer-presets button,
+  .dashboard-page #control .relay-timer .timer-actions .btn {
+    min-width: 0;
+    width: 100%;
+  }
+}
