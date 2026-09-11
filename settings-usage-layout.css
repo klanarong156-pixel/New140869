@@ -1,0 +1,271 @@
+/* Settings: structured water and energy usage panel */
+.usage-panel {
+  overflow: hidden;
+}
+
+.usage-panel .section-head {
+  align-items: flex-start;
+}
+
+.usage-panel .usage-head-actions {
+  flex: 0 0 auto;
+}
+
+.usage-panel .usage-history-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 14px;
+  margin: 18px 0 8px;
+  padding: 14px;
+  border: 1px solid rgba(35, 119, 93, .18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .42);
+}
+
+.usage-panel .usage-date-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+}
+
+.usage-panel .usage-date-field label,
+.usage-panel .usage-form label {
+  display: grid;
+  gap: 6px;
+  color: #416875;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.usage-panel .usage-date-field > span {
+  padding-bottom: 12px;
+  color: #6d8790;
+  font-size: 12px;
+}
+
+.usage-panel .usage-date-field input,
+.usage-panel .usage-form input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 46px;
+  padding: 9px 12px;
+  border: 1px solid rgba(35, 119, 93, .24);
+  border-radius: 14px;
+  color: #214858;
+  background: rgba(255, 255, 255, .86);
+  font-size: 16px;
+}
+
+.usage-panel .usage-toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.usage-panel .usage-toolbar-actions .btn {
+  min-height: 46px;
+  white-space: nowrap;
+}
+
+.usage-panel .usage-range-status {
+  margin: 8px 2px 14px;
+  color: #58737e;
+  line-height: 1.5;
+}
+
+.usage-panel .usage-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.usage-panel .usage-summary-grid article {
+  min-width: 0;
+  min-height: 116px;
+  padding: 15px;
+  border: 1px solid rgba(35, 119, 93, .16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .58);
+}
+
+.usage-panel .usage-summary-grid span,
+.usage-panel .usage-summary-grid small {
+  display: block;
+  color: #58737e;
+  line-height: 1.45;
+}
+
+.usage-panel .usage-summary-grid strong {
+  display: block;
+  margin: 10px 0 5px;
+  color: #214858;
+  font-size: clamp(21px, 2.2vw, 29px);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.usage-panel .usage-settings {
+  display: grid;
+  grid-template-columns: minmax(190px, .8fr) minmax(0, 2fr);
+  gap: 18px;
+  align-items: start;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(35, 119, 93, .16);
+}
+
+.usage-panel .usage-settings > div:first-child strong {
+  color: #214858;
+  font-size: 18px;
+}
+
+.usage-panel .usage-settings > div:first-child .helper {
+  margin-top: 7px;
+  line-height: 1.55;
+}
+
+.usage-panel .usage-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.usage-panel .usage-form .btn {
+  min-height: 46px;
+  white-space: nowrap;
+}
+
+.usage-panel .usage-settings-status,
+.usage-panel .usage-reset-at {
+  grid-column: 2;
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .usage-panel .usage-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .usage-panel .usage-settings {
+    grid-template-columns: 1fr;
+  }
+
+  .usage-panel .usage-settings-status,
+  .usage-panel .usage-reset-at {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .usage-panel {
+    padding: 15px !important;
+  }
+
+  .usage-panel .section-head {
+    gap: 10px;
+  }
+
+  .usage-panel .section-head h2 {
+    max-width: 72%;
+    font-size: 24px;
+    line-height: 1.25;
+  }
+
+  .usage-panel .usage-head-actions .tag {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .usage-panel .usage-history-toolbar {
+    grid-template-columns: 1fr;
+    gap: 11px;
+    margin-top: 14px;
+    padding: 12px;
+  }
+
+  .usage-panel .usage-date-field {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .usage-panel .usage-date-field input {
+    min-height: 44px;
+    padding-inline: 8px;
+    font-size: 14px;
+  }
+
+  .usage-panel .usage-toolbar-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .usage-panel .usage-toolbar-actions .btn {
+    width: 100%;
+    padding-inline: 8px;
+  }
+
+  .usage-panel .usage-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .usage-panel .usage-summary-grid article {
+    min-height: 104px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .usage-panel .usage-summary-grid span {
+    font-size: 13px;
+  }
+
+  .usage-panel .usage-summary-grid strong {
+    margin-top: 8px;
+    font-size: 20px;
+  }
+
+  .usage-panel .usage-summary-grid small {
+    font-size: 11px;
+  }
+
+  .usage-panel .usage-settings {
+    gap: 12px;
+    margin-top: 15px;
+    padding-top: 15px;
+  }
+
+  .usage-panel .usage-form {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .usage-panel .usage-form .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .usage-panel .section-head {
+    display: block;
+  }
+
+  .usage-panel .section-head h2 {
+    max-width: none;
+  }
+
+  .usage-panel .usage-head-actions {
+    margin-top: 8px;
+  }
+
+  .usage-panel .usage-date-field {
+    grid-template-columns: 1fr;
+  }
+
+  .usage-panel .usage-date-field > span {
+    padding: 0;
+  }
+}
