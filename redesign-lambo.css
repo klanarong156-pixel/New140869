@@ -184,3 +184,140 @@ footer { color: #898171; }
   .card.interactive, .btn { transition: none; }
   .card.interactive:hover, .btn:hover:not(:disabled) { transform: none; }
 }
+
+/* Crop cycle card — featured field notebook layer. */
+.dashboard-page #cropCycleCard {
+  position: relative;
+  overflow: hidden;
+  padding: 22px;
+  border: 1px solid rgba(117, 141, 84, .28);
+  background:
+    linear-gradient(135deg, rgba(255, 251, 239, .97), rgba(238, 231, 211, .92)),
+    repeating-linear-gradient(0deg, transparent 0 25px, rgba(117, 141, 84, .035) 26px);
+  box-shadow: 0 18px 42px rgba(75, 61, 43, .14);
+}
+.dashboard-page #cropCycleCard::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  content: "";
+  background: linear-gradient(90deg, #758d54 0 38%, #bd8d43 38% 68%, #a96148 68%);
+}
+.dashboard-page #cropCycleCard::after {
+  position: absolute;
+  right: -72px;
+  bottom: -98px;
+  width: 250px;
+  height: 250px;
+  content: "";
+  border: 1px solid rgba(117, 141, 84, .24);
+  border-radius: 50%;
+  box-shadow: 0 0 0 22px rgba(117, 141, 84, .045), 0 0 0 44px rgba(117, 141, 84, .03);
+  pointer-events: none;
+}
+.dashboard-page #cropCycleCard .section-head {
+  position: relative;
+  z-index: 1;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+.dashboard-page #cropCycleCard .section-head h2 {
+  font-size: 25px;
+  letter-spacing: -.045em;
+}
+.dashboard-page #cropCycleCard .section-head .kicker { color: #758d54; }
+.dashboard-page #cropCycleCard .section-head .tag {
+  color: #55735b;
+  border-color: rgba(117, 141, 84, .3);
+  background: rgba(117, 141, 84, .1);
+}
+.dashboard-page #cropCycleCard .crop-cycle-summary {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 112px;
+  padding: 14px;
+  border: 1px solid rgba(117, 141, 84, .25);
+  border-radius: 15px;
+  background: rgba(255, 253, 246, .68);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .65);
+}
+.dashboard-page #cropCycleCard .crop-cycle-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(117, 141, 84, .35);
+  border-radius: 50% 50% 45% 45%;
+  color: #758d54;
+  background: linear-gradient(145deg, #f6f0df, #dce7cb);
+  box-shadow: 2px 3px 0 rgba(117, 141, 84, .1), inset 0 1px 0 rgba(255, 255, 255, .7);
+  font-size: 29px;
+}
+.dashboard-page #cropCycleCard .crop-cycle-summary > div:nth-child(2) { min-width: 0; }
+.dashboard-page #cropCycleCard .crop-cycle-summary > div:nth-child(2)::before {
+  display: block;
+  margin-bottom: 5px;
+  content: "CURRENT CROP RECORD";
+  color: #9a8762;
+  font: 500 9px/1 "DM Mono", monospace;
+  letter-spacing: .12em;
+}
+.dashboard-page #cropCycleCard .crop-cycle-summary strong {
+  display: block;
+  overflow: hidden;
+  color: #2f4a35 !important;
+  font: 600 22px/1.2 "Noto Serif Thai", serif;
+  letter-spacing: -.035em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dashboard-page #cropCycleCard .crop-cycle-summary .helper {
+  margin-top: 5px;
+  color: #716c60;
+  font-size: 11px;
+}
+.dashboard-page #cropCycleCard .crop-cycle-age {
+  display: grid;
+  place-items: center;
+  min-width: 82px;
+  min-height: 82px;
+  padding: 8px;
+  border: 1px solid rgba(169, 97, 72, .28);
+  border-radius: 13px;
+  background: #fff1e8;
+  box-shadow: 2px 3px 0 rgba(169, 97, 72, .08);
+  text-align: center;
+}
+.dashboard-page #cropCycleCard .crop-cycle-age strong {
+  color: #a96148 !important;
+  font: 500 32px/1 "DM Mono", monospace;
+  letter-spacing: -.08em;
+}
+.dashboard-page #cropCycleCard .crop-cycle-age small {
+  margin-top: 4px;
+  color: #8c604e;
+  font: 500 10px "DM Mono", monospace;
+  letter-spacing: .08em;
+}
+.dashboard-page #cropCycleCard .btn-row { position: relative; z-index: 1; }
+.dashboard-page #cropCycleCard .btn.secondary {
+  color: #55735b;
+  border-color: rgba(117, 141, 84, .35);
+  background: rgba(255, 253, 246, .72);
+}
+@media (max-width: 640px) {
+  .dashboard-page #cropCycleCard { padding: 15px; }
+  .dashboard-page #cropCycleCard .section-head { margin-bottom: 12px; }
+  .dashboard-page #cropCycleCard .section-head h2 { font-size: 20px; }
+  .dashboard-page #cropCycleCard .crop-cycle-summary { gap: 9px; min-height: 92px; padding: 10px; }
+  .dashboard-page #cropCycleCard .crop-cycle-icon { width: 44px; height: 44px; font-size: 22px; }
+  .dashboard-page #cropCycleCard .crop-cycle-summary > div:nth-child(2)::before { font-size: 8px; }
+  .dashboard-page #cropCycleCard .crop-cycle-summary strong { font-size: 17px; }
+  .dashboard-page #cropCycleCard .crop-cycle-summary .helper { font-size: 9px; }
+  .dashboard-page #cropCycleCard .crop-cycle-age { min-width: 62px; min-height: 62px; }
+  .dashboard-page #cropCycleCard .crop-cycle-age strong { font-size: 24px; }
+}
