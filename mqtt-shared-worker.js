@@ -12,6 +12,7 @@ let lastDeviceStatus = null;
 const lastScheduleStatuses = new Map();
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
+const RECONNECT_JITTER_MS = 700;
 
 function send(port, message) {
   try { port.postMessage(message); } catch (_) { /* A navigated page may have closed its port. */ }
@@ -37,7 +38,8 @@ function subscribeAll() {
 function scheduleReconnect() {
   if (reconnectTimer || !connectionConfig || !connectionCredentials?.username || !connectionCredentials?.password)
     return;
-  const delay = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * (2 ** Math.min(reconnectAttempt, 5)));
+  const exponential = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * (2 ** Math.min(reconnectAttempt, 5)));
+  const delay = exponential + Math.floor(Math.random() * RECONNECT_JITTER_MS);
   reconnectAttempt++;
   reconnectTimer = setTimeout(() => {
     reconnectTimer = null;

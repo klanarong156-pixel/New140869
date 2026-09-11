@@ -81,6 +81,8 @@ const checks = [
   ['Settings validates and saves complete MQTT credentials', /mqttSetupForm/.test(app) && /setCredentials\(username\.input\.value, password\.input\.value, remember\.checked\)/.test(app) && /กรุณากรอก/.test(app) && /submit\.disabled/.test(app) && /validation\.setAttribute\('aria-live', 'polite'\)/.test(app)],
   ['SharedWorker keeps one MQTT connection across pages', /new SharedWorker/.test(handler) && /mqtt-shared-worker\.js/.test(handler) && /importScripts\('mqtt\.min\.js/.test(worker)],
   ['SharedWorker owns bounded reconnect backoff', /RECONNECT_BASE_MS/.test(worker) && /RECONNECT_MAX_MS/.test(worker) && /reconnectPeriod: 0/.test(worker) && /scheduleReconnect/.test(worker)],
+  ['Primary MQTT client owns jittered reconnect backoff', /reconnectBaseMs = 1000/.test(handler) && /reconnectMaxMs = 30000/.test(handler) && /reconnectJitterMs = 700/.test(handler) && /reconnectPeriod: 0/.test(handler) && /scheduleReconnect\(\)/.test(handler)],
+  ['Dashboard exposes important command acknowledgement status', /mqtt:command-status/.test(handler) && /data-mqtt-command-status/.test(index) && /acknowledged/.test(app)],
   ['SharedWorker replays latest device heartbeat', /lastDeviceStatus/.test(worker) && /smartfarm\/status\/device/.test(worker) && /type: 'message'/.test(worker)],
   ['SharedWorker replays latest schedule status', /lastScheduleStatuses/.test(worker) && /smartfarm\/schedule\//.test(worker) && /forEach\(\(payload, topic\)/.test(worker)],
   ['Current app binds relay controls', /\[data-relay-toggle\]/.test(app)],

@@ -8,6 +8,11 @@ class MqttHandler {
     this.pendingPublishes = [];
     this.publishSequence = 0;
     this.lastConnectError = '';
+    this.reconnectTimer = null;
+    this.reconnectAttempt = 0;
+    this.reconnectBaseMs = 1000;
+    this.reconnectMaxMs = 30000;
+    this.reconnectJitterMs = 700;
     this.worker = null;
     this.usingSharedWorker = false;
     this.storageUser = 'smartfarm.mqtt.username';
@@ -47,6 +52,26 @@ class MqttHandler {
       important: this.isImportantCommand(detail.topic),
       ...detail
     });
+  }
+
+  clearReconnectTimer(resetAttempt = false) {
+    if (this.reconnectTimer) window.clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    if (resetAttempt) this.reconnectAttempt = 0;
+  }
+
+  scheduleReconnect() {
+    if (this.reconnectTimer || !this.hasCredentials()) return;
+    const exponential = Math.min(this.reconnectMaxMs, this.reconnectBaseMs * (2 ** Math.min(this.reconnectAttempt, 5)));
+    const jitter = Math.floor(Math.random() * this.reconnectJitterMs);
+    const delay = exponential + jitter;
+    const attempt = this.reconnectAttempt + 1;
+    this.reconnectAttempt = attempt;
+    this.reconnectTimer = window.setTimeout(() => {
+      this.reconnectTimer = null;
+      if (!APP_STATE.mqttConnected && this.hasCredentials()) this.connect(false);
+    }, delay);
+    this.dispatch('mqtt:reconnecting', { delay, attempt });
   }
 
   publishDirect(topic, payload, options, requestId) {
@@ -177,6 +202,7 @@ class MqttHandler {
   }
 
   disconnect() {
+    this.clearReconnectTimer(true);
     clearInterval(this.deviceTimer);
     this.deviceTimer = null;
     if (this.client) {
@@ -230,12 +256,7 @@ class MqttHandler {
       APP_STATE.mqttConnected = false;
       this.connecting = false;
       this.dispatch('mqtt:connected', false);
-      if (this.hasCredentials()) {
-        this.dispatch('mqtt:reconnecting', true);
-        setTimeout(() => {
-          if (!APP_STATE.mqttConnected && this.hasCredentials()) this.connect();
-        }, 50);
-      }
+      if (this.hasCredentials()) this.dispatch('mqtt:reconnecting', true);
       return;
     }
     if (message.type === 'connecting') {
@@ -330,7 +351,7 @@ class MqttHandler {
       this.dispatch('mqtt:credentials-required', { configured: false, status: this.getCredentialStatus() });
       return false;
     }
-    if (!force && (this.client?.connected || this.connecting || (this.usingSharedWorker && APP_STATE.mqttConnected))) return true;
+    if (!force && (this.client?.connected || this.connecting || this.reconnectTimer || (this.usingSharedWorker && APP_STATE.mqttConnected))) return true;
     if (force && (this.client || this.worker)) this.disconnect();
     // Keep the original browser MQTT path as the primary connection method.
     // SharedWorker remains available as a fallback for browsers without mqtt.js.
@@ -348,7 +369,8 @@ class MqttHandler {
         username: credentials.username,
         password: credentials.password,
         clean: true,
-        reconnectPeriod: 5000,
+        // The handler owns reconnect timing so there is only one backoff loop.
+        reconnectPeriod: 0,
         connectTimeout: 30000,
         keepalive: 30
       });
@@ -356,33 +378,43 @@ class MqttHandler {
       this.connecting = false;
       this.lastConnectError = String(error?.message || error || '');
       this.dispatch('mqtt:error', error);
+      this.scheduleReconnect();
       return false;
     }
 
+    const nextClient = this.client;
     this.client.on('connect', () => {
+      if (this.client !== nextClient) return;
       this.connecting = false;
+      this.clearReconnectTimer(true);
       APP_STATE.mqttConnected = true;
       this.dispatch('mqtt:connected', true);
       this.config.allowedSubscribeTopics.forEach(topic => {
-        this.client.subscribe(topic, { qos: 0 }, error => {
+        nextClient.subscribe(topic, { qos: 0 }, error => {
           if (error) this.dispatch('mqtt:subscribe-error', { topic, error: new Error(this.errorMessage(error, 'MQTT subscribe failed')) });
         });
       });
       this.startDeviceWatchdog();
       this.flushPending();
     });
-    this.client.on('message', (topic, message) => this.handleMessage(topic, message.toString()));
+    this.client.on('message', (topic, message) => {
+      if (this.client === nextClient) this.handleMessage(topic, message.toString());
+    });
     this.client.on('close', () => {
+      if (this.client !== nextClient) return;
+      this.client = null;
       APP_STATE.mqttConnected = false;
       this.connecting = false;
       this.dispatch('mqtt:connected', false);
-      if (this.hasCredentials()) this.dispatch('mqtt:reconnecting', true);
+      this.scheduleReconnect();
     });
     this.client.on('reconnect', () => {
+      if (this.client !== nextClient) return;
       this.connecting = true;
       this.dispatch('mqtt:reconnecting', true);
     });
     this.client.on('error', error => {
+      if (this.client !== nextClient) return;
       this.connecting = false;
       this.lastConnectError = String(error?.message || error || '');
       this.dispatch('mqtt:error', error);
