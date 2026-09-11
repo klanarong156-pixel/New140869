@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@500;600;700&display=swap');
+
 /*
  * Smart Farm Dashboard — Contemporary Vintage presentation layer
  * Visual-only: preserves every existing id, data-* hook, form control,
@@ -31,6 +33,7 @@ body {
     radial-gradient(circle at 9% -8%, rgba(185,78,59,.14), transparent 27rem),
     radial-gradient(circle at 96% 4%, rgba(67,101,75,.16), transparent 25rem),
     linear-gradient(135deg, #eee5d4 0%, #e4dac6 100%);
+  font-family: "Noto Sans Thai", sans-serif;
 }
 body::before {
   opacity: .2;
@@ -39,6 +42,9 @@ body::before {
   mask-image: linear-gradient(to bottom, black, transparent 88%);
 }
 .app-shell { padding-bottom: 92px; }
+h1, h2, h3, .brand-copy strong { font-family: "Noto Serif Thai", serif; }
+h1, h2, h3 { font-weight: 600; }
+.kicker, .farm-clock strong, .metric-card small { font-family: "DM Mono", monospace; }
 .topbar { min-height: 82px; }
 .brand { gap: 11px; }
 .brand-symbol {
