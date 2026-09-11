@@ -79,6 +79,13 @@
   function renderRelay(relay, on) {
     $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = Boolean(on); });
     $$(`[data-relay-state="${relay}"]`).forEach(element => { element.textContent = on ? 'กำลังทำงาน' : 'ปิดอยู่'; });
+    $$(`[data-relay-action-label="${relay}"]`).forEach(element => { element.textContent = on ? `หยุด${relayLabel(relay)}` : `เปิด${relayLabel(relay)}`; });
+    $$(`[data-relay-action="${relay}"]`).forEach(button => {
+      button.classList.toggle('is-running', Boolean(on));
+      button.setAttribute('aria-label', on ? `หยุด${relayLabel(relay)}` : `เปิด${relayLabel(relay)}`);
+      const icon = button.querySelector('.context-action-icon');
+      if (icon) icon.textContent = on ? '■' : '↗';
+    });
     $$(`[data-relay-card="${relay}"]`).forEach(card => card.classList.toggle('active', Boolean(on)));
   }
 
@@ -88,11 +95,13 @@
     if (!active) {
       delete relayTimers[relay];
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ยังไม่ได้ตั้งเวลา'; });
+      $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'ตั้งเวลา'; });
       return;
     }
     if (unlimited) {
       delete relayTimers[relay];
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
+      $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       return;
     }
     if (seconds <= 0) {
@@ -106,6 +115,7 @@
         ? `ปิดอัตโนมัติใน ${formatCountdown(state.remaining)}`
         : 'หมดเวลาแล้ว กำลังปิดรีเลย์';
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = text; });
+      $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = text.replace('ปิดอัตโนมัติใน ', ''); });
     };
     paint();
     state.interval = window.setInterval(() => {
@@ -327,6 +337,13 @@
         if (!accepted) input.checked = !input.checked;
       });
     });
+    $$('[data-relay-action]').forEach(button => button.addEventListener('click', () => {
+      const relay = button.dataset.relayAction;
+      const input = document.querySelector(`[data-relay-toggle="${relay}"]`);
+      if (!input) return;
+      input.checked = !input.checked;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }));
     $$('[data-timer-start]').forEach(button => button.addEventListener('click', () => {
       const relay = button.dataset.timerStart;
       const input = document.querySelector(`[data-timer-minutes="${relay}"]`);

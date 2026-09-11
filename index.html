@@ -68,16 +68,82 @@
       </div>
     </section>
 
-    <section class="section" id="control" aria-labelledby="control-title">
-      <div class="section-head"><div><p class="kicker">02 · RELAY CONTROL</p><h2 id="control-title">ควบคุมอุปกรณ์</h2></div><div class="section-head-actions"><button class="btn danger small" type="button" data-emergency-stop>หยุดและล็อก</button><button class="btn secondary small" type="button" data-emergency-reset>ปลดล็อก</button><span class="helper" data-emergency-status>Emergency Stop ปกติ</span></div></div>
-      <div class="grid four">
-        <article class="card control-card" data-relay-card="pump"><div class="control-top"><div class="control-name"><span class="icon icon-pump" aria-hidden="true">💧</span><span><strong>ปั๊มน้ำ</strong></span></div><label class="switch"><input data-relay-toggle="pump" type="checkbox" aria-label="เปิดหรือปิดปั๊มน้ำ"><span></span></label></div><p class="control-state"><b data-relay-state="pump">ปิดอยู่</b></p><div class="relay-timer"><label>ตั้งเวลา (นาที)<input data-timer-minutes="pump" type="number" min="1" max="71582" value="30" inputmode="numeric"><span class="input-suffix">นาที</span><label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="pump"> ไม่จำกัดเวลา</label></label><div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="pump" aria-label="ตั้งเวลา 5 นาที">5</button><button type="button" data-timer-preset="15" data-timer-for="pump" aria-label="ตั้งเวลา 15 นาที">15</button><button type="button" data-timer-preset="30" data-timer-for="pump" aria-label="ตั้งเวลา 30 นาที">30</button></div><div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="pump">เริ่ม</button><button class="btn ghost small" type="button" data-timer-cancel="pump">ยกเลิก</button></div><span data-timer-status="pump" aria-live="polite">ยังไม่ได้ตั้งเวลา</span></div></article>
-        <article class="card control-card" data-relay-card="zone1"><div class="control-top"><div class="control-name"><span class="icon icon-irrigation" aria-hidden="true">🌿</span><span><strong>โซน 1</strong></span></div><label class="switch"><input data-relay-toggle="zone1" type="checkbox" aria-label="เปิดหรือปิดโซน 1"><span></span></label></div><p class="control-state"><b data-relay-state="zone1">ปิดอยู่</b></p><div class="relay-timer"><label>ตั้งเวลา (นาที)<input data-timer-minutes="zone1" type="number" min="1" max="71582" value="15" inputmode="numeric"><span class="input-suffix">นาที</span><label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="zone1"> ไม่จำกัดเวลา</label></label><div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="zone1" aria-label="ตั้งเวลา 5 นาที">5</button><button type="button" data-timer-preset="15" data-timer-for="zone1" aria-label="ตั้งเวลา 15 นาที">15</button><button type="button" data-timer-preset="30" data-timer-for="zone1" aria-label="ตั้งเวลา 30 นาที">30</button></div><div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="zone1">เริ่ม</button><button class="btn ghost small" type="button" data-timer-cancel="zone1">ยกเลิก</button></div><span data-timer-status="zone1" aria-live="polite">ยังไม่ได้ตั้งเวลา</span></div></article>
-        <article class="card control-card" data-relay-card="lighthome"><div class="control-top"><div class="control-name"><span class="icon icon-home" aria-hidden="true">🏠</span><span><strong>ไฟบ้าน</strong></span></div><label class="switch"><input data-relay-toggle="lighthome" type="checkbox" aria-label="เปิดหรือปิดไฟบ้าน"><span></span></label></div><p class="control-state"><b data-relay-state="lighthome">ปิดอยู่</b></p><div class="relay-timer"><label>ตั้งเวลา (นาที)<input data-timer-minutes="lighthome" type="number" min="1" max="71582" value="30" inputmode="numeric"><span class="input-suffix">นาที</span><label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="lighthome"> ไม่จำกัดเวลา</label></label><div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="lighthome" aria-label="ตั้งเวลา 5 นาที">5</button><button type="button" data-timer-preset="15" data-timer-for="lighthome" aria-label="ตั้งเวลา 15 นาที">15</button><button type="button" data-timer-preset="30" data-timer-for="lighthome" aria-label="ตั้งเวลา 30 นาที">30</button></div><div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="lighthome">เริ่ม</button><button class="btn ghost small" type="button" data-timer-cancel="lighthome">ยกเลิก</button></div><span data-timer-status="lighthome" aria-live="polite">ยังไม่ได้ตั้งเวลา</span></div></article>
-        <article class="card control-card" data-relay-card="lightsala"><div class="control-top"><div class="control-name"><span class="icon icon-sala" aria-hidden="true">🌾</span><span><strong>ไฟศาลา</strong></span></div><label class="switch"><input data-relay-toggle="lightsala" type="checkbox" aria-label="เปิดหรือปิดไฟศาลา"><span></span></label></div><p class="control-state"><b data-relay-state="lightsala">ปิดอยู่</b></p><div class="relay-timer"><label>ตั้งเวลา (นาที)<input data-timer-minutes="lightsala" type="number" min="1" max="71582" value="30" inputmode="numeric"><span class="input-suffix">นาที</span><label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="lightsala"> ไม่จำกัดเวลา</label></label><div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="lightsala" aria-label="ตั้งเวลา 5 นาที">5</button><button type="button" data-timer-preset="15" data-timer-for="lightsala" aria-label="ตั้งเวลา 15 นาที">15</button><button type="button" data-timer-preset="30" data-timer-for="lightsala" aria-label="ตั้งเวลา 30 นาที">30</button></div><div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="lightsala">เริ่ม</button><button class="btn ghost small" type="button" data-timer-cancel="lightsala">ยกเลิก</button></div><span data-timer-status="lightsala" aria-live="polite">ยังไม่ได้ตั้งเวลา</span></div></article>
-      </div>
-    </section>
-
+    <section class="section control-section" id="control" aria-labelledby="control-title">
+  <div class="section-head"><div><p class="kicker">02 · RELAY CONTROL</p><h2 id="control-title">ควบคุมอุปกรณ์</h2><p class="helper">ปุ่มเดียวตามสถานะ · แตะตั้งเวลาเมื่อจำเป็น</p></div></div>
+  <div class="grid four control-grid"><article class="card control-card" data-relay-card="pump">
+  <div class="control-top">
+    <div class="control-name"><span class="icon icon-pump" aria-hidden="true">💧</span><span><strong>ปั๊มน้ำ</strong><small>RELAY · PUMP</small></span></div>
+    <span class="vintage-status" data-relay-status-badge="pump"><i></i><span data-relay-state="pump">ปิดอยู่</span></span>
+  </div>
+  <button class="context-action" type="button" data-relay-action="pump" aria-label="เปิดปั๊มน้ำ"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="pump">เปิดปั๊มน้ำ</span></button>
+  <input class="relay-toggle-input" data-relay-toggle="pump" type="checkbox" aria-label="เปิดหรือปิดปั๊มน้ำ">
+  <details class="relay-timer">
+    <summary><span class="timer-summary-icon" aria-hidden="true">⏱</span><span data-timer-summary="pump">ตั้งเวลา</span><span class="timer-chevron" aria-hidden="true">›</span></summary>
+    <div class="timer-fields">
+      <div class="timer-input-field"><label for="timer-pump">กำหนดเวลา</label><div class="timer-input-wrap"><input id="timer-pump" data-timer-minutes="pump" type="number" min="1" max="71582" value="30" inputmode="numeric"><span class="input-suffix">นาที</span></div></div>
+      <label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="pump"> ไม่จำกัดเวลา</label>
+      <div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="pump" aria-label="ตั้งเวลา 5 นาที">5 นาที</button><button type="button" data-timer-preset="15" data-timer-for="pump" aria-label="ตั้งเวลา 15 นาที">15 นาที</button><button type="button" data-timer-preset="30" data-timer-for="pump" aria-label="ตั้งเวลา 30 นาที">30 นาที</button></div>
+      <div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="pump">เริ่มตั้งเวลา</button><button class="btn ghost small" type="button" data-timer-cancel="pump">ยกเลิก</button></div>
+      <span data-timer-status="pump" aria-live="polite">ยังไม่ได้ตั้งเวลา</span>
+    </div>
+  </details>
+</article>
+<article class="card control-card" data-relay-card="zone1">
+  <div class="control-top">
+    <div class="control-name"><span class="icon icon-zone1" aria-hidden="true">🌿</span><span><strong>โซน 1</strong><small>RELAY · ZONE 1</small></span></div>
+    <span class="vintage-status" data-relay-status-badge="zone1"><i></i><span data-relay-state="zone1">ปิดอยู่</span></span>
+  </div>
+  <button class="context-action" type="button" data-relay-action="zone1" aria-label="เปิดโซน 1"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="zone1">เปิดโซน 1</span></button>
+  <input class="relay-toggle-input" data-relay-toggle="zone1" type="checkbox" aria-label="เปิดหรือปิดโซน 1">
+  <details class="relay-timer">
+    <summary><span class="timer-summary-icon" aria-hidden="true">⏱</span><span data-timer-summary="zone1">ตั้งเวลา</span><span class="timer-chevron" aria-hidden="true">›</span></summary>
+    <div class="timer-fields">
+      <div class="timer-input-field"><label for="timer-zone1">กำหนดเวลา</label><div class="timer-input-wrap"><input id="timer-zone1" data-timer-minutes="zone1" type="number" min="1" max="71582" value="15" inputmode="numeric"><span class="input-suffix">นาที</span></div></div>
+      <label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="zone1"> ไม่จำกัดเวลา</label>
+      <div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="zone1" aria-label="ตั้งเวลา 5 นาที">5 นาที</button><button type="button" data-timer-preset="15" data-timer-for="zone1" aria-label="ตั้งเวลา 15 นาที">15 นาที</button><button type="button" data-timer-preset="30" data-timer-for="zone1" aria-label="ตั้งเวลา 30 นาที">30 นาที</button></div>
+      <div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="zone1">เริ่มตั้งเวลา</button><button class="btn ghost small" type="button" data-timer-cancel="zone1">ยกเลิก</button></div>
+      <span data-timer-status="zone1" aria-live="polite">ยังไม่ได้ตั้งเวลา</span>
+    </div>
+  </details>
+</article>
+<article class="card control-card" data-relay-card="lighthome">
+  <div class="control-top">
+    <div class="control-name"><span class="icon icon-lighthome" aria-hidden="true">🏠</span><span><strong>ไฟบ้าน</strong><small>RELAY · HOME LIGHT</small></span></div>
+    <span class="vintage-status" data-relay-status-badge="lighthome"><i></i><span data-relay-state="lighthome">ปิดอยู่</span></span>
+  </div>
+  <button class="context-action" type="button" data-relay-action="lighthome" aria-label="เปิดไฟบ้าน"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="lighthome">เปิดไฟบ้าน</span></button>
+  <input class="relay-toggle-input" data-relay-toggle="lighthome" type="checkbox" aria-label="เปิดหรือปิดไฟบ้าน">
+  <details class="relay-timer">
+    <summary><span class="timer-summary-icon" aria-hidden="true">⏱</span><span data-timer-summary="lighthome">ตั้งเวลา</span><span class="timer-chevron" aria-hidden="true">›</span></summary>
+    <div class="timer-fields">
+      <div class="timer-input-field"><label for="timer-lighthome">กำหนดเวลา</label><div class="timer-input-wrap"><input id="timer-lighthome" data-timer-minutes="lighthome" type="number" min="1" max="71582" value="30" inputmode="numeric"><span class="input-suffix">นาที</span></div></div>
+      <label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="lighthome"> ไม่จำกัดเวลา</label>
+      <div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="lighthome" aria-label="ตั้งเวลา 5 นาที">5 นาที</button><button type="button" data-timer-preset="15" data-timer-for="lighthome" aria-label="ตั้งเวลา 15 นาที">15 นาที</button><button type="button" data-timer-preset="30" data-timer-for="lighthome" aria-label="ตั้งเวลา 30 นาที">30 นาที</button></div>
+      <div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="lighthome">เริ่มตั้งเวลา</button><button class="btn ghost small" type="button" data-timer-cancel="lighthome">ยกเลิก</button></div>
+      <span data-timer-status="lighthome" aria-live="polite">ยังไม่ได้ตั้งเวลา</span>
+    </div>
+  </details>
+</article>
+<article class="card control-card" data-relay-card="lightsala">
+  <div class="control-top">
+    <div class="control-name"><span class="icon icon-lightsala" aria-hidden="true">🌾</span><span><strong>ไฟศาลา</strong><small>RELAY · SALA LIGHT</small></span></div>
+    <span class="vintage-status" data-relay-status-badge="lightsala"><i></i><span data-relay-state="lightsala">ปิดอยู่</span></span>
+  </div>
+  <button class="context-action" type="button" data-relay-action="lightsala" aria-label="เปิดไฟศาลา"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="lightsala">เปิดไฟศาลา</span></button>
+  <input class="relay-toggle-input" data-relay-toggle="lightsala" type="checkbox" aria-label="เปิดหรือปิดไฟศาลา">
+  <details class="relay-timer">
+    <summary><span class="timer-summary-icon" aria-hidden="true">⏱</span><span data-timer-summary="lightsala">ตั้งเวลา</span><span class="timer-chevron" aria-hidden="true">›</span></summary>
+    <div class="timer-fields">
+      <div class="timer-input-field"><label for="timer-lightsala">กำหนดเวลา</label><div class="timer-input-wrap"><input id="timer-lightsala" data-timer-minutes="lightsala" type="number" min="1" max="71582" value="30" inputmode="numeric"><span class="input-suffix">นาที</span></div></div>
+      <label class="timer-unlimited"><input type="checkbox" data-timer-unlimited="lightsala"> ไม่จำกัดเวลา</label>
+      <div class="timer-presets" aria-label="เวลาลัด"><button type="button" data-timer-preset="5" data-timer-for="lightsala" aria-label="ตั้งเวลา 5 นาที">5 นาที</button><button type="button" data-timer-preset="15" data-timer-for="lightsala" aria-label="ตั้งเวลา 15 นาที">15 นาที</button><button type="button" data-timer-preset="30" data-timer-for="lightsala" aria-label="ตั้งเวลา 30 นาที">30 นาที</button></div>
+      <div class="timer-actions"><button class="btn secondary small" type="button" data-timer-start="lightsala">เริ่มตั้งเวลา</button><button class="btn ghost small" type="button" data-timer-cancel="lightsala">ยกเลิก</button></div>
+      <span data-timer-status="lightsala" aria-live="polite">ยังไม่ได้ตั้งเวลา</span>
+    </div>
+  </details>
+</article></div>
+  <div class="control-safety" aria-label="ความปลอดภัยของระบบ"><div class="control-safety-copy"><span class="safety-stamp" aria-hidden="true">!</span><span><strong>ความปลอดภัยของระบบ</strong><small data-emergency-status>Emergency Stop ปกติ</small></span></div><div class="control-safety-actions"><button class="btn danger" type="button" data-emergency-stop>หยุดฉุกเฉินทั้งระบบ</button><button class="btn secondary small" type="button" data-emergency-reset>ปลดล็อก</button></div></div>
+</section>
 
     <section id="cropCycleCard" class="section card pad crop-cycle-card" aria-labelledby="crop-cycle-dashboard-title">
       <div class="section-head"><div><p class="kicker">CROP CYCLE · PLANT AGE</p><h2 id="crop-cycle-dashboard-title">อายุพืชในแปลง</h2><p class="helper" id="dashboardCropStatus">กำลังโหลดข้อมูลรอบปลูก…</p></div><span class="tag success">นับวันอัตโนมัติ</span></div>
