@@ -206,12 +206,8 @@ class MqttHandler {
       APP_STATE.mqttConnected = false;
       this.connecting = false;
       this.dispatch('mqtt:connected', false);
-      if (this.hasCredentials()) {
-        this.dispatch('mqtt:reconnecting', true);
-        setTimeout(() => {
-          if (!APP_STATE.mqttConnected && this.hasCredentials()) this.connect();
-        }, 50);
-      }
+      // The worker owns reconnect backoff; do not bypass it with a second timer.
+      if (this.hasCredentials()) this.dispatch('mqtt:reconnecting', true);
       return;
     }
     if (message.type === 'connecting') {
@@ -265,7 +261,7 @@ class MqttHandler {
     if (typeof SharedWorker === 'undefined') return false;
     try {
       if (!this.worker) {
-        this.worker = new SharedWorker(`mqtt-shared-worker.js?v=1`);
+        this.worker = new SharedWorker(`mqtt-shared-worker.js?v=2`);
         this.usingSharedWorker = true;
         this.worker.port.onmessage = event => this.handleWorkerMessage(event.data || {});
         this.worker.onerror = error => {
@@ -322,8 +318,9 @@ class MqttHandler {
         username: credentials.username,
         password: credentials.password,
         clean: true,
-        reconnectPeriod: 5000,
-        connectTimeout: 30000,
+        // Fail fast enough to keep the UI responsive while allowing normal TLS/WSS handshakes.
+        reconnectPeriod: 3000,
+        connectTimeout: 12000,
         keepalive: 30
       });
     } catch (error) {

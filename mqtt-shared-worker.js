@@ -79,7 +79,8 @@ function connect(force = false) {
       clean: true,
       // The worker owns backoff so pages never start competing reconnect loops.
       reconnectPeriod: 0,
-      connectTimeout: 30000,
+      // Keep failed WSS handshakes from blocking the UI for half a minute.
+      connectTimeout: 12000,
       keepalive: 30
     });
     client = nextClient;
