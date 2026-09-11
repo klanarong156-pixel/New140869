@@ -321,3 +321,28 @@ footer { color: #898171; }
   .dashboard-page #cropCycleCard .crop-cycle-age { min-width: 62px; min-height: 62px; }
   .dashboard-page #cropCycleCard .crop-cycle-age strong { font-size: 24px; }
 }
+
+/* Vintage motion — slow ink, paper and growth cues; no effect on data behavior. */
+@keyframes vintageInkShift {
+  0%, 100% { opacity: .78; filter: saturate(.92); }
+  50% { opacity: 1; filter: saturate(1.08); }
+}
+@keyframes fieldRingRotate {
+  to { transform: rotate(360deg); }
+}
+@keyframes gentleSprout {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-2px) rotate(1deg); }
+}
+.dashboard-page #cropCycleCard::before { animation: vintageInkShift 12s ease-in-out infinite; }
+.dashboard-page #cropCycleCard::after { animation: fieldRingRotate 55s linear infinite; transform-origin: center; }
+.dashboard-page #cropCycleCard .crop-cycle-icon { animation: gentleSprout 4.5s ease-in-out infinite; }
+.dashboard-page #cropCycleCard { transition: transform .28s ease, box-shadow .28s ease; }
+.dashboard-page #cropCycleCard:hover { transform: translateY(-3px); box-shadow: 0 24px 50px rgba(75, 61, 43, .18); }
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-page #cropCycleCard::before,
+  .dashboard-page #cropCycleCard::after,
+  .dashboard-page #cropCycleCard .crop-cycle-icon { animation: none; }
+  .dashboard-page #cropCycleCard { transition: none; }
+  .dashboard-page #cropCycleCard:hover { transform: none; }
+}
