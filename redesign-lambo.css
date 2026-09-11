@@ -348,3 +348,103 @@ footer { color: #898171; }
   .dashboard-page #cropCycleCard { transition: none; }
   .dashboard-page #cropCycleCard:hover { transform: none; }
 }
+
+/* Whole-dashboard field journal pass: status, controls, tasks, weather and logs. */
+.dashboard-page .mqtt-live-panel {
+  border: 1px solid rgba(255, 248, 234, .18);
+  background: linear-gradient(120deg, #27382f, #405347);
+  box-shadow: 0 17px 36px rgba(39, 56, 47, .2);
+}
+.dashboard-page .mqtt-live-panel::after {
+  position: absolute;
+  inset: 7px;
+  content: "";
+  border: 1px solid rgba(255, 248, 234, .11);
+  border-radius: 13px;
+  pointer-events: none;
+}
+.dashboard-page .mqtt-live-panel.online { border-color: rgba(185, 217, 182, .5); }
+.dashboard-page .mqtt-live-panel.warning { border-color: rgba(194, 139, 62, .64); }
+.dashboard-page .mqtt-live-panel.offline { border-color: rgba(185, 66, 53, .54); }
+.dashboard-page .mqtt-live-panel .mqtt-live-actions,
+.dashboard-page .mqtt-live-panel .mqtt-live-meta,
+.dashboard-page .mqtt-live-panel .mqtt-live-main { position: relative; z-index: 1; }
+.dashboard-page .mqtt-live-panel .mqtt-live-copy .kicker { color: #dca28d; }
+.dashboard-page .mqtt-live-panel .mqtt-live-dot { background: #bd6670; box-shadow: 0 0 0 5px rgba(189, 102, 112, .16); }
+.dashboard-page .mqtt-live-panel.online .mqtt-live-dot { background: #b9d9b6; box-shadow: 0 0 0 5px rgba(185, 217, 182, .16); }
+.dashboard-page .mqtt-live-panel.warning .mqtt-live-dot { background: #e0ad55; box-shadow: 0 0 0 5px rgba(224, 173, 85, .16); }
+
+.dashboard-page #control {
+  padding: 20px;
+  border: 1px solid rgba(169, 97, 72, .22);
+  border-radius: 18px;
+  background: rgba(247, 238, 222, .62);
+}
+.dashboard-page #control .section-head { align-items: flex-start; }
+.dashboard-page #control .section-head .kicker { color: #a96148; }
+.dashboard-page #control .section-head-actions { padding: 7px; border: 1px solid rgba(185, 66, 53, .18); border-radius: 12px; background: rgba(255, 253, 246, .56); }
+.dashboard-page #control .control-card {
+  border-radius: 15px;
+  box-shadow: 0 12px 25px rgba(75, 61, 43, .1);
+}
+.dashboard-page #control .control-card.active { box-shadow: 0 14px 30px rgba(169, 97, 72, .16); }
+.dashboard-page #control .control-card .control-state b { font-family: "Noto Serif Thai", serif; }
+.dashboard-page #control .relay-timer { border-color: rgba(62, 55, 43, .14); background: rgba(238, 231, 211, .58); }
+.dashboard-page #control .timer-presets button { font-family: "DM Mono", monospace; }
+.dashboard-page #control .switch { width: 54px; height: 31px; }
+.dashboard-page #control .switch span::after { width: 21px; height: 21px; }
+.dashboard-page #control .switch input:checked + span::after { transform: translateX(22px); }
+
+.dashboard-page #cropTasksCard {
+  border-color: rgba(194, 139, 62, .3);
+  background: linear-gradient(140deg, rgba(255, 251, 239, .96), rgba(244, 233, 210, .88));
+}
+.dashboard-page #cropTasksCard .section-head .kicker { color: #bd8d43; }
+.dashboard-page #cropTasksCard .crop-task-highlight {
+  border-color: rgba(194, 139, 62, .35);
+  background: rgba(255, 248, 232, .82);
+  box-shadow: inset 3px 0 0 #bd8d43;
+}
+.dashboard-page #cropTasksCard .crop-task-icon { color: #a96148; background: rgba(169, 97, 72, .12); }
+.dashboard-page #cropTasksCard .crop-task-highlight strong { font-family: "Noto Serif Thai", serif; font-size: 16px; }
+
+.dashboard-page #weatherBox {
+  border-color: rgba(102, 143, 154, .28);
+  background: linear-gradient(145deg, rgba(247, 250, 244, .96), rgba(231, 236, 226, .9));
+}
+.dashboard-page #weatherBox .section-head .kicker { color: #668f9a; }
+.dashboard-page #weatherBox .weather-grid .metric-card { border-radius: 14px; background: rgba(255, 253, 246, .74); }
+.dashboard-page #weatherBox .rain-protection { border-color: rgba(194, 139, 62, .32); background: rgba(255, 248, 232, .78); color: #85652c; }
+.dashboard-page #weatherBox .rain-protection.ok { border-color: rgba(117, 141, 84, .3); background: rgba(236, 244, 224, .84); color: #55735b; }
+.dashboard-page #weatherBox .forecast-day { border-color: rgba(102, 143, 154, .2); background: rgba(255, 253, 246, .72); }
+
+.dashboard-page #aiAdvisorPanel {
+  border-color: rgba(85, 115, 91, .26);
+  background: linear-gradient(145deg, rgba(245, 242, 225, .94), rgba(232, 237, 218, .88));
+}
+.dashboard-page #aiAdvisorPanel .section-head .kicker { color: #55735b; }
+.dashboard-page #aiAdvisorPanel .ai-advisor-summary { border-left: 3px solid #758d54; background: rgba(255, 253, 246, .55); }
+.dashboard-page #aiAdvisorPanel .ai-advisor-summary strong { font-family: "Noto Serif Thai", serif; }
+.dashboard-page #systemHealthPanel,
+.dashboard-page #analyticsPanel {
+  border-color: rgba(62, 55, 43, .18);
+  background: linear-gradient(145deg, rgba(239, 233, 218, .88), rgba(247, 243, 233, .9));
+}
+.dashboard-page #systemHealthPanel .health-item,
+.dashboard-page #analyticsPanel .analytics-card,
+.dashboard-page #analyticsPanel .chart-card {
+  border-color: rgba(62, 55, 43, .15);
+  background: rgba(255, 253, 246, .68);
+}
+.dashboard-page #systemHealthPanel .health-item strong,
+.dashboard-page #analyticsPanel .analytics-card strong { font-family: "DM Mono", monospace; }
+.dashboard-page #financeSummary { border-color: rgba(169, 97, 72, .2); background: rgba(255, 249, 238, .9) !important; }
+
+@media (max-width: 640px) {
+  .dashboard-page #control { padding: 13px; border-radius: 16px; }
+  .dashboard-page #control .section-head-actions { padding: 5px; }
+  .dashboard-page #control .switch { width: 48px; height: 28px; }
+  .dashboard-page #control .switch span::after { width: 19px; height: 19px; }
+  .dashboard-page #control .switch input:checked + span::after { transform: translateX(20px); }
+  .dashboard-page #cropTasksCard .crop-task-highlight strong { font-size: 13px; }
+}

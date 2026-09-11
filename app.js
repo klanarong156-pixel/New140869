@@ -301,8 +301,16 @@
         return;
       }
       try {
-        window.mqttHandler.setCredentials(username.input.value, password.input.value, remember.checked);
-        close();
+        const started = window.mqttHandler.setCredentials(username.input.value, password.input.value, remember.checked);
+        if (!started) {
+          submit.disabled = false;
+          validation.className = 'helper error-text';
+          validation.textContent = 'เริ่มการเชื่อมต่อ MQTT ไม่สำเร็จ กรุณาตรวจสอบ library และลองใหม่';
+          return;
+        }
+        submit.disabled = true;
+        validation.className = 'helper';
+        validation.textContent = 'บันทึกแล้ว กำลังตรวจสอบการเชื่อมต่อ MQTT… หน้านี้จะยังไม่ปิดจนกว่าจะเชื่อมต่อสำเร็จ';
         showToast('บันทึกบัญชี MQTT แล้ว กำลังเชื่อมต่อ', 'success');
       } catch (error) {
         showToast(error.message || 'ตั้งค่า MQTT ไม่สำเร็จ', 'error');
@@ -355,7 +363,11 @@
   }
 
   function bindEvents() {
-    window.addEventListener('mqtt:connected', event => renderMqtt(Boolean(event.detail)));
+    window.addEventListener('mqtt:connected', event => {
+      const connected = Boolean(event.detail);
+      renderMqtt(connected);
+      if (connected) document.getElementById('mqttSetupModal')?.remove();
+    });
     window.addEventListener('mqtt:connecting', () => renderMqtt(false, 'MQTT กำลังเชื่อมต่อ'));
     window.addEventListener('mqtt:reconnecting', event => {
       const delay = Number(event.detail?.delay) || 0;
@@ -366,6 +378,16 @@
       const raw = event.detail?.message || String(event.detail || '');
       const detail = raw && raw !== '[object Object]' ? `: ${raw}` : '';
       renderMqtt(false, `MQTT เชื่อมต่อไม่สำเร็จ${detail}`);
+      const modal = document.getElementById('mqttSetupModal');
+      if (modal) {
+        const submit = modal.querySelector('#mqttSetupForm button[type="submit"]');
+        const validation = modal.querySelector('[role="status"]');
+        if (submit) submit.disabled = false;
+        if (validation) {
+          validation.className = 'helper error-text';
+          validation.textContent = `เชื่อมต่อไม่สำเร็จ${detail} ตรวจสอบรหัสผ่านหรือสถานะ broker แล้วลองใหม่`;
+        }
+      }
     });
     window.addEventListener('mqtt:publish-error', event => {
       const topic = event.detail?.topic ? ` (${event.detail.topic})` : '';
