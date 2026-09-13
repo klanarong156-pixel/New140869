@@ -125,8 +125,88 @@
     return sent;
   }
 
+  function installPumpAnimation() {
+    const card = document.querySelector('[data-relay-card="pump"]');
+    if (!card || card.querySelector('[data-pump-animation]')) return;
+
+    const style = document.createElement('style');
+    style.dataset.pumpAnimationStyle = 'true';
+    style.textContent = `
+      [data-pump-animation] {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 112px;
+        margin: 12px 0;
+        overflow: hidden;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(39, 125, 197, .08), rgba(39, 125, 197, .18));
+        border: 1px solid rgba(39, 125, 197, .16);
+      }
+      [data-pump-animation] svg { width: min(100%, 330px); height: 108px; display: block; }
+      [data-pump-animation] .pump-body { transform-origin: 96px 57px; }
+      [data-pump-animation] .pump-shine { opacity: .35; }
+      [data-pump-animation] .water-flow { stroke-dasharray: 9 8; stroke-dashoffset: 0; opacity: .28; }
+      [data-pump-animation] .water-drop { opacity: .35; transform: translateY(-5px); }
+      [data-pump-animation] .flow-label { font: 700 11px system-ui, sans-serif; fill: currentColor; opacity: .58; }
+      [data-relay-card="pump"].active [data-pump-animation] .water-flow { animation: smartFarmWaterFlow .7s linear infinite; opacity: 1; }
+      [data-relay-card="pump"].active [data-pump-animation] .water-drop { animation: smartFarmWaterDrop 1.35s ease-in infinite; }
+      [data-relay-card="pump"].active [data-pump-animation] .pump-body { animation: smartFarmPumpPulse .42s ease-in-out infinite alternate; }
+      [data-relay-card="pump"].active [data-pump-animation] .pump-shine { animation: smartFarmPumpShine 1.2s ease-in-out infinite; }
+      @keyframes smartFarmWaterFlow { to { stroke-dashoffset: -34; } }
+      @keyframes smartFarmWaterDrop { 0% { opacity: 0; transform: translateY(-9px); } 18% { opacity: 1; } 100% { opacity: 0; transform: translateY(34px); } }
+      @keyframes smartFarmPumpPulse { from { transform: rotate(-.6deg) scale(1); } to { transform: rotate(.6deg) scale(1.012); } }
+      @keyframes smartFarmPumpShine { 0%, 100% { opacity: .25; } 50% { opacity: .65; } }
+      @media (prefers-reduced-motion: reduce) {
+        [data-pump-animation] * { animation: none !important; }
+      }
+    `;
+    if (!document.querySelector('[data-pump-animation-style]')) {
+      document.head.appendChild(style);
+    }
+
+    const animation = document.createElement('div');
+    animation.dataset.pumpAnimation = '';
+    animation.setAttribute('role', 'img');
+    animation.setAttribute('aria-label', 'ภาพเคลื่อนไหวปั๊มน้ำและน้ำไหล');
+    animation.innerHTML = `
+      <svg viewBox="0 0 330 108" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="sfPumpMetal" x1="0" x2="1">
+            <stop offset="0" stop-opacity=".7"/><stop offset=".5"/><stop offset="1" stop-opacity=".7"/>
+          </linearGradient>
+          <linearGradient id="sfWater" x1="0" x2="1">
+            <stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#0284c7"/>
+          </linearGradient>
+        </defs>
+        <g class="pump-body">
+          <rect x="45" y="38" width="102" height="38" rx="11" fill="url(#sfPumpMetal)" stroke="currentColor" stroke-opacity=".24"/>
+          <circle cx="49" cy="57" r="17" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="7"/>
+          <circle cx="49" cy="57" r="7" fill="currentColor" fill-opacity=".22"/>
+          <rect x="67" y="29" width="56" height="9" rx="4" fill="currentColor" fill-opacity=".14"/>
+          <rect x="73" y="76" width="18" height="7" rx="2" fill="currentColor" fill-opacity=".22"/>
+          <rect x="111" y="76" width="18" height="7" rx="2" fill="currentColor" fill-opacity=".22"/>
+          <path class="pump-shine" d="M82 43h42" stroke="white" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <path d="M145 57 C175 57 178 30 204 30 H308" fill="none" stroke="#94a3b8" stroke-width="14" stroke-linecap="round"/>
+        <path d="M145 57 C175 57 178 30 204 30 H308" fill="none" stroke="url(#sfWater)" stroke-width="8" stroke-linecap="round" class="water-flow"/>
+        <circle class="water-drop" cx="239" cy="30" r="4" fill="#38bdf8"/>
+        <circle class="water-drop" cx="275" cy="30" r="3" fill="#38bdf8" style="animation-delay:.35s"/>
+        <path d="M307 30v45" fill="none" stroke="#94a3b8" stroke-width="14" stroke-linecap="round"/>
+        <path d="M307 30v45" fill="none" stroke="url(#sfWater)" stroke-width="8" stroke-linecap="round" class="water-flow"/>
+        <path d="M294 75h26" stroke="currentColor" stroke-opacity=".2" stroke-width="4" stroke-linecap="round"/>
+        <text x="164" y="94" class="flow-label">WATER FLOW · PUMP</text>
+      </svg>
+    `;
+    const controlAction = card.querySelector('.context-action');
+    if (controlAction) controlAction.insertAdjacentElement('beforebegin', animation);
+    else card.appendChild(animation);
+  }
+
   function bind() {
     renderMode();
+    installPumpAnimation();
     document.querySelectorAll('[data-ui-mode-toggle]').forEach(button => button.addEventListener('click', toggleMode));
     document.querySelectorAll('[data-system-export]').forEach(button => button.addEventListener('click', exportAll));
     document.querySelectorAll('[data-system-import]').forEach(input => input.addEventListener('change', event => importAll(event.target.files?.[0])));
