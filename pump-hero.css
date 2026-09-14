@@ -367,3 +367,39 @@ body.dashboard-page .system-status-item small[data-state="offline"]::before { ba
   body.dashboard-page .system-status-item strong { font-size: 12px; }
   body.dashboard-page .system-status-item small { font-size: 10px; }
 }
+
+/* Dashboard Schedule Summary and Timer Quick Action: presentation over existing schedule/timer contracts. */
+body.dashboard-page .schedule-summary-card {
+  overflow: hidden;
+  border: 1px solid var(--sf-line);
+  border-radius: var(--sf-radius-card);
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(36, 88, 54, .07);
+}
+body.dashboard-page .dashboard-schedule-list { padding: 4px 18px 0; }
+body.dashboard-page .dashboard-schedule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 52px;
+  border-bottom: 1px solid var(--sf-line);
+}
+body.dashboard-page .dashboard-schedule-row strong { color: var(--sf-text); font-size: 16px; }
+body.dashboard-page .dashboard-schedule-row span { color: var(--sf-muted); font-size: 13px; }
+body.dashboard-page .schedule-empty { margin: 0; padding: 17px 0; color: var(--sf-muted); font-size: 13px; }
+body.dashboard-page .schedule-summary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 16px 18px 18px;
+}
+body.dashboard-page .schedule-summary-actions .btn { min-height: var(--sf-touch); }
+body.dashboard-page .schedule-summary-actions .btn.primary { color: #ffffff; background: var(--sf-primary-strong); }
+body.dashboard-page .schedule-summary-actions .btn.primary span { opacity: .85; font-size: 11px; }
+@media (max-width: 420px) {
+  body.dashboard-page .dashboard-schedule-list { padding-inline: 13px; }
+  body.dashboard-page .dashboard-schedule-row strong { font-size: 14px; }
+  body.dashboard-page .dashboard-schedule-row span { font-size: 12px; }
+  body.dashboard-page .schedule-summary-actions { grid-template-columns: 1fr; padding: 12px 13px 13px; gap: 8px; }
+}

@@ -118,12 +118,14 @@
       delete relayTimers[relay];
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ยังไม่ได้ตั้งเวลา'; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'ตั้งเวลา'; });
+      if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = 'ไม่มี Timer'; });
       return;
     }
     if (unlimited) {
       delete relayTimers[relay];
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
+      if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       return;
     }
     if (seconds <= 0) {
@@ -138,6 +140,7 @@
         : 'หมดเวลาแล้ว กำลังปิดรีเลย์';
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = text; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = text.replace('ปิดอัตโนมัติใน ', ''); });
+      if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = formatCountdown(state.remaining); });
     };
     paint();
     state.interval = window.setInterval(() => {
@@ -149,6 +152,33 @@
       paint();
     }, 1000);
     relayTimers[relay] = state;
+  }
+
+  function renderDashboardSchedule(relay, schedule) {
+    if (relay !== 'pump') return;
+    const list = document.querySelector('[data-dashboard-schedule-list]');
+    if (!list) return;
+    const slots = Array.isArray(schedule?.slots) ? schedule.slots : [];
+    const enabled = slots.filter(slot => slot?.enabled && slot.on && slot.off && slot.on !== slot.off);
+    list.replaceChildren();
+    if (!enabled.length) {
+      const empty = document.createElement('p');
+      empty.className = 'schedule-empty';
+      empty.textContent = 'ยังไม่มีข้อมูลตารางเวลาของปั๊มน้ำ';
+      list.appendChild(empty);
+      return;
+    }
+    enabled.slice(0, 4).forEach(slot => {
+      const row = document.createElement('div');
+      row.className = 'dashboard-schedule-row';
+      const time = document.createElement('strong');
+      time.textContent = `${slot.on} → ${slot.off}`;
+      const label = document.createElement('span');
+      label.textContent = 'ปั๊มน้ำ';
+      row.append(time, label);
+      list.appendChild(row);
+    });
+    $$('[data-dashboard-schedule-source]').forEach(element => { element.textContent = 'บันทึกใน ESP8266'; });
   }
 
   function commandRelayTimer(relay, seconds) {
@@ -390,6 +420,10 @@
       input.dispatchEvent(new Event('input', { bubbles: true }));
       button.closest('.relay-timer')?.querySelectorAll('[data-timer-preset]').forEach(item => item.classList.toggle('active', item === button));
     }));
+    $$('[data-dashboard-timer-action]').forEach(link => link.addEventListener('click', () => {
+      const details = document.querySelector('[data-timer-minutes="pump"]')?.closest('details');
+      if (details) window.setTimeout(() => { details.open = true; }, 0);
+    }));
 
     $$('[data-mqtt-connect]').forEach(button => button.addEventListener('click', () => {
       if (window.mqttHandler?.hasCredentials?.()) window.mqttHandler.connect();
@@ -458,6 +492,10 @@
     window.addEventListener('relay:timer', event => {
       const { relay, active, unlimited, remaining } = event.detail || {};
       if (relay) renderRelayTimer(relay, active, remaining, unlimited);
+    });
+    window.addEventListener('schedule:status', event => {
+      const { relay, schedule } = event.detail || {};
+      if (relay) renderDashboardSchedule(relay, schedule);
     });
     window.addEventListener('sensor:data', event => renderSensor(event.detail?.type, event.detail?.value));
     window.addEventListener('emergency:status', event => {

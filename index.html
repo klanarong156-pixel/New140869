@@ -79,6 +79,14 @@
       </div>
     </section>
 
+    <section class="section schedule-summary-section" aria-labelledby="dashboard-schedule-title">
+      <div class="section-head"><div><p class="kicker">SCHEDULE · PUMP</p><h2 id="dashboard-schedule-title">ตารางเวลา</h2></div><span class="helper" data-dashboard-schedule-source>รอข้อมูลจาก ESP8266</span></div>
+      <div class="schedule-summary-card">
+        <div class="dashboard-schedule-list" data-dashboard-schedule-list><p class="schedule-empty">ยังไม่มีข้อมูลตารางเวลาของปั๊มน้ำ</p></div>
+        <div class="schedule-summary-actions"><a class="btn secondary" href="schedule.html#scheduleRelayTitle">จัดการตารางเวลา</a><a class="btn primary" href="#control" data-dashboard-timer-action>ตั้ง Timer <span data-dashboard-pump-timer>ไม่มี Timer</span></a></div>
+      </div>
+    </section>
+
     <section class="section control-section pump-hero-section" id="control" aria-labelledby="control-title">
   <div class="section-head"><div><p class="kicker">02 · RELAY CONTROL</p><h2 id="control-title">ควบคุมอุปกรณ์</h2><p class="helper">ปุ่มเดียวตามสถานะ · แตะตั้งเวลาเมื่อจำเป็น</p></div></div>
   <div class="grid four control-grid"><article class="card control-card pump-hero-card" data-relay-card="pump">
