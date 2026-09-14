@@ -211,10 +211,8 @@
   function removeScheduleSlot(index) {
     const i = Number(index);
     if (!Number.isInteger(i) || i < 0 || i > 3) return false;
-    const enable = $(`slotEnable${i}`);
     const on = $(`slotOn${i}`);
     const off = $(`slotOff${i}`);
-    if (enable) enable.checked = false;
     if (on) on.value = '00:00';
     if (off) off.value = '00:00';
     updateSummary();

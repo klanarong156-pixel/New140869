@@ -16,4 +16,4 @@
 การเชื่อมต่อที่โค้ดกำหนด:
 - ESP8266: TLS MQTT `8883`
 - Dashboard: Secure WebSocket `wss://...:8884/mqtt`
-- Active topics: `smartfarm/relay/{relay}/set`, `smartfarm/relay/{relay}/status`, `smartfarm/relay/{relay}/timer/set`, `smartfarm/relay/{relay}/timer/status`, `smartfarm/schedule/{relay}/set`, `smartfarm/schedule/{relay}/status`, `smartfarm/status/online`, `smartfarm/device/status`, `smartfarm/sensor/dht11`, `smartfarm/emergency/set`, `smartfarm/emergency/status`
+- Active topics: `smartfarm/relay/{relay}/set`, `smartfarm/relay/{relay}/status`, `smartfarm/relay/{relay}/timer/set`, `smartfarm/relay/{relay}/timer/status`, `smartfarm/schedule/{relay}/set`, `smartfarm/schedule/{relay}/status`, `smartfarm/status/online`, `smartfarm/status/device`, `smartfarm/sensor/dht11`, `smartfarm/emergency/set`, `smartfarm/emergency/status`

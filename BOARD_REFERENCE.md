@@ -47,7 +47,7 @@
 | สถานะตาราง | `smartfarm/schedule/{relay}/status` |
 | เซนเซอร์ DHT11 | `smartfarm/sensor/dht11` |
 | สถานะออนไลน์ | `smartfarm/status/online` |
-| heartbeat/diagnostics | `smartfarm/device/status` |
+| heartbeat/diagnostics | `smartfarm/status/device` |
 | Emergency command/status | `smartfarm/emergency/set`, `smartfarm/emergency/status` |
 | Telegram config/test/status | `smartfarm/config/telegram/set`, `smartfarm/config/telegram/test`, `smartfarm/config/telegram/status` |
 | Reminder | `smartfarm/reminder/set`, `smartfarm/reminder/status` |

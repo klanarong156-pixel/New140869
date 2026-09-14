@@ -93,7 +93,7 @@ DS3231 เป็นแหล่งเวลาหลักเมื่อพบ�
 | ตาราง / สถานะตาราง | `smartfarm/schedule/{relay}/set` / `smartfarm/schedule/{relay}/status` |
 | เซนเซอร์ DHT11 | `smartfarm/sensor/dht11` |
 | ออนไลน์ | `smartfarm/status/online` |
-| heartbeat/diagnostics | `smartfarm/device/status` |
+| heartbeat/diagnostics | `smartfarm/status/device` |
 | Emergency | `smartfarm/emergency/set` / `smartfarm/emergency/status` |
 | Telegram | `smartfarm/config/telegram/set`, `/test`, `/status` |
 | Reminder | `smartfarm/reminder/set` / `smartfarm/reminder/status` |

@@ -42,7 +42,7 @@
 | Timer cancel | payload `CANCEL` หรือค่า `0` ตาม flow ที่รองรับ |
 | Schedule set | `smartfarm/schedule/{relay}/set` |
 | Schedule status | `smartfarm/schedule/{relay}/status` |
-| Device status | `smartfarm/device/status` |
+| Device status | `smartfarm/status/device` |
 | Online status | `smartfarm/status/online` |
 | Telegram config | `smartfarm/config/telegram/set` |
 | Telegram test | `smartfarm/config/telegram/test` |

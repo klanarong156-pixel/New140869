@@ -6,7 +6,7 @@
 
 1. หน้าเว็บโหลด `farm-clock.js` ใน `index.html` และโมดูลนี้แสดงเวลาเฉพาะเมื่อได้รับ `device:data` จาก ESP8266 โดยอ่าน `device.time` และต้องมี `device.rtc === true` หรือ `device.rtcValid === true` หากไม่มีข้อมูลจะแสดงว่า `รอ RTC จาก ESP8266`.
 2. `farm-clock.js` คำนวณเวลาปัจจุบันจาก epoch ที่มากับ heartbeat และใช้ `performance.now()` เพื่อเดินเวลาได้ไม่เกิน 30 วินาทีหลัง heartbeat; หลังจากนั้นหยุดเดินเวลาและรอ heartbeat ใหม่.
-3. `mqtt-handler.js` รับข้อความ `smartfarm/device/status` เป็น JSON แล้ว dispatch เหตุการณ์ `device:data` แต่ไม่ได้มีแหล่งเวลาจากอินเทอร์เน็ตหรือการ synchronize เวลาในเบราว์เซอร์.
+3. `mqtt-handler.js` รับข้อความ `smartfarm/status/device` เป็น JSON แล้ว dispatch เหตุการณ์ `device:data` แต่ไม่ได้มีแหล่งเวลาจากอินเทอร์เน็ตหรือการ synchronize เวลาในเบราว์เซอร์.
 4. ระบบตั้งเวลาตาราง (`schedule.js`) เป็นการส่งช่วงเวลา `HH:MM` ไปเก็บที่ ESP8266 จึงขึ้นกับนาฬิกา RTC ของอุปกรณ์ ไม่ใช่เวลาของหน้าเว็บ.
 5. การนับถอยหลังใน `app.js` ใช้ `setInterval` ลดค่าทีละ 1 ซึ่งอาจคลาดเคลื่อนเมื่อแท็บถูกพัก; ควรคำนวณจาก deadline/epoch ที่เชื่อถือได้แทน.
 6. พบการใช้ `new Date()` และ `Date.now()` หลายจุดสำหรับ timestamp ของข้อมูลและ watchdog; การให้หน้าเว็บดึงเวลาจากอินเทอร์เน็ตควรมีโมดูลกลางและ fallback ที่ชัดเจน ไม่ควรแทนที่ timestamp ทุกจุดโดยไม่จำเป็น.

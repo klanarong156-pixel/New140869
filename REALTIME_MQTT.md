@@ -21,7 +21,7 @@
 | `smartfarm/relay/+/status` | สถานะรีเลย์ `pump`, `zone1`, `lighthome`, `lightsala` | `ON` หรือ `OFF`; retained |
 | `smartfarm/sensor/dht11` | อุณหภูมิและความชื้น | JSON เช่น `{"temperature":30.2,"humidity":65.0}` |
 | `smartfarm/status/online` | สถานะการเชื่อมต่ออุปกรณ์ | `true` หรือ `false`; retained/LWT |
-| `smartfarm/device/status` | Heartbeat และข้อมูลอุปกรณ์ | JSON; ส่งเป็นระยะ |
+| `smartfarm/status/device` | Heartbeat และข้อมูลอุปกรณ์ | JSON; ส่งเป็นระยะ |
 | `smartfarm/emergency/status` | Emergency latch | JSON `active`, `source`, `timestamp`; retained |
 | `smartfarm/schedule/+/status` | ตารางเวลาของแต่ละรีเลย์ | JSON; retained |
 | `smartfarm/config/telegram/status` | สถานะการตั้งค่า Telegram | JSON; ไม่ใช่ secret token |
@@ -50,7 +50,7 @@
     'smartfarm/relay/+/status',
     'smartfarm/sensor/dht11',
     'smartfarm/status/online',
-    'smartfarm/device/status',
+    'smartfarm/status/device',
     'smartfarm/emergency/status',
     'smartfarm/schedule/+/status',
     'smartfarm/config/telegram/status'
