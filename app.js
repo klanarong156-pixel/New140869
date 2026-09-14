@@ -133,8 +133,9 @@
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'หมดเวลาแล้ว กำลังปิดรีเลย์'; });
       return;
     }
-    const state = { remaining: seconds, interval: null };
+    const state = { deadline: Date.now() + (seconds * 1000), remaining: seconds, interval: null };
     const paint = () => {
+      state.remaining = Math.max(0, Math.ceil((state.deadline - Date.now()) / 1000));
       const text = state.remaining > 0
         ? `ปิดอัตโนมัติใน ${formatCountdown(state.remaining)}`
         : 'หมดเวลาแล้ว กำลังปิดรีเลย์';
@@ -144,12 +145,10 @@
     };
     paint();
     state.interval = window.setInterval(() => {
-      state.remaining -= 1;
+      paint();
       if (state.remaining <= 0) {
         window.clearInterval(state.interval);
-        state.remaining = 0;
       }
-      paint();
     }, 1000);
     relayTimers[relay] = state;
   }
@@ -198,8 +197,7 @@
       if (!window.APP_STATE?.mqttConnected) handler.showSetup?.();
       return false;
     }
-    if (seconds > 0 || seconds === 'UNLIMITED') renderRelay(relay, true);
-    showToast(seconds > 0 || seconds === 'UNLIMITED' ? `${relayLabel(relay)}: เปิดแล้ว` : `${relayLabel(relay)}: ยกเลิกเวลาและปิดรีเลย์แล้ว`, 'success');
+    showToast(seconds > 0 || seconds === 'UNLIMITED' ? `${relayLabel(relay)}: ส่งคำสั่งตั้งเวลาแล้ว` : `${relayLabel(relay)}: ส่งคำสั่งยกเลิกเวลาแล้ว`, 'success');
     return true;
   }
 
@@ -240,7 +238,7 @@
       const minutes = Number(input?.value);
       if (unlimited) {
         const sent = commandRelayTimer(relay, 'UNLIMITED');
-        if (sent) renderRelay(relay, true);
+        if (sent) renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]));
         return sent;
       }
       if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_TIMER_MINUTES) {
@@ -248,7 +246,7 @@
         return false;
       }
       const sent = commandRelayTimer(relay, minutes * 60);
-      if (sent) renderRelay(relay, true);
+      if (sent) renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]));
       return sent;
     }
     const sent = handler.publish(MQTT_CONFIG.topics.relaySet(relay), 'OFF');
@@ -257,8 +255,8 @@
       if (!window.APP_STATE?.mqttConnected) handler.showSetup();
       return false;
     }
-    renderRelay(relay, false);
-    showToast(`${relayLabel(relay)}: ส่งคำสั่งปิดแล้ว`, 'success');
+    renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]));
+    showToast(`${relayLabel(relay)}: ส่งคำสั่งปิดแล้ว · รออุปกรณ์ยืนยัน`, 'success');
     return true;
   }
 

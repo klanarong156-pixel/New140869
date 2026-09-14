@@ -86,6 +86,8 @@ const checks = [
   ['SharedWorker replays latest device heartbeat', /lastDeviceStatus/.test(worker) && /smartfarm\/status\/device/.test(worker) && /type: 'message'/.test(worker)],
   ['SharedWorker replays latest schedule status', /lastScheduleStatuses/.test(worker) && /smartfarm\/schedule\//.test(worker) && /forEach\(\(payload, topic\)/.test(worker)],
   ['Current app binds relay controls', /\[data-relay-toggle\]/.test(app)],
+  ['Relay UI waits for MQTT status confirmation', !/commandRelayTimer\(relay, 'UNLIMITED'\);\s*if \(sent\) renderRelay\(relay, true\)/.test(app) && !/const sent = commandRelayTimer\(relay, minutes \* 60\);\s*if \(sent\) renderRelay\(relay, true\)/.test(app) && !/handler\.publish\(MQTT_CONFIG\.topics\.relaySet\(relay\), 'OFF'\);[\s\S]{0,500}renderRelay\(relay, false\)/.test(app)],
+  ['Timer countdown uses a deadline rather than decrement drift', /deadline: Date\.now\(\) \+ \(seconds \* 1000\)/.test(app) && /Math\.ceil\(\(state\.deadline - Date\.now\(\)\) \/ 1000\)/.test(app) && !/state\.remaining -= 1/.test(app)],
   ['Unlimited timer command is supported', /seconds === 'UNLIMITED'/.test(app) && /UNLIMITED/.test(firmware)],
   ['Schedule payload uses slots/on/off schema', /return \{ slots: data \}/.test(schedule) && /JSON\.stringify\(payload\)/.test(schedule)],
   ['Schedule delete uses DELETE command', /scheduleSet\(activeRelay\), 'DELETE'/.test(schedule)],
