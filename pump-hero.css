@@ -403,3 +403,38 @@ body.dashboard-page .schedule-summary-actions .btn.primary span { opacity: .85; 
   body.dashboard-page .dashboard-schedule-row span { font-size: 12px; }
   body.dashboard-page .schedule-summary-actions { grid-template-columns: 1fr; padding: 12px 13px 13px; gap: 8px; }
 }
+
+/* Emergency Stop safety states: calm in normal use, explicit when the lock is active. */
+body.dashboard-page #control .control-safety {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+body.dashboard-page #control .control-safety-copy > span:last-child { display: grid; gap: 3px; }
+body.dashboard-page #control .control-safety-copy em {
+  color: #a66c72;
+  font-size: 11px;
+  font-style: normal;
+}
+body.dashboard-page #control .control-safety.active {
+  border-color: #c96b73;
+  background: #fff1f2;
+  box-shadow: 0 8px 22px rgba(157, 55, 67, .12);
+}
+body.dashboard-page #control .control-safety.active .safety-stamp {
+  color: #ffffff;
+  background: #b94d59;
+}
+body.dashboard-page #control .control-safety.active .control-safety-copy strong,
+body.dashboard-page #control .control-safety.active .control-safety-copy small,
+body.dashboard-page #control .control-safety.active .control-safety-copy em { color: #963d46; }
+body.dashboard-page #control .control-safety-actions .btn:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+}
+@media (max-width: 560px) {
+  body.dashboard-page #control .control-safety { align-items: stretch; flex-direction: column; gap: 13px; }
+  body.dashboard-page #control .control-safety-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  body.dashboard-page #control .control-safety-actions .btn { width: 100%; }
+}

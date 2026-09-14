@@ -205,6 +205,15 @@
 
   function renderEmergency(active, source = '') {
     const label = active ? `EMERGENCY STOP ACTIVE${source ? ` · ${source}` : ''}` : 'Emergency Stop ปกติ';
+    $$('[data-emergency-panel]').forEach(panel => panel.classList.toggle('active', Boolean(active)));
+    $$('[data-emergency-stop]').forEach(button => {
+      button.disabled = Boolean(active);
+      button.setAttribute('aria-disabled', String(Boolean(active)));
+    });
+    $$('[data-emergency-reset]').forEach(button => {
+      button.disabled = !active;
+      button.setAttribute('aria-disabled', String(!active));
+    });
     $$('[data-emergency-status]').forEach(element => {
       element.textContent = label;
       element.classList.toggle('danger', Boolean(active));
