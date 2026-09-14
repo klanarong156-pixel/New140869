@@ -259,3 +259,55 @@ body.dashboard-page .cucumber-plot-card .crop-cycle-age strong { color: var(--sf
   body.dashboard-page .sensor-overview .sensor-card .metric-top { font-size: 12px; }
   body.dashboard-page .cucumber-plot-card .crop-cycle-summary { padding: 11px; }
 }
+
+/* Quick Control refinement: presentation-only states for Zone 1 and lights. */
+body.dashboard-page #control .control-card:not(.pump-hero-card) .control-top { align-items: center; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name .icon {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+  border-radius: 14px;
+  background: var(--sf-surface-strong);
+  font-size: 22px;
+}
+body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { font-size: 18px; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .vintage-status {
+  padding: 6px 9px;
+  border-color: var(--sf-line);
+  background: var(--sf-surface);
+  font-size: 12px;
+}
+body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action {
+  min-height: 58px;
+  margin: 18px 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+body.dashboard-page #control .control-card:not(.pump-hero-card).active {
+  border-color: #a9dcb5;
+  background: linear-gradient(145deg, #f0fbf2, #ffffff);
+}
+body.dashboard-page #control .control-card:not(.pump-hero-card).active .vintage-status {
+  border-color: #b8dfc0;
+  color: var(--sf-primary);
+  background: var(--sf-primary-soft);
+}
+body.dashboard-page #control .control-card:not(.pump-hero-card).active .context-action {
+  color: #ffffff;
+  border-color: var(--sf-primary-strong);
+  background: var(--sf-primary-strong);
+  box-shadow: 0 8px 16px rgba(33, 128, 82, .16);
+}
+body.dashboard-page #control .control-card:not(.pump-hero-card) .relay-timer summary {
+  min-height: 44px;
+  color: var(--sf-muted);
+  font-size: 12px;
+}
+@media (max-width: 700px) {
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name .icon { width: 40px; height: 40px; flex-basis: 40px; font-size: 19px; }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { font-size: 16px; }
+}
+@media (max-width: 420px) {
+  body.dashboard-page #control .control-card:not(.pump-hero-card) { min-height: 144px; }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { margin-top: 14px; }
+}
