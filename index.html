@@ -70,6 +70,15 @@
       </div>
     </section>
 
+    <section class="section system-status-section" aria-labelledby="system-status-title">
+      <div class="section-head"><div><p class="kicker">SYSTEM STATUS</p><h2 id="system-status-title">สถานะระบบ</h2></div><span class="helper">ตรวจสอบการเชื่อมต่อแบบย่อ</span></div>
+      <div class="system-status-card" role="status" aria-live="polite">
+        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">▣</span><span><strong>ESP8266</strong><small data-system-esp>ออฟไลน์</small></span></div>
+        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">⌁</span><span><strong>MQTT</strong><small data-system-mqtt>ยังไม่เชื่อมต่อ</small></span></div>
+        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">◷</span><span><strong>RTC</strong><small data-system-rtc>รอตรวจสอบ</small></span></div>
+      </div>
+    </section>
+
     <section class="section control-section pump-hero-section" id="control" aria-labelledby="control-title">
   <div class="section-head"><div><p class="kicker">02 · RELAY CONTROL</p><h2 id="control-title">ควบคุมอุปกรณ์</h2><p class="helper">ปุ่มเดียวตามสถานะ · แตะตั้งเวลาเมื่อจำเป็น</p></div></div>
   <div class="grid four control-grid"><article class="card control-card pump-hero-card" data-relay-card="pump">

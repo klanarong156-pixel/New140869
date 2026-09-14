@@ -63,6 +63,10 @@
     setText(document.querySelector('[data-mqtt-live-detail]'), detail);
     setText(document.querySelector('[data-mqtt-last-update]'), new Intl.DateTimeFormat('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date()));
     setText('mqttStatusText', connected ? 'เชื่อมต่อกับ HiveMQ Cloud แล้ว' : detail);
+    $$('[data-system-mqtt]').forEach(element => {
+      element.textContent = connected ? 'Connected' : (text ? 'กำลังเชื่อมต่อ' : 'Disconnected');
+      element.dataset.state = connected ? 'online' : 'offline';
+    });
   }
 
   function renderDevice(online) {
@@ -76,6 +80,11 @@
     });
     $$('[data-device-online-text]').forEach(element => { element.textContent = online ? 'ออนไลน์' : 'ออฟไลน์'; });
     $$('[data-mqtt-device-status]').forEach(element => { element.textContent = online ? 'ออนไลน์ · heartbeat ล่าสุด' : 'ออฟไลน์ · รอ heartbeat'; });
+    $$('[data-system-esp]').forEach(element => {
+      element.textContent = online ? 'Online' : 'Offline';
+      element.dataset.state = online ? 'online' : 'offline';
+    });
+    if (!online) $$('[data-system-rtc]').forEach(element => { element.textContent = 'Last seen'; element.dataset.state = 'warning'; });
     $$('[data-sensor-freshness]').forEach(element => { element.textContent = online ? 'DHT11 · เรียลไทม์' : 'DHT11 · ค่าล่าสุดที่ได้รับ'; });
     $$('[data-device-online-card]').forEach(card => card.classList.toggle('active', Boolean(online)));
     ['pump', 'zone1', 'lighthome', 'lightsala'].forEach(relay => {
@@ -460,6 +469,11 @@
       if (device.firmware) setText('deviceFirmware', device.firmware);
       if (Number.isFinite(Number(device.rssi))) setText('deviceRssi', `${Number(device.rssi)} dBm`);
       if (typeof device.online === 'boolean') renderDevice(device.online);
+      $$('[data-system-rtc]').forEach(element => {
+        const ready = device.online !== false && (device.rtc === true || device.rtcValid === true);
+        element.textContent = ready ? 'Ready' : (device.rtc === false || device.rtcValid === false ? 'Invalid' : 'Last seen');
+        element.dataset.state = ready ? 'online' : 'warning';
+      });
       if (typeof device.emergencyLock === 'boolean') renderEmergency(device.emergencyLock, device.emergencySource || '');
     });
     window.addEventListener('mqtt:credentials-required', event => {

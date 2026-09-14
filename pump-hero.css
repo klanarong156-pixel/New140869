@@ -311,3 +311,59 @@ body.dashboard-page #control .control-card:not(.pump-hero-card) .relay-timer sum
   body.dashboard-page #control .control-card:not(.pump-hero-card) { min-height: 144px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { margin-top: 14px; }
 }
+
+/* Compact System Status card: no new transport state, only existing status presentation. */
+body.dashboard-page .system-status-card {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--sf-line);
+  border-radius: var(--sf-radius-control);
+  background: var(--sf-line);
+  box-shadow: 0 8px 22px rgba(36, 88, 54, .06);
+}
+body.dashboard-page .system-status-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 78px;
+  padding: 14px 16px;
+  background: #ffffff;
+}
+body.dashboard-page .system-status-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 11px;
+  color: var(--sf-primary);
+  background: var(--sf-primary-soft);
+  font-size: 18px;
+}
+body.dashboard-page .system-status-item span:last-child { display: grid; gap: 2px; min-width: 0; }
+body.dashboard-page .system-status-item strong { color: var(--sf-text); font-size: 14px; }
+body.dashboard-page .system-status-item small { position: relative; padding-left: 13px; color: var(--sf-muted); font-size: 12px; white-space: nowrap; }
+body.dashboard-page .system-status-item small::before {
+  content: '';
+  position: absolute;
+  top: .48em;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #aebdb1;
+}
+body.dashboard-page .system-status-item small[data-state="online"] { color: var(--sf-primary); }
+body.dashboard-page .system-status-item small[data-state="online"]::before { background: #36a866; }
+body.dashboard-page .system-status-item small[data-state="warning"] { color: #987a3e; }
+body.dashboard-page .system-status-item small[data-state="warning"]::before { background: #d8a84e; }
+body.dashboard-page .system-status-item small[data-state="offline"] { color: #a14e59; }
+body.dashboard-page .system-status-item small[data-state="offline"]::before { background: #d2646d; }
+@media (max-width: 520px) {
+  body.dashboard-page .system-status-item { min-height: 70px; gap: 7px; padding: 11px 9px; }
+  body.dashboard-page .system-status-icon { width: 29px; height: 29px; flex-basis: 29px; border-radius: 9px; font-size: 15px; }
+  body.dashboard-page .system-status-item strong { font-size: 12px; }
+  body.dashboard-page .system-status-item small { font-size: 10px; }
+}
