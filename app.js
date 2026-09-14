@@ -7,6 +7,7 @@
   const relayTimers = Object.create(null);
   const MAX_TIMER_MINUTES = 71582;
   const MAX_TIMER_SECONDS = MAX_TIMER_MINUTES * 60;
+  let deviceOnline = false;
 
   function formatCountdown(seconds) {
     const total = Math.max(0, Math.floor(Number(seconds) || 0));
@@ -65,6 +66,8 @@
   }
 
   function renderDevice(online) {
+    deviceOnline = Boolean(online);
+    document.body?.classList.toggle('device-offline', !deviceOnline);
     $$('[data-device-status]').forEach(element => {
       element.classList.toggle('online', Boolean(online));
       element.classList.toggle('offline', !online);
@@ -74,19 +77,28 @@
     $$('[data-device-online-text]').forEach(element => { element.textContent = online ? 'ออนไลน์' : 'ออฟไลน์'; });
     $$('[data-mqtt-device-status]').forEach(element => { element.textContent = online ? 'ออนไลน์ · heartbeat ล่าสุด' : 'ออฟไลน์ · รอ heartbeat'; });
     $$('[data-device-online-card]').forEach(card => card.classList.toggle('active', Boolean(online)));
+    ['pump', 'zone1', 'lighthome', 'lightsala'].forEach(relay => {
+      const input = document.querySelector(`[data-relay-toggle="${relay}"]`);
+      if (input) renderRelay(relay, input.checked);
+    });
   }
 
   function renderRelay(relay, on) {
-    $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = Boolean(on); });
-    $$(`[data-relay-state="${relay}"]`).forEach(element => { element.textContent = on ? 'กำลังทำงาน' : 'ปิดอยู่'; });
-    $$(`[data-relay-action-label="${relay}"]`).forEach(element => { element.textContent = on ? `หยุด${relayLabel(relay)}` : `เปิด${relayLabel(relay)}`; });
+    const unknown = !deviceOnline;
+    $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = Boolean(on); input.disabled = unknown; });
+    $$(`[data-relay-state="${relay}"]`).forEach(element => { element.textContent = unknown ? 'ไม่ทราบสถานะ' : (on ? 'กำลังทำงาน' : 'ปิดอยู่'); });
+    $$(`[data-relay-action-label="${relay}"]`).forEach(element => { element.textContent = unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (on ? `หยุด${relayLabel(relay)}` : `เปิด${relayLabel(relay)}`); });
     $$(`[data-relay-action="${relay}"]`).forEach(button => {
+      button.disabled = unknown;
       button.classList.toggle('is-running', Boolean(on));
-      button.setAttribute('aria-label', on ? `หยุด${relayLabel(relay)}` : `เปิด${relayLabel(relay)}`);
+      button.setAttribute('aria-label', unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (on ? `หยุด${relayLabel(relay)}` : `เปิด${relayLabel(relay)}`));
       const icon = button.querySelector('.context-action-icon');
       if (icon) icon.textContent = on ? '■' : '↗';
     });
-    $$(`[data-relay-card="${relay}"]`).forEach(card => card.classList.toggle('active', Boolean(on)));
+    $$(`[data-relay-card="${relay}"]`).forEach(card => {
+      card.classList.toggle('active', !unknown && Boolean(on));
+      card.classList.toggle('device-unknown', unknown);
+    });
   }
 
   function renderRelayTimer(relay, active, remaining, unlimited = false) {

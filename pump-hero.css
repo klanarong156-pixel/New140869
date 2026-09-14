@@ -182,3 +182,36 @@ body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action 
 @media (prefers-reduced-motion: reduce) {
   body.dashboard-page #control .context-action { transition: none; }
 }
+
+/* Offline safety state and narrow-screen MQTT layout corrections. */
+body.dashboard-page.device-offline #control .control-card.device-unknown {
+  border-color: #eadcbd;
+  background: #fffdf8;
+}
+body.dashboard-page.device-offline #control .control-card.device-unknown .context-action {
+  color: #8b806e;
+  border-color: #eadcbd;
+  background: #f8f3e8;
+  box-shadow: none;
+}
+body.dashboard-page.device-offline #control .control-card.device-unknown .vintage-status {
+  color: #927b4b;
+  border-color: #eadcbd;
+  background: #fff8e7;
+}
+body.dashboard-page.device-offline #control .control-card.device-unknown .relay-timer {
+  opacity: .72;
+}
+body.dashboard-page .mqtt-live-meta {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+body.dashboard-page .mqtt-live-meta strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 700px) {
+  body.dashboard-page .mqtt-live-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.dashboard-page .mqtt-live-meta div { min-width: 0; }
+  body.dashboard-page .mqtt-live-meta strong { max-width: 100%; }
+}
