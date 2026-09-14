@@ -1,25 +1,33 @@
-# Smart Farm V7.1 / MQTT Contract V1.0 compatibility
+# Smart Farm V7.1 / MQTT Contract V1.1 compatibility
 
 เฟิร์มแวร์ `V7.1.0-FIELD-STABILITY` และเว็บแอป V7.1 ใช้ topic ต่อไปนี้
 
 | Feature | Command topic | Status topic | Payload |
 | --- | --- | --- | --- |
 | Relay | `smartfarm/relay/{relay}/set` | `smartfarm/relay/{relay}/status` | `ON` or `OFF` |
-| Emergency latch | `smartfarm/emergency/set` | `smartfarm/emergency/status` | `EMERGENCY_STOP` or `EMERGENCY_RESET` |
+| Relay timer | `smartfarm/relay/{relay}/timer/set` | `smartfarm/relay/{relay}/timer/status` | seconds, `UNLIMITED`, `0` or `CANCEL` |
+| Emergency latch | `smartfarm/emergency/set` | `smartfarm/emergency/status` | `STOP`/`EMERGENCY_STOP` or `RESET`/`EMERGENCY_RESET` |
+| Mode | `smartfarm/mode/set` | `smartfarm/mode/status` | `AUTO` or `MANUAL` |
 | Schedule | `smartfarm/schedule/{relay}/set` | `smartfarm/schedule/{relay}/status` | JSON slots or `DELETE` |
 | Presence | — | `smartfarm/status/online` | retained `true` / LWT `false` |
 | Heartbeat | — | `smartfarm/status/device` | device JSON every 10 seconds |
 | Sensor | — | `smartfarm/sensor/dht11` | temperature/humidity JSON |
+| Time | — | `smartfarm/time` | local Asia/Bangkok time JSON |
+| System error | — | `smartfarm/system/error` | JSON diagnostic error |
 | Telegram configuration | `smartfarm/config/telegram/set` | `smartfarm/config/telegram/status` | JSON `{ "botToken": "...", "chatId": "..." }`; status JSON reports `configured` |
 | Telegram test | `smartfarm/config/telegram/test` | — | any payload triggers a test message |
-| Crop reminder | `smartfarm/reminder/set` | `smartfarm/reminder/status` | JSON operation `settings`, `upsert`, `done`, `snooze`, `delete`, `sync` or `test`; optional recurrence, plot and quiet-hour fields |
+| Crop reminder | `smartfarm/reminder/set` | `smartfarm/reminder/status` | JSON operation `settings`, `upsert`, `done`, `snooze`, `delete`, `sync` or `test` |
 | Farm AI alert | `smartfarm/ai/alert/set` | `smartfarm/ai/alert/status` | JSON `{ "id": "...", "severity": "info|warning|critical", "title": "...", "message": "..." }`; analysis only, never a relay command |
 
-Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay, timer, schedule and emergency status messages are retained by the device so a newly connected dashboard can render the current state.
+Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay, timer, schedule, mode and emergency status messages are retained by the device so a newly connected dashboard can render the current state.
+
+## Mode behavior
+
+`AUTO` and `MANUAL` are active firmware modes. `AUTO` allows the four locally stored schedule slots per relay to control outputs when the clock is valid. `MANUAL` prevents `applyAutoState()` from changing relay outputs; direct relay commands and timers remain available subject to emergency/OTA safety locks. The firmware accepts `smartfarm/mode/set` with `AUTO` or `MANUAL` and publishes the retained state on `smartfarm/mode/status`.
 
 ## Relay countdown timer
 
-Dashboard starts or cancels an automatic OFF timer with the non-retained topic `smartfarm/relay/{relay}/timer/set`. The payload is an integer number of seconds from `1` to `4294967` (about 71,582 minutes), `UNLIMITED`, `0` or `CANCEL`. A finite timer turns the selected relay OFF when the explicitly requested countdown expires. The retained status topic is `smartfarm/relay/{relay}/timer/status` with JSON payload `{ "active": true, "unlimited": false, "remaining": 120 }`. Values beyond the technical `millis()` range are rejected; this is not a 30-minute pump policy.
+Dashboard starts or cancels an automatic OFF timer with the non-retained topic `smartfarm/relay/{relay}/timer/set`. The payload is an integer number of seconds from `1` to `4294967`, `UNLIMITED`, `0` or `CANCEL`. A finite timer turns the selected relay OFF when the explicitly requested countdown expires. The retained status topic is `smartfarm/relay/{relay}/timer/status` with JSON payload `{ "active": true, "unlimited": false, "remaining": 120 }`.
 
 `CANCEL` clears an active countdown timer. `UNLIMITED` intentionally has no timer expiry.
 
@@ -34,25 +42,11 @@ Dashboard starts or cancels an automatic OFF timer with the non-retained topic `
 }
 ```
 
-Each relay has at most four independent slots. The firmware rejects equal start and stop times, persists accepted slots in LittleFS, and applies them when the local clock is valid. A `DELETE` payload clears all four slots for the selected relay.
+Each relay has at most four independent slots. The firmware rejects equal start and stop times, rejects overlapping enabled slots, persists accepted slots in LittleFS, and applies them when the local clock is valid and mode is `AUTO`. A `DELETE` payload clears all four slots for the selected relay.
 
 ## Crop Telegram reminders
 
 The dashboard sends reminder commands through the non-retained topic `smartfarm/reminder/set`. The ESP8266 stores up to eight reminders in `/smartfarm_reminders.json`, checks the existing RTC/NTP time every 30 seconds, and sends the reminder after the configured time when the due date minus `leadDays` equals the current date. The default is one day before at 18:00.
-
-Example settings payload:
-
-```json
-{"op":"settings","enabled":true,"repeatDaily":false,"quietStart":"22:00","quietEnd":"07:00","leadDays":1,"hour":18,"minute":0}
-```
-
-Example task payload:
-
-```json
-{"op":"upsert","id":"task-fertilize-2","title":"ใส่ปุ๋ยครั้งที่ 2","due":"2026-08-08","leadDays":1,"repeatEveryDays":0,"plotId":"plot-legacy","note":"ปุ๋ยละลายช้า 1 ช้อนโต๊ะต่อต้น","enabled":true,"done":false}
-```
-
-`done` marks a task complete, `snooze` changes its due date, `delete` removes it, `sync` asks for retained reminder status, and `test` sends a test Telegram message. Each task stores `lastSentDate` so the same reminder is not sent twice on the same day. `repeatEveryDays` from 1–30 advances the due date after a successful send, while `plotId` identifies the crop area. `quietStart` and `quietEnd` define a local-time window during which the device does not send reminders. If daily overdue reminders are enabled, an incomplete overdue task is sent once per day after the configured time. The device must have Wi‑Fi, a valid RTC/NTP clock, and Telegram credentials configured; if it was offline at the scheduled time, it can send later on the same day after reconnecting.
 
 ## Farm AI alerts
 
@@ -60,7 +54,7 @@ The client-side Smart Farm Rule Engine analyzes sensor, weather, RTC, device hea
 
 ## Control and safety behavior
 
-The Firmware has no active mode topic. Schedules run locally from the four saved slots when the clock is valid, while direct relay commands and timers use the existing relay topics. The pump has **no forced 30-minute continuous-runtime cutoff** and no automatic MQTT-loss cutoff; it follows the schedule or explicit command selected by the operator. `EMERGENCY_STOP` turns all relays OFF, cancels timers and blocks schedule/manual/timer ON until `EMERGENCY_RESET`.
+The pump has **no forced 30-minute continuous-runtime cutoff** and no automatic MQTT-loss cutoff; it follows the selected manual command, timer or local schedule. `EMERGENCY_STOP` turns all relays OFF, cancels timers and blocks schedule/manual/timer ON until `EMERGENCY_RESET`.
 
 Before HTTP or ArduinoOTA firmware writing starts, the firmware forces all relays OFF and pauses schedule application. A failed or aborted update does not reboot the device and releases the temporary OTA safe state. This software state is not a replacement for a physical E-stop, contactor, float switch, pressure switch or thermal overload on a real pump circuit.
 
@@ -70,10 +64,13 @@ The firmware publishes an online heartbeat including version, free heap, heap fr
 
 The dashboard source contains no MQTT username or password. An operator enters credentials in the browser; they are stored in session storage by default, or in local storage only after selecting “remember this device.” Commands issued in a short reconnect window are queued for up to 30 seconds. Telegram bot token and chat ID are sent from the dashboard to the ESP8266 over the authenticated MQTT command topic and are persisted in LittleFS; they are never placed in `config.js`.
 
-> A static web client cannot protect a shared broker credential from a person who can use that credential in a browser. Configure HiveMQ ACLs and rotate any password that was committed in a prior repository revision.
+A static web client cannot protect a shared broker credential from a person who can use that credential in a browser. Configure HiveMQ ACLs and rotate any password that was committed in a prior repository revision.
 
-The active hardware time map is DHT11 on D2/GPIO4 and DS3231 I²C on D3/GPIO0 plus D4/GPIO2. Firmware MQTT uses HiveMQ Cloud TLS on port 8883; the current `setInsecure()` configuration encrypts the transport but skips server-certificate validation. At boot, the firmware reports NTP epoch validity. When PubSubClient returns `MQTT_CONNECT_FAILED` (`state=-2`), it additionally reports DNS resolution and a separate TLS/TCP probe so an operator can distinguish network/TLS failure from MQTT authentication failure.
+The active hardware time map is DHT11 on D2/GPIO4 and DS3231 I²C on D3/GPIO0 plus D4/GPIO2. Firmware MQTT uses HiveMQ Cloud TLS on port 8883; the current `setInsecure()` configuration encrypts the transport but skips server-certificate validation. The web dashboard uses HiveMQ WSS on port 8884. At boot, the firmware reports NTP epoch validity. When PubSubClient returns `MQTT_CONNECT_FAILED` (`state=-2`), it additionally reports DNS resolution and a separate TLS/TCP probe so an operator can distinguish network/TLS failure from MQTT authentication failure.
 
-## MQTT Contract V1.0 compatibility additions
+## Compatibility notes
 
-The device also publishes retained `smartfarm/status/device` data with `device_id`, `wifi`, `mqtt`, `uptime`, and `rssi`; retained mode status on `smartfarm/mode/status`; real-time Bangkok time on `smartfarm/time`; and validation failures on `smartfarm/system/error`. DHT11 packets include numeric `temperature` and `humidity`, units, and an ISO 8601 timestamp when the clock is valid.
+- `Wy` is a backup dashboard only and is **not** the source of truth for this contract.
+- `New140869` is the production source of truth for firmware, MQTT and the primary dashboard.
+- Soil sensor `A0` remains a firmware/hardware legacy definition unless explicitly used by the production dashboard; it must not be used to invent an automatic watering feature that is absent from the active contract.
+- The dashboard and firmware must be mapped against the exact topics above before any UI refactor is considered complete.
