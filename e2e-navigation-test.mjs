@@ -37,6 +37,11 @@ async function runChecks() {
     if (corePages.includes(page)) {
       add(`${page}: has bottom navigation`, /class="bottom-nav"/.test(html));
       add(`${page}: has settings link`, /href="settings\.html"/.test(html));
+      const navBlock = html.match(/<nav[^>]*class="bottom-nav"[\s\S]*?<\/nav>/)?.[0] || '';
+      const navLinks = [...navBlock.matchAll(/<a(?:\s+class="([^"]*)")?\s+href="([^"]+\.html)"/g)];
+      const activeLinks = navLinks.filter(([, classes]) => classes?.split(/\s+/).includes('active'));
+      add(`${page}: bottom navigation has exactly five existing routes`, navLinks.length === 5 && navLinks.every(([, , href]) => corePages.includes(href)));
+      add(`${page}: bottom navigation marks exactly one active route`, activeLinks.length === 1 && activeLinks[0][2] === page);
     }
     add(`${page}: uses no active inline color/background override`, !/style="[^\"]*(color|background|opacity|filter)/.test(html));
     const navBlock = html.match(/<nav[^>]*class="bottom-nav"[\s\S]*?<\/nav>/)?.[0] || '';
