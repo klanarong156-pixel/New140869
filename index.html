@@ -51,42 +51,6 @@
     </section>
 
 
-    <section class="mqtt-live-panel section" data-mqtt-live-panel aria-labelledby="mqtt-live-title">
-      <div class="mqtt-live-main">
-        <span class="mqtt-live-dot" data-mqtt-live-dot aria-hidden="true"></span>
-        <div class="mqtt-live-copy"><p class="kicker">CONNECTION · REALTIME</p><h2 id="mqtt-live-title" data-mqtt-live-label>MQTT ยังไม่เชื่อมต่อ</h2><p class="helper" data-mqtt-live-detail>กำลังตรวจสอบช่องทางสั่งงาน</p><p class="mqtt-command-status" data-mqtt-command-status aria-live="polite">พร้อมรับคำสั่งสำคัญ</p></div>
-      </div>
-      <div class="mqtt-live-meta"><div><span>ESP8266</span><strong data-mqtt-device-status>รอตรวจสอบ</strong></div><div><span>อัปเดตล่าสุด</span><strong data-mqtt-last-update>—</strong></div></div>
-      <div class="mqtt-live-actions"><button class="btn primary small" type="button" data-mqtt-connect>เชื่อมต่อ MQTT</button><button class="btn ghost small" type="button" data-mqtt-setup>ตั้งค่า</button><a class="btn ghost small" href="mqtt-status-demo.html">ดู MQTT Lab</a></div>
-    </section>
-
-    <section class="section sensor-overview" aria-labelledby="live-title">
-      <div class="section-head"><div><p class="kicker">01 · LIVE STATUS</p><h2 id="live-title">ภาพรวมฟาร์ม</h2></div><span class="helper">ข้อมูลจากอุปกรณ์แบบเรียลไทม์</span></div>
-      <div class="grid four">
-        <article class="card metric-card interactive sensor-card sensor-temperature"><div class="metric-top"><span>อุณหภูมิ</span><span class="metric-icon">🌡️</span></div><div><strong data-sensor="temperature">-- °C</strong><small data-sensor-freshness>DHT11 · เรียลไทม์</small></div></article>
-        <article class="card metric-card interactive sensor-card sensor-humidity"><div class="metric-top"><span>ความชื้นอากาศ</span><span class="metric-icon">💧</span></div><div><strong data-sensor="humidity">-- %</strong><small data-sensor-freshness>DHT11 · เรียลไทม์</small></div></article>
-        <article class="card metric-card interactive"><div class="metric-top"><span>สถานะบอร์ด</span><span class="metric-icon">📡</span></div><div><strong data-device-online-text>ออฟไลน์</strong><small id="deviceRssi">รอสัญญาณ Wi‑Fi</small></div></article>
-        <article class="card metric-card interactive"><div class="metric-top"><span>เฟิร์มแวร์</span><span class="metric-icon">⚙️</span></div><div><strong id="deviceFirmware">รอข้อมูล</strong><small>เวอร์ชันอุปกรณ์</small></div></article>
-      </div>
-    </section>
-
-    <section class="section system-status-section" aria-labelledby="system-status-title">
-      <div class="section-head"><div><p class="kicker">SYSTEM STATUS</p><h2 id="system-status-title">สถานะระบบ</h2></div><span class="helper">ตรวจสอบการเชื่อมต่อแบบย่อ</span></div>
-      <div class="system-status-card" role="status" aria-live="polite">
-        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">▣</span><span><strong>ESP8266</strong><small data-system-esp>ออฟไลน์</small></span></div>
-        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">⌁</span><span><strong>MQTT</strong><small data-system-mqtt>ยังไม่เชื่อมต่อ</small></span></div>
-        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">◷</span><span><strong>RTC</strong><small data-system-rtc>รอตรวจสอบ</small></span></div>
-      </div>
-    </section>
-
-    <section class="section schedule-summary-section" aria-labelledby="dashboard-schedule-title">
-      <div class="section-head"><div><p class="kicker">SCHEDULE · PUMP</p><h2 id="dashboard-schedule-title">ตารางเวลา</h2></div><span class="helper" data-dashboard-schedule-source>รอข้อมูลจาก ESP8266</span></div>
-      <div class="schedule-summary-card">
-        <div class="dashboard-schedule-list" data-dashboard-schedule-list><p class="schedule-empty">ยังไม่มีข้อมูลตารางเวลาของปั๊มน้ำ</p></div>
-        <div class="schedule-summary-actions"><a class="btn secondary" href="schedule.html#scheduleRelayTitle">จัดการตารางเวลา</a><a class="btn primary" href="#control" data-dashboard-timer-action>ตั้ง Timer <span data-dashboard-pump-timer>ไม่มี Timer</span></a></div>
-      </div>
-    </section>
-
     <section class="section control-section pump-hero-section" id="control" aria-labelledby="control-title">
   <div class="section-head"><div><p class="kicker">02 · RELAY CONTROL</p><h2 id="control-title">ควบคุมอุปกรณ์</h2><p class="helper">ปุ่มเดียวตามสถานะ · แตะตั้งเวลาเมื่อจำเป็น</p></div></div>
   <div class="grid four control-grid"><article class="card control-card pump-hero-card" data-relay-card="pump">
@@ -163,6 +127,44 @@
 </article></div>
   <div class="control-safety" data-emergency-panel aria-label="ความปลอดภัยของระบบ"><div class="control-safety-copy"><span class="safety-stamp" aria-hidden="true">!</span><span><strong>Safety Control</strong><small data-emergency-status>Emergency Stop ปกติ</small><em>ปิดรีเลย์ทั้ง 4 จุดและล็อกการเปิดซ้ำ</em></span></div><div class="control-safety-actions"><button class="btn danger" type="button" data-emergency-stop>หยุดฉุกเฉินทั้งระบบ</button><button class="btn secondary small" type="button" data-emergency-reset>ปลดล็อก</button></div></div>
 </section>
+
+    <section class="mqtt-live-panel section" data-mqtt-live-panel aria-labelledby="mqtt-live-title">
+      <div class="mqtt-live-main">
+        <span class="mqtt-live-dot" data-mqtt-live-dot aria-hidden="true"></span>
+        <div class="mqtt-live-copy"><p class="kicker">CONNECTION · REALTIME</p><h2 id="mqtt-live-title" data-mqtt-live-label>MQTT ยังไม่เชื่อมต่อ</h2><p class="helper" data-mqtt-live-detail>กำลังตรวจสอบช่องทางสั่งงาน</p><p class="mqtt-command-status" data-mqtt-command-status aria-live="polite">พร้อมรับคำสั่งสำคัญ</p></div>
+      </div>
+      <div class="mqtt-live-meta"><div><span>ESP8266</span><strong data-mqtt-device-status>รอตรวจสอบ</strong></div><div><span>อัปเดตล่าสุด</span><strong data-mqtt-last-update>—</strong></div></div>
+      <div class="mqtt-live-actions"><button class="btn primary small" type="button" data-mqtt-connect>เชื่อมต่อ MQTT</button><button class="btn ghost small" type="button" data-mqtt-setup>ตั้งค่า</button><a class="btn ghost small" href="mqtt-status-demo.html">ดู MQTT Lab</a></div>
+    </section>
+
+    <section class="section sensor-overview" aria-labelledby="live-title">
+      <div class="section-head"><div><p class="kicker">01 · LIVE STATUS</p><h2 id="live-title">ภาพรวมฟาร์ม</h2></div><span class="helper">ข้อมูลจากอุปกรณ์แบบเรียลไทม์</span></div>
+      <div class="grid four">
+        <article class="card metric-card interactive sensor-card sensor-temperature"><div class="metric-top"><span>อุณหภูมิ</span><span class="metric-icon">🌡️</span></div><div><strong data-sensor="temperature">-- °C</strong><small data-sensor-freshness>DHT11 · เรียลไทม์</small></div></article>
+        <article class="card metric-card interactive sensor-card sensor-humidity"><div class="metric-top"><span>ความชื้นอากาศ</span><span class="metric-icon">💧</span></div><div><strong data-sensor="humidity">-- %</strong><small data-sensor-freshness>DHT11 · เรียลไทม์</small></div></article>
+        <article class="card metric-card interactive"><div class="metric-top"><span>สถานะบอร์ด</span><span class="metric-icon">📡</span></div><div><strong data-device-online-text>ออฟไลน์</strong><small id="deviceRssi">รอสัญญาณ Wi‑Fi</small></div></article>
+        <article class="card metric-card interactive"><div class="metric-top"><span>เฟิร์มแวร์</span><span class="metric-icon">⚙️</span></div><div><strong id="deviceFirmware">รอข้อมูล</strong><small>เวอร์ชันอุปกรณ์</small></div></article>
+      </div>
+    </section>
+
+    <section class="section system-status-section" aria-labelledby="system-status-title">
+      <div class="section-head"><div><p class="kicker">SYSTEM STATUS</p><h2 id="system-status-title">สถานะระบบ</h2></div><span class="helper">ตรวจสอบการเชื่อมต่อแบบย่อ</span></div>
+      <div class="system-status-card" role="status" aria-live="polite">
+        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">▣</span><span><strong>ESP8266</strong><small data-system-esp>ออฟไลน์</small></span></div>
+        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">⌁</span><span><strong>MQTT</strong><small data-system-mqtt>ยังไม่เชื่อมต่อ</small></span></div>
+        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">◷</span><span><strong>RTC</strong><small data-system-rtc>รอตรวจสอบ</small></span></div>
+      </div>
+    </section>
+
+    <section class="section schedule-summary-section" aria-labelledby="dashboard-schedule-title">
+      <div class="section-head"><div><p class="kicker">SCHEDULE · PUMP</p><h2 id="dashboard-schedule-title">ตารางเวลา</h2></div><span class="helper" data-dashboard-schedule-source>รอข้อมูลจาก ESP8266</span></div>
+      <div class="schedule-summary-card">
+        <div class="dashboard-schedule-list" data-dashboard-schedule-list><p class="schedule-empty">ยังไม่มีข้อมูลตารางเวลาของปั๊มน้ำ</p></div>
+        <div class="schedule-summary-actions"><a class="btn secondary" href="schedule.html#scheduleRelayTitle">จัดการตารางเวลา</a><a class="btn primary" href="#control" data-dashboard-timer-action>ตั้ง Timer <span data-dashboard-pump-timer>ไม่มี Timer</span></a></div>
+      </div>
+    </section>
+
+
 
     <section id="cropCycleCard" class="section card pad crop-cycle-card cucumber-plot-card" aria-labelledby="crop-cycle-dashboard-title">
       <div class="section-head"><div><p class="kicker">CUCUMBER PLOT · CROP CYCLE</p><h2 id="crop-cycle-dashboard-title">แปลงแตงกวา</h2><p class="helper" id="dashboardCropStatus">กำลังโหลดข้อมูลรอบปลูก…</p></div><span class="tag success">นับวันอัตโนมัติ</span></div>
