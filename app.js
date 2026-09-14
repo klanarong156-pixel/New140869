@@ -76,6 +76,7 @@
     });
     $$('[data-device-online-text]').forEach(element => { element.textContent = online ? 'ออนไลน์' : 'ออฟไลน์'; });
     $$('[data-mqtt-device-status]').forEach(element => { element.textContent = online ? 'ออนไลน์ · heartbeat ล่าสุด' : 'ออฟไลน์ · รอ heartbeat'; });
+    $$('[data-sensor-freshness]').forEach(element => { element.textContent = online ? 'DHT11 · เรียลไทม์' : 'DHT11 · ค่าล่าสุดที่ได้รับ'; });
     $$('[data-device-online-card]').forEach(card => card.classList.toggle('active', Boolean(online)));
     ['pump', 'zone1', 'lighthome', 'lightsala'].forEach(relay => {
       const input = document.querySelector(`[data-relay-toggle="${relay}"]`);
@@ -179,6 +180,7 @@
     const suffix = type === 'temperature' ? ' °C' : ' %';
     const precision = type === 'temperature' ? 1 : 0;
     $$(`[data-sensor="${type}"]`).forEach(element => { element.textContent = `${numeric.toFixed(precision)}${suffix}`; });
+    $$('[data-sensor-freshness]').forEach(element => { element.textContent = deviceOnline ? 'DHT11 · เรียลไทม์' : 'DHT11 · ค่าล่าสุดที่ได้รับ'; });
   }
 
   function commandRelay(relay, on) {

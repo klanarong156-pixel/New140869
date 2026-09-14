@@ -215,3 +215,47 @@ body.dashboard-page .mqtt-live-meta strong {
   body.dashboard-page .mqtt-live-meta div { min-width: 0; }
   body.dashboard-page .mqtt-live-meta strong { max-width: 100%; }
 }
+
+/* Sensor pair and cucumber plot: real DHT11/Crop Cycle data, presentation only. */
+body.dashboard-page .sensor-overview .grid.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+body.dashboard-page .sensor-overview .sensor-card {
+  min-height: 142px;
+  padding: 20px;
+  border: 1px solid var(--sf-line);
+  border-radius: var(--sf-radius-card);
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(36, 88, 54, .07);
+}
+body.dashboard-page .sensor-overview .sensor-card .metric-top { color: var(--sf-muted); font-size: 15px; }
+body.dashboard-page .sensor-overview .sensor-card .metric-icon { background: var(--sf-primary-soft); }
+body.dashboard-page .sensor-overview .sensor-card strong { color: var(--sf-primary); font-size: 32px; }
+body.dashboard-page .sensor-overview .sensor-card small { color: var(--sf-muted); font-family: inherit; font-size: 11px; }
+body.dashboard-page .sensor-overview .sensor-temperature { border-top: 4px solid #e4c76f; }
+body.dashboard-page .sensor-overview .sensor-humidity { border-top: 4px solid #75b9cf; }
+body.dashboard-page .cucumber-plot-card {
+  overflow: hidden;
+  border: 1px solid #cfe5d4;
+  border-radius: var(--sf-radius-card);
+  background: linear-gradient(135deg, #f1fbf3 0%, #ffffff 74%);
+  box-shadow: var(--sf-shadow);
+}
+body.dashboard-page .cucumber-plot-card .crop-cycle-summary {
+  min-height: 92px;
+  padding: 15px;
+  border: 1px solid var(--sf-line);
+  border-radius: var(--sf-radius-control);
+  background: rgba(255,255,255,.78);
+}
+body.dashboard-page .cucumber-plot-card .crop-cycle-icon {
+  background: var(--sf-primary-soft);
+  color: var(--sf-primary);
+}
+body.dashboard-page .cucumber-plot-card #dashboardCropName { color: var(--sf-primary); font-size: 20px; }
+body.dashboard-page .cucumber-plot-card #dashboardCropStatus { color: var(--sf-primary); font-weight: 600; }
+body.dashboard-page .cucumber-plot-card .crop-cycle-age strong { color: var(--sf-primary); font-size: 30px; }
+@media (max-width: 420px) {
+  body.dashboard-page .sensor-overview .sensor-card { min-height: 126px; padding: 14px; border-radius: 18px; }
+  body.dashboard-page .sensor-overview .sensor-card strong { font-size: 26px; }
+  body.dashboard-page .sensor-overview .sensor-card .metric-top { font-size: 12px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-summary { padding: 11px; }
+}

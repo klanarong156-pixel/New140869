@@ -23,7 +23,7 @@
       name.textContent = data.crop;
       date.textContent = `วันที่ปลูก ${formatDate(data.startDate)}`;
       age.textContent = `${window.cropCycle.age(data)} วัน`;
-      if (status) status.textContent = 'คำนวณจากวันที่ปลูกถึงวันนี้';
+      if (status) status.textContent = '● กำลังเจริญเติบโต · คำนวณจากวันที่ปลูกถึงวันนี้';
     } catch (error) {
       name.textContent = 'ไม่สามารถโหลดข้อมูลได้';
       date.textContent = 'กรุณาลองใหม่อีกครั้ง';
