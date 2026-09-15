@@ -47,6 +47,8 @@ body.dashboard-page .desktop-nav a.active,
 body.dashboard-page .desktop-nav a:hover { color: var(--dash-green-dark); background: var(--dash-green-soft); }
 body.dashboard-page .topbar-actions .status-pill { color: var(--dash-green-dark); border-color: #cfe6d6; background: #f4fbf6; }
 body.dashboard-page .dashboard-clock-layer { display: none !important; }
+body.dashboard-page .app-main > .dashboard-header { display: none; }
+body.dashboard-page .app-main > .dashboard-header { order: 1; }
 
 /* Header: compact app bar, not a competing hero. */
 body.dashboard-page .hero.dashboard-header {
@@ -78,9 +80,10 @@ body.dashboard-page .dashboard-notification-panel[hidden] { display: none !impor
 /* The existing control wrapper is flattened only for visual ordering; all controls stay in the DOM. */
 body.dashboard-page #control,
 body.dashboard-page #control .control-grid { display: contents; }
-body.dashboard-page .app-main > .dashboard-header { order: 1; }
+body.dashboard-page #control > .section-head { display: none; }
 body.dashboard-page #control > .control-grid > .pump-hero-card { order: 2; }
 body.dashboard-page .app-main > .sensor-overview { order: 3; }
+body.dashboard-page #control > .control-grid > .quick-control-heading { order: 4; grid-column: 1 / -1; }
 body.dashboard-page #control > .control-grid > .control-card:not(.pump-hero-card) { order: 4; }
 body.dashboard-page .app-main > #cropCycleCard { order: 5; }
 body.dashboard-page .app-main > .dashboard-quick-actions { order: 6; }
@@ -148,6 +151,8 @@ body.dashboard-page #control .pump-toggle input:checked + span { border-color: v
 body.dashboard-page #control .pump-toggle input:checked + span::after { transform: translateX(102px); }
 body.dashboard-page #control .pump-toggle input:focus-visible + span { outline: 3px solid rgba(35,155,85,.25); outline-offset: 4px; }
 body.dashboard-page #control .pump-hero-card .context-action { display: none; }
+body.dashboard-page #control .quick-control-heading { margin-top: 2px; }
+body.dashboard-page #control .quick-control-heading h2 { margin: 0; color: var(--dash-green-dark); font-size: 25px; letter-spacing: -.04em; }
 
 /* Secondary quick controls: always smaller than Pump Hero, three-up like the reference. */
 body.dashboard-page #control .control-card:not(.pump-hero-card) {
@@ -165,7 +170,17 @@ body.dashboard-page #control .control-card:not(.pump-hero-card) {
 body.dashboard-page #control .control-card:not(.pump-hero-card):hover { transform: translateY(-2px); border-color: #a9d5b7; box-shadow: inset 0 1px 0 #fff, 0 14px 28px rgba(22,71,44,.12), 0 2px 0 rgba(35,155,85,.1); }
 body.dashboard-page #control .control-card:not(.pump-hero-card).active { border-color: #9fcead; background: linear-gradient(145deg,#f1fbf4,#fff); }
 body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { width: 100%; min-height: 46px; border: 1px solid #cfe6d6; border-radius: 14px; background: #f4fbf6; color: var(--dash-green-dark); font-weight: 650; }
-body.dashboard-page .sensor-overview { margin-top: 20px; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .quick-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .quick-toggle .context-action { min-height: 42px; margin: 0; border: 0; border-radius: 999px; background: #eaf2ed; color: #31564a; box-shadow: none; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .quick-toggle .context-action span[data-relay-action-label] { font-size: 0; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .quick-toggle .context-action span[data-relay-action-label]::after { content: "ON"; font-size: 14px; }
+body.dashboard-page #control .control-card:not(.pump-hero-card).active .quick-toggle .context-action { background: var(--dash-green); color: #fff; }
+body.dashboard-page #control .quick-off { display: grid; place-items: center; min-height: 42px; border-radius: 999px; background: #eaf2ed; color: #31564a; font-size: 14px; font-weight: 650; cursor: pointer; }
+body.dashboard-page #control .quick-off input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+body.dashboard-page #control .quick-off input:focus-visible + span { outline: 3px solid rgba(35,155,85,.25); outline-offset: 3px; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .relay-timer { display: none; }
+body.dashboard-page .sensor-overview { margin-top: 0; }
+body.dashboard-page .sensor-overview > .section-head { display: none; }
 body.dashboard-page .sensor-overview .metric-card { border: 1px solid #d6e5da; border-radius: 18px; background: linear-gradient(145deg,#fff,#fbfefc); box-shadow: inset 0 1px 0 #fff, 0 10px 24px rgba(22,71,44,.08), 0 2px 0 rgba(18,62,44,.04); }
 body.dashboard-page .sensor-overview .metric-icon { background: var(--dash-green-soft); color: var(--dash-green); }
 body.dashboard-page .sensor-overview .sensor-card strong { color: var(--dash-green-dark); }
@@ -173,6 +188,7 @@ body.dashboard-page .sensor-overview .sensor-card small { color: var(--dash-mute
 body.dashboard-page .sensor-overview .metric-card:nth-child(n + 3) { display: none; }
 body.dashboard-page .cucumber-plot-card { border: 1px solid #bfe0ca; border-radius: 18px; background: linear-gradient(145deg,#f0faf3,#fff); box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 10px 26px rgba(22,71,44,.08), 0 2px 0 rgba(35,155,85,.07); }
 body.dashboard-page #cropCycleCard { width: 100%; overflow: hidden; }
+body.dashboard-page #cropCycleCard > .section-head { display: none; }
 body.dashboard-page #cropCycleCard .crop-cycle-summary { width: 100%; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; }
 body.dashboard-page #cropCycleCard .crop-cycle-summary > div:nth-child(2) { min-width: 0; }
 body.dashboard-page #cropCycleCard .crop-cycle-icon { width: clamp(128px, 34vw, 220px); height: 108px; overflow: hidden; border: 1px solid #c7e4d0; border-radius: 16px; background: #e8f6ed; box-shadow: inset 0 1px 0 #fff, 0 6px 14px rgba(22,71,44,.1); }
