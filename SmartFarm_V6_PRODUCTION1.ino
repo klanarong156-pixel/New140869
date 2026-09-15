@@ -1858,6 +1858,8 @@ void otaHttpUpload() {
   } else if (upload.status == UPLOAD_FILE_END) {
     bool completeSize = upload.totalSize > 0 &&
                         upload.totalSize == otaUploadBytes;
+    // Update.end(true) closes the flash writer and verifies the image before
+    // any restart is allowed. A partial upload must never be booted.
     if (!otaUploadFailed && completeSize && Update.end(true)) {
       otaUploadCompleted = true;
       Serial.printf("OTA HTTP: END (%u bytes)\n", upload.totalSize);
@@ -1917,9 +1919,11 @@ void setupOtaHttpServer() {
                        ok ? "Update complete. Device is restarting."
                           : "Update failed: firmware write error.");
         if (ok) {
-          // Give the HTTP response time to leave the socket before reboot.
+          // Give the HTTP response and browser upload completion time to leave
+          // the socket before reboot. The image has already been finalized and
+          // verified above; a failed or partial upload never reaches this path.
           otaHttpRestartPending = true;
-          otaHttpRestartAt = millis() + 1500UL;
+          otaHttpRestartAt = millis() + 3000UL;
         }
       },
       otaHttpUpload);

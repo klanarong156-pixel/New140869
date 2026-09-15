@@ -42,7 +42,7 @@ SmartFarm เป็นระบบควบคุมฟาร์มที่ป�
 
 ### Dashboard
 
-Dashboard ใช้ดูสถานะและสั่งงานเป็นหลัก มีแผงสถานะ MQTT/ESP8266, เซนเซอร์, รีเลย์, ตารางงาน, สภาพอากาศ และสถิติฟาร์ม แถบเมนูด้านล่างเป็น floating navigation ติดหน้าจอตลอดเวลา รองรับ safe-area ของ iPhone และเพิ่มพื้นที่กันชนไม่ให้บังข้อมูล
+Dashboard ใช้ดูสถานะและสั่งงานเป็นหลัก มี Topbar แสดงสถานะพร้อมใช้งานและเวลา RTC, เซนเซอร์, รีเลย์, แปลงแตงกวา และสภาพอากาศ แถบเมนูด้านล่างเป็น floating navigation ติดหน้าจอตลอดเวลา รองรับ safe-area ของ iPhone และเพิ่มพื้นที่กันชนไม่ให้บังข้อมูล โดย Dashboard ไม่แสดงเลเยอร์สรุป **ตารางเวลา**, **Safety Control** หรือ **สถานะระบบ** ซ้ำด้านล่างอีกแล้ว
 
 ระบบมี Simple และ Advanced mode โดย Advanced mode แสดง diagnostics, telemetry chart, relay runtime และเครื่องมือสำรองข้อมูลเพิ่มเติม
 
@@ -80,7 +80,7 @@ DS3231 เป็นแหล่งเวลาหลักเมื่อพบ�
 | sync RTC/NTP | 6 ชั่วโมง |
 | timeout heartbeat ใน Dashboard | 25 วินาที |
 
-ระบบไม่มี hard cutoff 30 นาที สำหรับปั้ม (no forced 30-minute pump cutoff) และ MQTT หลุดจะไม่ตัดตารางที่กำลังทำงานบน ESP8266 โดยอัตโนมัติ Timer แบบกำหนดเวลารองรับสูงสุด 71,582 นาทีต่อคำสั่งตามข้อจำกัด `millis()` และ `UNLIMITED` ต้องเป็นตัวเลือกที่ผู้ใช้สั่งเอง
+ระบบไม่มี hard cutoff 30 นาที สำหรับปั้ม (no forced 30-minute pump cutoff) และ MQTT หลุดจะไม่ตัดตารางที่กำลังทำงานบน ESP8266 โดยอัตโนมัติ Timer แบบกำหนดเวลารองรับสูงสุด 71,582 นาทีต่อคำสั่งตามข้อจำกัด `millis()` และ `UNLIMITED` ต้องเป็นตัวเลือกที่ผู้ใช้สั่งเอง ส่วน Dashboard ไม่แสดงโหมดนับถอยหลังหรือเวลาคงเหลือใน Quick Action แล้ว การตั้ง Timer และการทำงานตามเวลายังอยู่ใน firmware และหน้า **ตั้งเวลา** ตามเดิม
 
 ## MQTT topics
 
@@ -109,7 +109,7 @@ DS3231 เป็นแหล่งเวลาหลักเมื่อพบ�
 
 Dashboard Rain Protection เป็น advisory จาก Open-Meteo เท่านั้น ESP8266 ไม่ใช้ weather API เป็นเงื่อนไขสั่งปั้มอัตโนมัติ
 
-ระหว่าง OTA ระบบบังคับรีเลย์ทั้งหมดเป็น OFF ก่อนเขียน Flash หากอัปโหลดล้มเหลวจะไม่รีบูตโดยอัตโนมัติ
+ระหว่าง OTA ระบบบังคับรีเลย์ทั้งหมดเป็น OFF ก่อนเขียน Flash ระบบจะตรวจว่าขนาดข้อมูลครบและให้ `Update.end(true)` ตรวจสอบ image ก่อนตอบว่าสำเร็จ จากนั้นจึงเว้นเวลา 3 วินาทีให้ response/การอัปโหลดฝั่ง browser จบก่อนรีบูต หากอัปโหลดไม่ครบ เขียนไม่สำเร็จ หรือการตรวจสอบ image ล้มเหลว จะไม่รีบูตโดยอัตโนมัติ
 
 ## ข้อมูลลับ
 
@@ -133,13 +133,16 @@ MQTT username/password ของ Dashboard ต้องกรอกโดยผ�
 
 ## Build และ validation
 
-เป้าหมาย Arduino คือ NodeMCU 1.0 (ESP-12E Module): `esp8266:esp8266:nodemcuv2`
+เป้าหมาย Arduino คือ NodeMCU 1.0 (ESP-12E Module): `esp8266:esp8266:nodemcuv2` โดยใช้ PlatformIO environment ชื่อ `nodemcuv2` จาก `platformio.ini`
 
 หลังแก้ firmware ให้ compile ก่อน upload ทุกครั้ง และใช้ Serial Monitor ที่ 115200 baud การ build สำเร็จยืนยันเฉพาะการ compile เท่านั้น ต้องทดสอบ Wi-Fi, MQTT, DHT11, DS3231, รีเลย์ และปั้มกับ NodeMCU จริงแยกต่างหาก
 
 คำสั่งตรวจสอบหลัก:
-
 ```bash
+mkdir -p src
+cp SmartFarm_V6_PRODUCTION1.ino src/main.ino
+pio run -e nodemcuv2
+cp .pio/build/nodemcuv2/firmware.bin SmartFarm_V6_PRODUCTION1.bin
 node --check app.js
 node --check farm-analytics.js
 node dashboard-smoke-test.mjs
@@ -152,6 +155,10 @@ npm --prefix functions run lint
 git diff --check
 ```
 
+ไฟล์ firmware ที่สร้างจาก source ล่าสุดคือ `.pio/build/nodemcuv2/firmware.bin` และไฟล์สำหรับแจกจ่ายคือ `SmartFarm_V6_PRODUCTION1.bin` หลังคัดลอกด้วยคำสั่งด้านบน ไฟล์ `.bin` เป็น artifact สำหรับอัปโหลด OTA/แฟลชอุปกรณ์เท่านั้น ไม่ควรใช้แทนการทดสอบกับ NodeMCU จริง การ build จะติดตั้งและใช้ไลบรารีตาม `platformio.ini` และใช้ baud rate 115200
+
+Artifact ที่ตรงกับ source commit นี้มีขนาดประมาณ **589 KB** และ SHA-256 คือ `d4d65b508d2beb2d45ca0564460819c08f3e5ec5868908cd1b91c60722538462`
+
 GitHub Actions รันชุดตรวจสอบเดียวกันทุก push และ pull request รวมถึง simulated
 browser integration สำหรับหน้า Settings/MQTT. งาน browser test ใช้ Chrome ที่
 workflow ติดตั้งและส่งตำแหน่ง executable ผ่าน `CHROMIUM_PATH`; ในเครื่อง local
@@ -161,4 +168,4 @@ workflow ติดตั้งและส่งตำแหน่ง executable
 
 ## สถานะการตรวจสอบล่าสุด
 
-Dashboard runtime contract ผ่าน **101 รายการ** ในรอบเอกสารนี้ และ repository ต้องไม่มี credential จริงหรือไฟล์ build ที่ไม่ผ่านการตรวจสอบถูก push ขึ้น GitHub
+เอกสารนี้อ้างอิงระบบปัจจุบันที่ Dashboard ลบสามเลเยอร์ซ้ำด้านล่างแล้ว, ซ่อนการแสดงผล countdown ใน Quick Action แล้ว และยังคง Timer ที่ทำงานบน firmware/หน้า ตั้งเวลาไว้ Repository ต้องไม่มี credential จริง และไฟล์ build ที่สร้างเพื่อแจกจ่ายควรตรวจสอบขนาดและ checksum ก่อนนำไปแฟลชอุปกรณ์
