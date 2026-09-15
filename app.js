@@ -464,8 +464,12 @@
     $$('[data-dashboard-emergency-action]').forEach(link => link.addEventListener('click', event => {
       event.preventDefault();
       const panel = document.querySelector('[data-emergency-panel]');
-      panel?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      window.setTimeout(() => document.querySelector('[data-emergency-stop]')?.focus(), 250);
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        window.setTimeout(() => document.querySelector('[data-emergency-stop]')?.focus(), 250);
+      } else {
+        window.farmTools?.emergencyStop?.();
+      }
     }));
 
     $$('[data-mqtt-connect]').forEach(button => button.addEventListener('click', () => {

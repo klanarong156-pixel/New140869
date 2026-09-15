@@ -11,10 +11,8 @@ add('Pump Hero precedes Sensor', hasOrder('body.dashboard-page #control > .contr
 add('Sensor precedes Quick Control', hasOrder('body.dashboard-page .app-main > .sensor-overview', 3) && hasOrder(`body.dashboard-page ${quickControlOrder}`, 4));
 add('Quick Control precedes Cucumber Plot', hasOrder(`body.dashboard-page ${quickControlOrder}`, 4) && hasOrder('body.dashboard-page .app-main > #cropCycleCard', 5));
 add('Cucumber Plot precedes Quick Actions', hasOrder('body.dashboard-page .app-main > #cropCycleCard', 5) && hasOrder('body.dashboard-page .app-main > .dashboard-quick-actions', 6));
-add('Quick Actions precede Schedule', hasOrder('body.dashboard-page .app-main > .dashboard-quick-actions', 6) && hasOrder('body.dashboard-page .app-main > .compact-schedule-summary', 7));
-add('Schedule precedes Emergency', hasOrder('body.dashboard-page .app-main > .compact-schedule-summary', 7) && hasOrder('body.dashboard-page #control > .control-safety', 8));
-add('Emergency precedes System Status', hasOrder('body.dashboard-page #control > .control-safety', 8) && hasOrder('body.dashboard-page .app-main > .compact-system-status', 9));
-add('System Status precedes MQTT Live', hasOrder('body.dashboard-page .app-main > .compact-system-status', 9) && hasOrder('body.dashboard-page .app-main > .mqtt-live-panel', 10));
+add('Quick Actions remain after Cucumber Plot', hasOrder('body.dashboard-page .app-main > .dashboard-quick-actions', 6));
+add('Removed lower layers are absent', !html.includes('compact-schedule-summary') && !html.includes('control-safety') && !html.includes('compact-system-status'));
 add('Dashboard contains exactly two visible sensor cards', (html.match(/class="card metric-card interactive sensor-card/g) || []).length === 2);
 add('Dashboard does not render soil sensor', !/soil|ดิน|ความชื้นดิน/i.test(html));
 add('Quick controls are three-up on mobile', css.includes('body.dashboard-page #control .control-card:not(.pump-hero-card) {\n  width: auto;\n  grid-column: span 4;'));

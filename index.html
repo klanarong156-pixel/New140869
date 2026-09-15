@@ -132,7 +132,6 @@
     </div>
   </details>
 </article></div>
-  <div class="control-safety" data-emergency-panel aria-label="ความปลอดภัยของระบบ"><div class="control-safety-copy"><span class="safety-stamp" aria-hidden="true">!</span><span><strong>Safety Control</strong><small data-emergency-status>Emergency Stop ปกติ</small><em>ปิดรีเลย์ทั้ง 4 จุดและล็อกการเปิดซ้ำ</em></span></div><div class="control-safety-actions"><button class="btn danger" type="button" data-emergency-stop>หยุดฉุกเฉินทั้งระบบ</button><button class="btn secondary small" type="button" data-emergency-reset>ปลดล็อก</button></div></div>
 </section>
 
     <section class="dashboard-quick-actions" aria-label="ทางลัดการจัดการสวน">
@@ -140,6 +139,7 @@
       <a class="dashboard-quick-action timer" href="#control" data-dashboard-timer-action><span aria-hidden="true">◷</span><strong>Timer</strong><small data-dashboard-quick-timer>ตั้งเวลาเปิด–ปิด</small></a>
       <a class="dashboard-quick-action emergency" href="#control" data-dashboard-emergency-action><span aria-hidden="true">!</span><strong>Emergency Stop</strong><small>หยุดฉุกเฉิน</small></a>
     </section>
+    <div hidden aria-hidden="true"><button type="button" data-emergency-stop>หยุดฉุกเฉินทั้งระบบ</button><button type="button" data-emergency-reset>ปลดล็อก</button><span data-emergency-status>Emergency Stop ปกติ</span></div>
 
     <section class="mqtt-live-panel section compact-connection" data-mqtt-live-panel aria-labelledby="mqtt-live-title">
       <div class="mqtt-live-main">
@@ -159,25 +159,6 @@
         <article class="card metric-card interactive"><div class="metric-top"><span>เฟิร์มแวร์</span><span class="metric-icon">⚙️</span></div><div><strong id="deviceFirmware">รอข้อมูล</strong><small>เวอร์ชันอุปกรณ์</small></div></article>
       </div>
     </section>
-
-    <section class="section system-status-section compact-system-status" aria-labelledby="system-status-title">
-      <div class="section-head"><div><p class="kicker">SYSTEM STATUS</p><h2 id="system-status-title">สถานะระบบ</h2></div><span class="helper">ตรวจสอบการเชื่อมต่อแบบย่อ</span></div>
-      <div class="system-status-card" role="status" aria-live="polite">
-        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">▣</span><span><strong>ESP8266</strong><small data-system-esp>ออฟไลน์</small></span></div>
-        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">⌁</span><span><strong>MQTT</strong><small data-system-mqtt>ยังไม่เชื่อมต่อ</small></span></div>
-        <div class="system-status-item"><span class="system-status-icon" aria-hidden="true">◷</span><span><strong>RTC</strong><small data-system-rtc>รอตรวจสอบ</small></span></div>
-      </div>
-    </section>
-
-    <section class="section schedule-summary-section compact-schedule-summary" aria-labelledby="dashboard-schedule-title">
-      <div class="section-head"><div><p class="kicker">SCHEDULE · PUMP</p><h2 id="dashboard-schedule-title">ตารางเวลา</h2></div><span class="helper" data-dashboard-schedule-source>รอข้อมูลจาก ESP8266</span></div>
-      <div class="schedule-summary-card">
-        <div class="dashboard-schedule-list" data-dashboard-schedule-list><p class="schedule-empty">ยังไม่มีข้อมูลตารางเวลาของปั๊มน้ำ</p></div>
-        <div class="schedule-summary-actions"><a class="btn secondary" href="schedule.html#scheduleRelayTitle">จัดการตารางเวลา</a><a class="btn primary" href="#control" data-dashboard-timer-action>ตั้ง Timer <span data-dashboard-pump-timer>ไม่มี Timer</span></a></div>
-      </div>
-    </section>
-
-
 
     <section id="cropCycleCard" class="section card pad crop-cycle-card cucumber-plot-card" aria-labelledby="crop-cycle-dashboard-title">
       <div class="section-head"><div><p class="kicker">CUCUMBER PLOT · CROP CYCLE</p><h2 id="crop-cycle-dashboard-title">แปลงแตงกวา</h2><p class="helper" id="dashboardCropStatus">กำลังโหลดข้อมูลรอบปลูก…</p></div><span class="tag success">นับวันอัตโนมัติ</span></div>
