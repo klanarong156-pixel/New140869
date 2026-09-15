@@ -1,4 +1,4 @@
-/* Smart Farm Dashboard — UI Polish v1.3 (compact pump hero) */
+/* Smart Farm Dashboard — UI Polish v1.4 (compact, mobile-first pump hero) */
 body.dashboard-page {
   --polish-green: #239b55;
   --polish-green-dark: #123e2c;
@@ -6,8 +6,9 @@ body.dashboard-page {
   --polish-line: #e1ebe4;
   --polish-muted: #6b786f;
   --polish-danger: #d94c54;
+  overflow-x: clip;
 }
-body.dashboard-page .app-main { row-gap: 20px; }
+body.dashboard-page .app-main { row-gap: 16px; }
 body.dashboard-page .sensor-overview,
 body.dashboard-page #cropCycleCard,
 body.dashboard-page .dashboard-quick-actions,
@@ -20,81 +21,124 @@ body.dashboard-page #aiAdvisorPanel,
 body.dashboard-page #systemHealthPanel,
 body.dashboard-page #analyticsPanel,
 body.dashboard-page #financeSummary { border-color: var(--polish-line); box-shadow: 0 8px 24px rgba(18,62,44,.055); }
-body.dashboard-page #control .pump-hero-card { overflow:hidden; isolation:isolate; min-height:0; }
-body.dashboard-page #control .pump-hero-card::before { content:""; position:absolute; width:190px; height:190px; right:-52px; bottom:-72px; border-radius:50%; background:rgba(35,155,85,.07); pointer-events:none; }
-body.dashboard-page #control .pump-hero-card.active { border-color:#9fd2ae; box-shadow:0 14px 34px rgba(35,155,85,.13); }
-body.dashboard-page #control .pump-hero-card.active .pump-visual { box-shadow:inset 0 1px 0 #fff,0 8px 22px rgba(22,71,44,.1),0 0 0 7px rgba(35,155,85,.09); }
-body.dashboard-page #control .pump-hero-card .control-top { display:flex; align-items:center; justify-content:space-between; }
+
+/* Pump hero: keep every existing relay/timer hook, but make the card compact. */
+body.dashboard-page #control .pump-hero-card {
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 0;
+  padding: 16px;
+}
+body.dashboard-page #control .pump-hero-card::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  right: -56px;
+  bottom: -70px;
+  border-radius: 50%;
+  background: rgba(35,155,85,.06);
+  pointer-events: none;
+}
+body.dashboard-page #control .pump-hero-card.active { border-color: #9fd2ae; box-shadow: 0 12px 28px rgba(35,155,85,.11); }
+body.dashboard-page #control .pump-hero-card.active .pump-visual { box-shadow: 0 0 0 5px rgba(35,155,85,.08); }
+body.dashboard-page #control .pump-hero-card .control-top { display: flex; align-items: center; justify-content: space-between; }
 body.dashboard-page #control .pump-hero-card .control-name .icon,
-body.dashboard-page #control .pump-hero-card .control-name small,
-body.dashboard-page #control .pump-hero-card .vintage-status { display:none; }
-body.dashboard-page #control .pump-hero-card .pump-hero-state { display:grid; align-content:center; justify-items:start; gap:2px; }
-body.dashboard-page #control .pump-hero-card .pump-state-label,
-body.dashboard-page #control .pump-hero-card .pump-state-value,
-body.dashboard-page #control .pump-hero-card .pump-state-note { display:block; }
-body.dashboard-page #control .pump-hero-card .pump-state-value { color:var(--polish-green-dark); font-size:clamp(28px,3vw,38px); font-weight:750; letter-spacing:-.05em; }
-body.dashboard-page #control .pump-hero-card .pump-state-note { color:var(--polish-muted); font-size:12px; }
-body.dashboard-page #control .pump-hero-card .relay-timer { display:block; margin-top:8px; border-top:1px solid rgba(18,62,44,.09); padding-top:2px; }
-body.dashboard-page #control .pump-hero-card .relay-timer > summary { min-height:40px; }
-body.dashboard-page #control .pump-toggle { min-height:72px; height:72px; }
-body.dashboard-page #control .control-card:not(.pump-hero-card) { box-shadow:0 7px 18px rgba(18,62,44,.055); }
-body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { color:var(--polish-green-dark); }
-body.dashboard-page #control .control-card:not(.pump-hero-card) .vintage-status { font-size:12px; }
-body.dashboard-page #control .control-card:not(.pump-hero-card) .quick-toggle { margin-top:10px; }
+body.dashboard-page #control .pump-hero-card .control-name small { display: none; }
+body.dashboard-page #control .pump-hero-card .vintage-status { display: inline-flex; padding: 6px 10px; font-size: 12px; }
+body.dashboard-page #control .pump-hero-card .pump-hero-body {
+  display: grid;
+  grid-template-columns: 64px minmax(0,1fr) 124px;
+  grid-template-areas: "visual state toggle" "action action action";
+  align-items: center;
+  gap: 10px 12px;
+  min-height: 0;
+}
+body.dashboard-page #control .pump-visual { grid-area: visual; width: 60px; height: 60px; border-radius: 18px; }
+body.dashboard-page #control .pump-visual img { max-width: 92%; max-height: 92%; }
+body.dashboard-page #control .pump-hero-card .pump-hero-state { grid-area: state; display: grid; align-content: center; justify-items: start; gap: 1px; min-width: 0; }
+body.dashboard-page #control .pump-title { font-size: 22px; }
+body.dashboard-page #control .pump-state-label { font-size: 11px; }
+body.dashboard-page #control .pump-state-value { color: var(--polish-green-dark); font-size: clamp(24px, 3vw, 32px); font-weight: 750; letter-spacing: -.05em; line-height: 1.05; }
+body.dashboard-page #control .pump-state-note { color: var(--polish-muted); font-size: 11px; line-height: 1.25; }
+body.dashboard-page #control .pump-off-badge { min-height: 30px; padding: 0 12px; font-size: 16px; }
+body.dashboard-page #control .pump-toggle { grid-area: toggle; width: 124px; height: 52px; min-height: 52px; justify-self: end; }
+body.dashboard-page #control .pump-toggle > span::after { top: 4px; left: 4px; width: 44px; height: 44px; }
+body.dashboard-page #control .pump-toggle input:checked + span::after { transform: translateX(68px); }
+body.dashboard-page #control .pump-hero-card .context-action { grid-area: action; width: 100%; min-height: 48px; margin: 0; font-size: 15px; }
+body.dashboard-page #control .pump-hero-card .relay-timer { display: block; margin-top: 7px; padding-top: 2px; border-top: 1px solid rgba(18,62,44,.09); }
+body.dashboard-page #control .pump-hero-card .relay-timer > summary { min-height: 44px; }
+body.dashboard-page #control .pump-hero-card .timer-presets button,
+body.dashboard-page #control .pump-hero-card .timer-actions .btn { min-height: 44px; }
+
+/* Quick controls remain compact, with touch-safe actions. */
+body.dashboard-page #control .control-card:not(.pump-hero-card) { min-height: 128px; padding: 12px; box-shadow: 0 7px 18px rgba(18,62,44,.055); }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { color: var(--polish-green-dark); }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .vintage-status { font-size: 12px; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .quick-toggle { margin-top: 8px; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { min-height: 44px; height: 44px; }
 body.dashboard-page .dashboard-quick-actions .btn,
-body.dashboard-page .dashboard-quick-actions button { min-height:48px; }
+body.dashboard-page .dashboard-quick-actions button,
+body.dashboard-page .dashboard-quick-actions a { min-height: 44px; }
 body.dashboard-page .dashboard-quick-actions .danger,
-body.dashboard-page .dashboard-quick-actions [data-emergency-stop] { color:#a33e48; border-color:#efc4c8; background:#fff5f5; }
+body.dashboard-page .dashboard-quick-actions [data-emergency-stop] { color: #a33e48; border-color: #efc4c8; background: #fff5f5; }
 body.dashboard-page .mqtt-live-panel [data-mqtt-status],
 body.dashboard-page .compact-system-status .status-pill,
-body.dashboard-page .compact-system-status .tag { border-radius:999px; }
+body.dashboard-page .compact-system-status .tag { border-radius: 999px; }
 body.dashboard-page .mqtt-live-panel [data-last-seen],
-body.dashboard-page .mqtt-live-panel [data-mqtt-last-update] { font-variant-numeric:tabular-nums; }
-body.dashboard-page .sensor-overview .metric-card { border-color:var(--polish-line); box-shadow:0 7px 18px rgba(18,62,44,.045); }
-body.dashboard-page .sensor-overview .metric-card strong { font-variant-numeric:tabular-nums; letter-spacing:-.035em; }
-body.dashboard-page #cropCycleCard { background:linear-gradient(145deg,#fff 0%,#f8fcf9 100%); }
+body.dashboard-page .mqtt-live-panel [data-mqtt-last-update] { font-variant-numeric: tabular-nums; }
+body.dashboard-page .sensor-overview .metric-card { border-color: var(--polish-line); box-shadow: 0 7px 18px rgba(18,62,44,.045); }
+body.dashboard-page .sensor-overview .metric-card strong { font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
+body.dashboard-page #cropCycleCard { background: linear-gradient(145deg,#fff 0%,#f8fcf9 100%); }
 body.dashboard-page #cropCycleCard [data-crop-age],
 body.dashboard-page #cropCycleCard .crop-age,
-body.dashboard-page #cropCycleCard .age-value { color:var(--polish-green-dark); font-variant-numeric:tabular-nums; }
+body.dashboard-page #cropCycleCard .age-value { color: var(--polish-green-dark); font-variant-numeric: tabular-nums; }
 body.dashboard-page .app-main,
 body.dashboard-page .app-main > *,
-body.dashboard-page #control .control-card { min-width:0; }
+body.dashboard-page #control .control-card { min-width: 0; }
 body.dashboard-page button,
 body.dashboard-page input,
 body.dashboard-page select,
-body.dashboard-page textarea { -webkit-tap-highlight-color:transparent; }
+body.dashboard-page textarea { -webkit-tap-highlight-color: transparent; }
 body.dashboard-page button:focus-visible,
 body.dashboard-page a:focus-visible,
 body.dashboard-page input:focus-visible,
 body.dashboard-page select:focus-visible,
-body.dashboard-page summary:focus-visible { outline:3px solid rgba(35,155,85,.22); outline-offset:2px; }
-@media (min-width:761px) {
-  body.dashboard-page #control .pump-hero-card { padding:18px; }
-  body.dashboard-page #control .pump-hero-card .pump-hero-body { min-height:0; grid-template-columns:76px minmax(0,1fr) minmax(150px,.8fr); gap:14px; align-items:center; }
-  body.dashboard-page #control .pump-visual { width:70px; height:70px; border-radius:22px; }
-}
-@media (max-width:760px) {
-  body.dashboard-page .app-main { width:min(100% - 24px,680px); row-gap:16px; }
-  body.dashboard-page .topbar { width:min(100% - 24px,680px); }
-  body.dashboard-page #control .pump-hero-card { padding:14px; min-height:0; }
-  body.dashboard-page #control .pump-hero-body { grid-template-columns:68px minmax(0,1fr); gap:12px; min-height:0; }
-  body.dashboard-page #control .pump-visual { width:64px; height:64px; border-radius:20px; }
-  body.dashboard-page #control .pump-toggle { grid-column:1 / -1; justify-self:stretch; width:100%; height:56px; min-height:56px; }
-  body.dashboard-page #control .pump-toggle > span::after { top:4px; left:4px; width:48px; height:48px; }
-  body.dashboard-page #control .pump-toggle input:checked + span::after { transform:translateX(calc(100% - 56px)); }
-  body.dashboard-page #control .pump-title { font-size:23px; }
-  body.dashboard-page #control .pump-off-badge { min-width:68px; min-height:32px; margin-top:2px; padding:0 14px; font-size:18px; }
-  body.dashboard-page #control .control-card:not(.pump-hero-card) { min-height:104px; padding:12px; }
-  body.dashboard-page #control .pump-hero-card .relay-timer { margin-top:6px; }
-}
-@media (max-width:430px) {
+body.dashboard-page summary:focus-visible { outline: 3px solid rgba(35,155,85,.22); outline-offset: 2px; }
+
+@media (max-width: 760px) {
   body.dashboard-page .app-main,
-  body.dashboard-page .topbar { width:calc(100% - 20px); }
-  body.dashboard-page #control .pump-hero-card { border-radius:18px; }
-  body.dashboard-page #control .pump-hero-body { grid-template-columns:58px minmax(0,1fr); gap:10px; }
-  body.dashboard-page #control .pump-visual { width:56px; height:56px; border-radius:18px; }
-  body.dashboard-page #control .pump-title { font-size:21px; }
-  body.dashboard-page #control .pump-toggle { height:52px; min-height:52px; }
-  body.dashboard-page #control .pump-toggle > span::after { width:44px; height:44px; }
-  body.dashboard-page #control .pump-toggle input:checked + span::after { transform:translateX(calc(100% - 52px)); }
+  body.dashboard-page .topbar { width: min(100% - 24px, 680px); }
+  body.dashboard-page #control .control-grid { gap: 10px; }
+  body.dashboard-page #control .pump-hero-card { padding: 14px; }
+  body.dashboard-page #control .pump-hero-body { grid-template-columns: 56px minmax(0,1fr); grid-template-areas: "visual state" "toggle toggle" "action action"; gap: 8px 10px; }
+  body.dashboard-page #control .pump-visual { width: 54px; height: 54px; border-radius: 17px; }
+  body.dashboard-page #control .pump-title { font-size: 21px; }
+  body.dashboard-page #control .pump-toggle { width: 100%; height: 48px; min-height: 48px; justify-self: stretch; }
+  body.dashboard-page #control .pump-toggle > span::after { width: 40px; height: 40px; }
+  body.dashboard-page #control .pump-toggle input:checked + span::after { transform: translateX(calc(100% - 48px)); }
+  body.dashboard-page #control .pump-hero-card .context-action { min-height: 48px; }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) { min-height: 108px; padding: 11px; }
+}
+@media (max-width: 430px) {
+  body.dashboard-page .app-main,
+  body.dashboard-page .topbar { width: calc(100% - 20px); }
+  body.dashboard-page #control .pump-hero-card { border-radius: 18px; }
+  body.dashboard-page #control .pump-hero-body { grid-template-columns: 50px minmax(0,1fr); gap: 7px 9px; }
+  body.dashboard-page #control .pump-visual { width: 48px; height: 48px; border-radius: 15px; }
+  body.dashboard-page #control .pump-title { font-size: 19px; }
+  body.dashboard-page #control .pump-state-value { font-size: 25px; }
+  body.dashboard-page #control .pump-state-note { font-size: 10px; }
+  body.dashboard-page #control .pump-off-badge { min-height: 28px; font-size: 15px; }
+}
+@media (max-width: 360px) {
+  body.dashboard-page #control .pump-hero-card { padding: 12px; }
+  body.dashboard-page #control .pump-hero-card .vintage-status { padding-inline: 8px; font-size: 11px; }
+  body.dashboard-page #control .pump-hero-body { grid-template-columns: 44px minmax(0,1fr); }
+  body.dashboard-page #control .pump-visual { width: 42px; height: 42px; }
+  body.dashboard-page #control .pump-title { font-size: 18px; }
+  body.dashboard-page #control .pump-state-value { font-size: 23px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.dashboard-page #control .context-action { transition: none; }
 }
