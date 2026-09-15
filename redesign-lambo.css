@@ -128,13 +128,26 @@ body.dashboard-page #control .pump-hero-card {
 }
 body.dashboard-page #control .pump-hero-card::after { content: ""; position: absolute; inset: 8px; border: 1px solid rgba(255,255,255,.6); border-radius: 16px; pointer-events: none; }
 body.dashboard-page #control .pump-hero-card > * { position: relative; z-index: 1; }
-body.dashboard-page #control .pump-hero-body { display: grid; grid-template-columns: 120px 1fr auto; align-items: center; gap: 22px; min-height: 130px; }
+body.dashboard-page #control .pump-hero-card .control-top { margin-bottom: 4px; }
+body.dashboard-page #control .pump-hero-card .control-name { gap: 12px; }
+body.dashboard-page #control .pump-hero-card .control-name .icon { display: none; }
+body.dashboard-page #control .pump-hero-card .control-name strong { font-size: 34px; letter-spacing: -.05em; }
+body.dashboard-page #control .pump-hero-card .control-name small,
+body.dashboard-page #control .pump-hero-card .vintage-status { display: none; }
+body.dashboard-page #control .pump-hero-body { display: grid; grid-template-columns: 132px minmax(0,1fr) 230px; align-items: center; gap: 22px; min-height: 130px; }
 body.dashboard-page #control .pump-visual { width: 112px; height: 112px; border-radius: 32px; display: grid; place-items: center; background: linear-gradient(145deg,#fff,#f1faf4); border: 1px solid #c7e4d0; color: var(--dash-green); font-size: 42px; box-shadow: inset 0 1px 0 #fff, 0 8px 20px rgba(22, 71, 44, .1), 0 0 0 5px rgba(232,246,237,.72); }
 body.dashboard-page #control .pump-visual img { width: 92%; height: 92%; object-fit: contain; filter: drop-shadow(0 7px 8px rgba(18,62,44,.16)); }
 body.dashboard-page #control .pump-state-label { display: block; color: var(--dash-muted); font-size: 13px; }
 body.dashboard-page #control .pump-state-value { display: block; margin-top: 2px; color: var(--dash-green-dark); font-size: clamp(30px, 5vw, 46px); font-weight: 750; letter-spacing: -.05em; }
 body.dashboard-page #control .pump-state-note { display: block; margin-top: 3px; color: var(--dash-muted); font-size: 12px; }
-body.dashboard-page #control .pump-hero-card .context-action { min-height: 56px; padding: 0 20px; border: 0; border-radius: 16px; background: var(--dash-green); color: #fff; font-weight: 700; box-shadow: 0 8px 18px rgba(35, 155, 85, .2); }
+body.dashboard-page #control .pump-toggle { display: block; position: relative; width: 210px; height: 116px; justify-self: end; cursor: pointer; }
+body.dashboard-page #control .pump-toggle input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+body.dashboard-page #control .pump-toggle > span { position: absolute; inset: 0; border: 1px solid #aab9bd; border-radius: 999px; background: #aebbc0; box-shadow: inset 0 3px 7px rgba(18,62,44,.14), 0 2px 0 rgba(18,62,44,.08); transition: background .2s ease, border-color .2s ease; }
+body.dashboard-page #control .pump-toggle > span::after { content: ""; position: absolute; top: 8px; left: 8px; width: 98px; height: 98px; border-radius: 50%; background: #fff; border: 1px solid #d9e1e2; box-shadow: 0 4px 10px rgba(18,62,44,.14); transition: transform .2s ease; }
+body.dashboard-page #control .pump-toggle input:checked + span { border-color: var(--dash-green); background: var(--dash-green); }
+body.dashboard-page #control .pump-toggle input:checked + span::after { transform: translateX(102px); }
+body.dashboard-page #control .pump-toggle input:focus-visible + span { outline: 3px solid rgba(35,155,85,.25); outline-offset: 4px; }
+body.dashboard-page #control .pump-hero-card .context-action { display: none; }
 
 /* Secondary quick controls: always smaller than Pump Hero, three-up like the reference. */
 body.dashboard-page #control .control-card:not(.pump-hero-card) {
@@ -198,10 +211,13 @@ body.dashboard-page .bottom-nav a.active { color: var(--dash-green-dark); backgr
   body.dashboard-page .dashboard-header-status { gap: 6px; }
   body.dashboard-page .dashboard-header-status .rtc-chip { font-size: 11px; padding: 8px 9px; }
   body.dashboard-page #control .pump-hero-card { min-height: 0; padding: 17px; }
-  body.dashboard-page #control .pump-hero-body { grid-template-columns: 76px 1fr; grid-template-areas: "visual state" "action action"; gap: 13px; min-height: 0; }
+  body.dashboard-page #control .pump-hero-body { grid-template-columns: 76px minmax(0,1fr) 118px; grid-template-areas: "visual state toggle"; gap: 13px; min-height: 0; }
   body.dashboard-page #control .pump-visual { grid-area: visual; width: 72px; height: 72px; border-radius: 22px; font-size: 28px; }
   body.dashboard-page #control .pump-visual img { width: 94%; height: 94%; }
   body.dashboard-page #control .pump-hero-state { grid-area: state; min-width: 0; }
+  body.dashboard-page #control .pump-toggle { grid-area: toggle; width: 112px; height: 62px; }
+  body.dashboard-page #control .pump-toggle > span::after { top: 5px; left: 5px; width: 50px; height: 50px; }
+  body.dashboard-page #control .pump-toggle input:checked + span::after { transform: translateX(52px); }
   body.dashboard-page #control .pump-state-value { font-size: 30px; }
   body.dashboard-page #control .pump-hero-card .context-action { grid-area: action; width: 100%; min-height: 54px; margin-top: 6px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) { width: auto; grid-column: span 4; min-height: 104px; padding: 9px 7px; }

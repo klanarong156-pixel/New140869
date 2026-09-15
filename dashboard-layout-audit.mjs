@@ -20,6 +20,7 @@ add('Dashboard does not render soil sensor', !/soil|ดิน|ความชื
 add('Quick controls are three-up on mobile', css.includes('body.dashboard-page #control .control-card:not(.pump-hero-card) {\n  width: auto;\n  grid-column: span 4;'));
 add('MQTT is visually secondary', css.includes('body.dashboard-page .mqtt-live-panel { margin-top: 18px;'));
 add('Existing relay IDs remain intact', ['pump', 'zone1', 'lighthome', 'lightsala'].every(id => html.includes(`data-relay-card="${id}"`)));
+add('Pump Hero has reference toggle hook', html.includes('class="pump-toggle"') && html.includes('data-relay-toggle="pump"'));
 add('Existing bottom navigation has five routes', (html.match(/<nav class="bottom-nav"[\s\S]*?<\/nav>/)?.[0].match(/<a /g) || []).length === 5);
 
 let failed = 0;
