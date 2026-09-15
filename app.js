@@ -147,7 +147,7 @@
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
-      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
+      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
       return;
     }
     if (seconds <= 0) {
@@ -164,7 +164,7 @@
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = text; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = text.replace('ปิดอัตโนมัติใน ', ''); });
       if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = formatCountdown(state.remaining); });
-      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = `เหลือ ${formatCountdown(state.remaining)}`; });
+      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
     };
     paint();
     state.interval = window.setInterval(() => {
