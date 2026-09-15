@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="app.css?v=40">
   <link rel="stylesheet" href="redesign-lambo.css?v=2">
   <link rel="stylesheet" href="restore-two-layer-control.css?v=1">
-  <link rel="stylesheet" href="pump-hero.css?v=1">
+  <link rel="stylesheet" href="pump-hero.css?v=1"><link rel="stylesheet" href="suanlungna-design-system.css?v=1">
   <title>สวนลุงนะ · Smart Farm</title>
 </head>
 <body class="app-shell compact-ui dashboard-page" data-auth-required="true">
@@ -47,9 +47,12 @@
         </div>
       </div>
       <div class="dashboard-header-status">
-        <span class="ready-dot" aria-hidden="true"></span><strong>พร้อมใช้งาน</strong>
+        <span class="ready-dot" aria-hidden="true"></span><strong data-dashboard-readiness>กำลังตรวจสอบ</strong>
         <span class="rtc-chip"><span aria-hidden="true">◷</span><span>RTC <b data-farm-time>--:--:--</b></span></span>
-        <button class="notification-button" type="button" aria-label="การแจ้งเตือน">♧</button>
+        <button class="notification-button" type="button" data-dashboard-notifications aria-expanded="false" aria-controls="dashboardNotificationPanel" aria-label="การแจ้งเตือน">♧</button>
+      </div>
+      <div id="dashboardNotificationPanel" class="dashboard-notification-panel" hidden role="status" aria-live="polite">
+        <strong>สถานะล่าสุด</strong><span data-dashboard-notification-text>กำลังตรวจสอบการเชื่อมต่อและอุปกรณ์</span>
       </div>
     </section>
 
@@ -133,6 +136,12 @@
 </article></div>
   <div class="control-safety" data-emergency-panel aria-label="ความปลอดภัยของระบบ"><div class="control-safety-copy"><span class="safety-stamp" aria-hidden="true">!</span><span><strong>Safety Control</strong><small data-emergency-status>Emergency Stop ปกติ</small><em>ปิดรีเลย์ทั้ง 4 จุดและล็อกการเปิดซ้ำ</em></span></div><div class="control-safety-actions"><button class="btn danger" type="button" data-emergency-stop>หยุดฉุกเฉินทั้งระบบ</button><button class="btn secondary small" type="button" data-emergency-reset>ปลดล็อก</button></div></div>
 </section>
+
+    <section class="dashboard-quick-actions" aria-label="ทางลัดการจัดการสวน">
+      <a class="dashboard-quick-action schedule" href="schedule.html#scheduleRelayTitle"><span aria-hidden="true">◫</span><strong>Schedule</strong><small>ตั้งเวลา</small></a>
+      <a class="dashboard-quick-action timer" href="#control" data-dashboard-timer-action><span aria-hidden="true">◷</span><strong>Timer</strong><small data-dashboard-quick-timer>ตั้งเวลาเปิด–ปิด</small></a>
+      <a class="dashboard-quick-action emergency" href="#control" data-dashboard-emergency-action><span aria-hidden="true">!</span><strong>Emergency Stop</strong><small>หยุดฉุกเฉิน</small></a>
+    </section>
 
     <section class="mqtt-live-panel section compact-connection" data-mqtt-live-panel aria-labelledby="mqtt-live-title">
       <div class="mqtt-live-main">

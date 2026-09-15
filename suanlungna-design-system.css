@@ -1,0 +1,133 @@
+/* Suan Lung Na Smart Farm Design System
+   Shared presentation layer for schedule, finance, sales, account and settings.
+   No data, routing, authentication or device behavior is defined here. */
+:root {
+  --slna-bg: #ffffff;
+  --slna-surface: #ffffff;
+  --slna-soft: #f4fbf6;
+  --slna-soft-strong: #e8f6ed;
+  --slna-primary: #239b55;
+  --slna-primary-dark: #123e2c;
+  --slna-text: #183f2f;
+  --slna-muted: #6b786f;
+  --slna-line: #e3ebe5;
+  --slna-danger: #d94c54;
+  --slna-danger-soft: #fff0f1;
+  --slna-shadow: 0 7px 22px rgba(22, 71, 44, .07);
+  --slna-radius: 22px;
+  --slna-control-radius: 14px;
+}
+body.app-shell:not(.dashboard-page) {
+  color: var(--slna-text);
+  background: var(--slna-bg);
+  font-family: Kanit, "Noto Sans Thai", system-ui, sans-serif;
+}
+body.app-shell:not(.dashboard-page)::before { display: none; }
+body.app-shell:not(.dashboard-page) .app-main { width: min(1040px, calc(100% - 32px)); padding-top: 18px; }
+body.app-shell:not(.dashboard-page) .topbar {
+  width: min(1040px, calc(100% - 32px)); min-height: 72px; border-bottom: 1px solid var(--slna-line);
+}
+body.app-shell:not(.dashboard-page) .brand-symbol { width: 46px; height: 46px; border: 0; background: transparent; box-shadow: none; }
+body.app-shell:not(.dashboard-page) .brand-logo { width: 46px; height: 46px; object-fit: contain; }
+body.app-shell:not(.dashboard-page) .brand-copy strong { color: var(--slna-primary-dark); font-size: 22px; letter-spacing: -.05em; }
+body.app-shell:not(.dashboard-page) .brand-copy span { color: var(--slna-muted); font-size: 11px; }
+body.app-shell:not(.dashboard-page) .desktop-nav { border-color: var(--slna-line); background: var(--slna-soft); box-shadow: none; }
+body.app-shell:not(.dashboard-page) .desktop-nav a { color: var(--slna-muted); }
+body.app-shell:not(.dashboard-page) .desktop-nav a:hover,
+body.app-shell:not(.dashboard-page) .desktop-nav a.active { color: var(--slna-primary-dark); background: var(--slna-soft-strong); }
+body.app-shell:not(.dashboard-page) .topbar-actions .tag,
+body.app-shell:not(.dashboard-page) .topbar-actions .status-pill { color: var(--slna-primary-dark); border-color: var(--slna-line); background: var(--slna-soft); }
+body.app-shell:not(.dashboard-page) .page-heading { margin: 18px 0 24px; }
+body.app-shell:not(.dashboard-page) h1,
+body.app-shell:not(.dashboard-page) h2,
+body.app-shell:not(.dashboard-page) h3 { color: var(--slna-primary-dark); text-shadow: none; }
+body.app-shell:not(.dashboard-page) h1 { font-size: clamp(30px, 5vw, 46px); }
+body.app-shell:not(.dashboard-page) h2 { font-size: 24px; }
+body.app-shell:not(.dashboard-page) .subtitle,
+body.app-shell:not(.dashboard-page) .helper { color: var(--slna-muted); }
+body.app-shell:not(.dashboard-page) .kicker { color: var(--slna-primary); text-shadow: none; }
+body.app-shell:not(.dashboard-page) .card,
+body.app-shell:not(.dashboard-page) .section.card,
+body.app-shell:not(.dashboard-page) .metric-card,
+body.app-shell:not(.dashboard-page) .slot-card {
+  border: 1px solid var(--slna-line); border-radius: var(--slna-radius); background: var(--slna-surface); box-shadow: var(--slna-shadow);
+}
+body.app-shell:not(.dashboard-page) .card.pad { padding: 22px; }
+body.app-shell:not(.dashboard-page) .metric-card { color: var(--slna-text); }
+body.app-shell:not(.dashboard-page) .metric-card strong { color: var(--slna-primary-dark); }
+body.app-shell:not(.dashboard-page) .metric-icon { color: var(--slna-primary); background: var(--slna-soft-strong); }
+body.app-shell:not(.dashboard-page) .btn { min-height: 48px; border-radius: var(--slna-control-radius); font-weight: 650; }
+body.app-shell:not(.dashboard-page) .btn.small { min-height: 40px; }
+body.app-shell:not(.dashboard-page) .btn.primary { color: #fff; border-color: var(--slna-primary); background: var(--slna-primary); box-shadow: 0 7px 16px rgba(35,155,85,.18); }
+body.app-shell:not(.dashboard-page) .btn.secondary { color: var(--slna-primary-dark); border-color: #cfe6d6; background: var(--slna-soft); }
+body.app-shell:not(.dashboard-page) .btn.ghost { color: var(--slna-primary-dark); }
+body.app-shell:not(.dashboard-page) .btn.danger { color: #a33e48; border-color: #efc4c8; background: var(--slna-danger-soft); }
+body.app-shell:not(.dashboard-page) input,
+body.app-shell:not(.dashboard-page) select,
+body.app-shell:not(.dashboard-page) textarea {
+  min-height: 48px; color: var(--slna-text); border-color: var(--slna-line); border-radius: var(--slna-control-radius); background: #fff;
+}
+body.app-shell:not(.dashboard-page) input:focus,
+body.app-shell:not(.dashboard-page) select:focus,
+body.app-shell:not(.dashboard-page) textarea:focus { border-color: #8ccca0; background: #fff; box-shadow: 0 0 0 3px rgba(35,155,85,.1); }
+body.app-shell:not(.dashboard-page) .field label,
+body.app-shell:not(.dashboard-page) .relay-timer label { color: var(--slna-text); }
+body.app-shell:not(.dashboard-page) .notice { border-color: var(--slna-line); border-radius: var(--slna-control-radius); color: var(--slna-muted); background: var(--slna-soft); }
+body.app-shell:not(.dashboard-page) .notice strong { color: var(--slna-text); }
+body.app-shell:not(.dashboard-page) .notice.warning { border-color: #efdcae; color: #87692c; background: #fff9e9; }
+body.app-shell:not(.dashboard-page) .notice.danger { border-color: #efc4c8; color: #a33e48; background: var(--slna-danger-soft); }
+body.app-shell:not(.dashboard-page) .tag.success { color: var(--slna-primary-dark); border-color: #c9e5d0; background: var(--slna-soft-strong); }
+body.app-shell:not(.dashboard-page) .bottom-nav {
+  bottom: max(10px, env(safe-area-inset-bottom)); border-color: var(--slna-line); background: rgba(255,255,255,.94); box-shadow: 0 14px 34px rgba(22,71,44,.14);
+}
+body.app-shell:not(.dashboard-page) .bottom-nav a { color: var(--slna-muted); }
+body.app-shell:not(.dashboard-page) .bottom-nav a.active { color: var(--slna-primary-dark); background: var(--slna-soft-strong); box-shadow: inset 0 0 0 1px #c9e5d0; }
+/* Schedule */
+body.app-shell:not(.dashboard-page) .schedule-picker,
+body.app-shell:not(.dashboard-page) .schedule-builder { background: var(--slna-soft); }
+body.app-shell:not(.dashboard-page) .schedule-tabs { gap: 8px; }
+body.app-shell:not(.dashboard-page) .schedule-tab,
+body.app-shell:not(.dashboard-page) .quick-option { min-height: 48px; color: var(--slna-text); border: 1px solid var(--slna-line); border-radius: var(--slna-control-radius); background: #fff; }
+body.app-shell:not(.dashboard-page) .schedule-tab.active,
+body.app-shell:not(.dashboard-page) .quick-option.active { color: #fff; border-color: var(--slna-primary); background: var(--slna-primary); }
+body.app-shell:not(.dashboard-page) .quick-setup { border-color: #cfe6d6; border-radius: 18px; background: #fff; }
+body.app-shell:not(.dashboard-page) .slot-card { box-shadow: none; }
+body.app-shell:not(.dashboard-page) .slot-card h3,
+body.app-shell:not(.dashboard-page) .step-title { color: var(--slna-primary-dark); }
+body.app-shell:not(.dashboard-page) .schedule-summary { color: var(--slna-primary-dark); border-color: #cfe6d6; background: var(--slna-soft); }
+/* Finance and sales */
+body.app-shell:not(.dashboard-page) .finance-metric { border-top: 4px solid var(--slna-primary); }
+body.app-shell:not(.dashboard-page) .finance-metric.expense { border-top-color: #d88d96; }
+body.app-shell:not(.dashboard-page) .finance-metric.pending { border-top-color: #d7ae58; }
+body.app-shell:not(.dashboard-page) .finance-metric.profit { border-top-color: var(--slna-primary); background: var(--slna-soft); }
+body.app-shell:not(.dashboard-page) .cucumber-grade,
+body.app-shell:not(.dashboard-page) .cucumber-sales-stat { border-color: var(--slna-line); border-radius: 18px; background: var(--slna-soft); }
+body.app-shell:not(.dashboard-page) .cucumber-sales-stat strong { color: var(--slna-primary-dark); font-size: 1.2rem; }
+body.app-shell:not(.dashboard-page) .table-wrap { border: 1px solid var(--slna-line); border-radius: 18px; background: #fff; }
+body.app-shell:not(.dashboard-page) table th { color: var(--slna-primary-dark); background: var(--slna-soft); }
+body.app-shell:not(.dashboard-page) table td { color: var(--slna-text); border-color: var(--slna-line); }
+/* Account and settings */
+body.app-shell:not(.dashboard-page) .connection-icon { color: var(--slna-primary); background: var(--slna-soft-strong); }
+body.app-shell:not(.dashboard-page) .settings-map-grid a { border-color: var(--slna-line); border-radius: 18px; background: var(--slna-soft); }
+body.app-shell:not(.dashboard-page) .settings-map-grid a strong { color: var(--slna-primary-dark); }
+body.app-shell:not(.dashboard-page) .usage-hero-card,
+body.app-shell:not(.dashboard-page) .usage-metric { border-color: var(--slna-line); border-radius: 18px; background: #fff; box-shadow: var(--slna-shadow); }
+body.app-shell:not(.dashboard-page) .usage-hero-card { background: var(--slna-soft); }
+@media (max-width: 700px) {
+  body.app-shell:not(.dashboard-page) .app-main { width: min(100% - 24px, 680px); padding-top: 12px; }
+  body.app-shell:not(.dashboard-page) .topbar { width: min(100% - 24px, 680px); min-height: 66px; }
+  body.app-shell:not(.dashboard-page) .brand-copy strong { font-size: 20px; }
+  body.app-shell:not(.dashboard-page) .brand-copy span { display: none; }
+  body.app-shell:not(.dashboard-page) .desktop-nav { display: none; }
+  body.app-shell:not(.dashboard-page) .topbar-actions .tag,
+  body.app-shell:not(.dashboard-page) .topbar-actions .status-pill { display: none; }
+  body.app-shell:not(.dashboard-page) .page-heading { margin: 12px 0 18px; }
+  body.app-shell:not(.dashboard-page) .page-heading .status-pill { font-size: 11px; }
+  body.app-shell:not(.dashboard-page) .card.pad { padding: 17px; }
+  body.app-shell:not(.dashboard-page) .grid.two,
+  body.app-shell:not(.dashboard-page) .grid.three { grid-template-columns: 1fr; }
+  body.app-shell:not(.dashboard-page) .form-grid { grid-template-columns: 1fr; }
+  body.app-shell:not(.dashboard-page) .field.full { grid-column: auto; }
+  body.app-shell:not(.dashboard-page) .schedule-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.app-shell:not(.dashboard-page) .schedule-tab { width: 100%; }
+}

@@ -22,6 +22,24 @@
     if (element) element.textContent = value;
   }
 
+  function renderDashboardReadiness() {
+    const mqtt = Boolean(window.APP_STATE?.mqttConnected);
+    const esp = Boolean(deviceOnline);
+    const label = mqtt && esp ? 'พร้อมใช้งาน' : mqtt ? 'ESP ออฟไลน์' : 'MQTT ไม่เชื่อมต่อ';
+    const detail = mqtt && esp
+      ? 'อุปกรณ์ออนไลน์ ควบคุมได้ตามสถานะยืนยันจาก ESP8266'
+      : mqtt
+        ? 'MQTT เชื่อมต่ออยู่ แต่ยังไม่พบ heartbeat จาก ESP8266'
+        : 'เชื่อมต่อ MQTT เพื่อดูสถานะจริงและสั่งงานอุปกรณ์';
+    $$('[data-dashboard-readiness]').forEach(element => { element.textContent = label; });
+    const header = document.querySelector('.dashboard-header-status');
+    if (header) {
+      header.dataset.state = mqtt && esp ? 'ready' : mqtt ? 'device-offline' : 'mqtt-offline';
+      header.title = detail;
+    }
+    setText('[data-dashboard-notification-text]', detail);
+  }
+
   function showToast(message, type = 'info') {
     let stack = document.querySelector('.toast-stack');
     if (!stack) {
@@ -67,6 +85,7 @@
       element.textContent = connected ? 'Connected' : (text ? 'กำลังเชื่อมต่อ' : 'Disconnected');
       element.dataset.state = connected ? 'online' : 'offline';
     });
+    renderDashboardReadiness();
   }
 
   function renderDevice(online) {
@@ -87,6 +106,7 @@
     if (!online) $$('[data-system-rtc]').forEach(element => { element.textContent = 'Last seen'; element.dataset.state = 'warning'; });
     $$('[data-sensor-freshness]').forEach(element => { element.textContent = online ? 'DHT11 · เรียลไทม์' : 'DHT11 · ค่าล่าสุดที่ได้รับ'; });
     $$('[data-device-online-card]').forEach(card => card.classList.toggle('active', Boolean(online)));
+    renderDashboardReadiness();
     ['pump', 'zone1', 'lighthome', 'lightsala'].forEach(relay => {
       const input = document.querySelector(`[data-relay-toggle="${relay}"]`);
       if (input) renderRelay(relay, input.checked);
@@ -119,6 +139,7 @@
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ยังไม่ได้ตั้งเวลา'; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'ตั้งเวลา'; });
       if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = 'ไม่มี Timer'; });
+      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
       return;
     }
     if (unlimited) {
@@ -126,6 +147,7 @@
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
+      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       return;
     }
     if (seconds <= 0) {
@@ -142,6 +164,7 @@
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = text; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = text.replace('ปิดอัตโนมัติใน ', ''); });
       if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = formatCountdown(state.remaining); });
+      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = `เหลือ ${formatCountdown(state.remaining)}`; });
     };
     paint();
     state.interval = window.setInterval(() => {
@@ -430,6 +453,19 @@
     $$('[data-dashboard-timer-action]').forEach(link => link.addEventListener('click', () => {
       const details = document.querySelector('[data-timer-minutes="pump"]')?.closest('details');
       if (details) window.setTimeout(() => { details.open = true; }, 0);
+    }));
+    $$('[data-dashboard-notifications]').forEach(button => button.addEventListener('click', () => {
+      const panel = document.getElementById('dashboardNotificationPanel');
+      if (!panel) return;
+      const open = panel.hidden;
+      panel.hidden = !open;
+      button.setAttribute('aria-expanded', String(open));
+    }));
+    $$('[data-dashboard-emergency-action]').forEach(link => link.addEventListener('click', event => {
+      event.preventDefault();
+      const panel = document.querySelector('[data-emergency-panel]');
+      panel?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      window.setTimeout(() => document.querySelector('[data-emergency-stop]')?.focus(), 250);
     }));
 
     $$('[data-mqtt-connect]').forEach(button => button.addEventListener('click', () => {
