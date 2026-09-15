@@ -7,6 +7,7 @@
   const MAX_TIMER_MINUTES = 71582;
   const MAX_TIMER_SECONDS = MAX_TIMER_MINUTES * 60;
   let deviceOnline = false;
+  const relayFeedback = new Set();
 
   function setText(target, value) {
     const element = typeof target === 'string' ? $(target) : target;
@@ -100,25 +101,29 @@
     renderDashboardReadiness();
     ['pump', 'zone1', 'lighthome', 'lightsala'].forEach(relay => {
       const input = document.querySelector(`[data-relay-toggle="${relay}"]`);
-      if (input) renderRelay(relay, input.checked);
+      if (input) renderRelay(relay, input.checked, relayFeedback.has(relay));
     });
   }
 
-  function renderRelay(relay, on) {
-    const unknown = !deviceOnline;
+  function renderRelay(relay, on, hasFeedback = relayFeedback.has(relay)) {
+    const unknown = !deviceOnline && !hasFeedback;
     $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = Boolean(on); input.disabled = unknown; });
-    $$(`[data-relay-state="${relay}"]`).forEach(element => { element.textContent = unknown ? 'ไม่ทราบสถานะ' : (on ? 'กำลังทำงาน' : 'ปิดอยู่'); });
-    $$(`[data-relay-action-label="${relay}"]`).forEach(element => { element.textContent = unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (on ? `หยุด${relayLabel(relay)}` : `เปิด${relayLabel(relay)}`); });
+    const stateLabel = unknown ? (window.APP_STATE?.mqttConnected ? 'รอข้อมูลจาก ESP8266' : 'ไม่ทราบสถานะ') : (on ? 'กำลังทำงาน' : 'ปิดอยู่');
+    const actionLabel = unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (on ? `ON · หยุด${relayLabel(relay)}` : `OFF · เปิด${relayLabel(relay)}`);
+    $$(`[data-relay-state="${relay}"]`).forEach(element => { element.textContent = stateLabel; });
+    $$(`[data-relay-action-label="${relay}"]`).forEach(element => { element.textContent = actionLabel; });
     $$(`[data-relay-action="${relay}"]`).forEach(button => {
       button.disabled = unknown;
-      button.classList.toggle('is-running', Boolean(on));
-      button.setAttribute('aria-label', unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (on ? `หยุด${relayLabel(relay)}` : `เปิด${relayLabel(relay)}`));
+      button.classList.toggle('is-running', !unknown && Boolean(on));
+      button.dataset.feedback = hasFeedback ? 'confirmed' : 'pending';
+      button.setAttribute('aria-label', unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (on ? `สถานะ ON · กดเพื่อหยุด${relayLabel(relay)}` : `สถานะ OFF · กดเพื่อเปิด${relayLabel(relay)}`));
       const icon = button.querySelector('.context-action-icon');
       if (icon) icon.textContent = on ? '■' : '↗';
     });
     $$(`[data-relay-card="${relay}"]`).forEach(card => {
       card.classList.toggle('active', !unknown && Boolean(on));
       card.classList.toggle('device-unknown', unknown);
+      card.classList.toggle('status-confirmed', hasFeedback);
     });
   }
 
@@ -450,6 +455,10 @@
   function bindEvents() {
     window.addEventListener('mqtt:connected', event => {
       const connected = Boolean(event.detail);
+      if (!connected) {
+        relayFeedback.clear();
+        renderDevice(false);
+      }
       renderMqtt(connected);
       if (connected) document.getElementById('mqttSetupModal')?.remove();
     });
@@ -498,7 +507,10 @@
     window.addEventListener('esp:status', event => renderDevice(Boolean(event.detail?.online)));
     window.addEventListener('relay:status', event => {
       const { relay, status } = event.detail || {};
-      if (relay) renderRelay(relay, status);
+      if (relay) {
+        relayFeedback.add(relay);
+        renderRelay(relay, Boolean(status), true);
+      }
     });
     window.addEventListener('relay:timer', event => {
       const { relay, active, unlimited } = event.detail || {};
