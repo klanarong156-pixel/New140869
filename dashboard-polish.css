@@ -93,6 +93,70 @@ body.dashboard-page #cropCycleCard { background: linear-gradient(145deg,#fff 0%,
 body.dashboard-page #cropCycleCard [data-crop-age],
 body.dashboard-page #cropCycleCard .crop-age,
 body.dashboard-page #cropCycleCard .age-value { color: var(--polish-green-dark); font-variant-numeric: tabular-nums; }
+/* Cucumber plot: balanced image, copy and visible day counter. */
+body.dashboard-page .cucumber-plot-card .crop-cycle-summary {
+  display: grid;
+  grid-template-columns: clamp(112px, 22vw, 180px) minmax(0, 1fr) 68px;
+  align-items: center;
+  gap: 14px;
+  min-height: 124px;
+  padding: 12px;
+}
+body.dashboard-page .cucumber-plot-card .crop-cycle-icon {
+  width: 100%;
+  height: 100px;
+  overflow: hidden;
+  border: 1px solid #c7e4d0;
+  border-radius: 16px;
+  background: #e8f6ed;
+  box-shadow: inset 0 1px 0 #fff, 0 6px 14px rgba(22,71,44,.1);
+}
+body.dashboard-page .cucumber-plot-card .crop-cycle-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+body.dashboard-page .cucumber-plot-card .crop-cycle-summary > div:nth-child(2) { min-width: 0; }
+body.dashboard-page .cucumber-plot-card .crop-cycle-summary strong {
+  display: block;
+  overflow: hidden;
+  color: var(--polish-green-dark);
+  font-size: clamp(16px, 2vw, 21px);
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.dashboard-page .cucumber-plot-card .crop-cycle-summary .helper {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 6px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+body.dashboard-page #cropCycleCard .crop-cycle-age {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  min-width: 68px;
+  min-height: 82px;
+  padding: 8px 6px;
+  border: 1px solid #c7e4d0;
+  border-radius: 18px;
+  color: var(--polish-green-dark);
+  background: linear-gradient(160deg, #effaf1, #ffffff);
+  box-shadow: 0 6px 14px rgba(22,71,44,.08);
+  text-align: center;
+}
+body.dashboard-page .cucumber-plot-card .crop-cycle-age strong {
+  color: var(--polish-green);
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1;
+}
+body.dashboard-page .cucumber-plot-card .crop-cycle-age small { margin-top: 5px; color: var(--polish-muted); font-size: 11px; font-weight: 700; }
 body.dashboard-page .app-main,
 body.dashboard-page .app-main > *,
 body.dashboard-page #control .control-card { min-width: 0; }
@@ -130,6 +194,11 @@ body.dashboard-page summary:focus-visible { outline: 3px solid rgba(35,155,85,.2
   body.dashboard-page #control .pump-state-value { font-size: 25px; }
   body.dashboard-page #control .pump-state-note { font-size: 10px; }
   body.dashboard-page #control .pump-off-badge { min-height: 28px; font-size: 15px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-summary { grid-template-columns: 96px minmax(0, 1fr) 58px; gap: 9px; min-height: 106px; padding: 9px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-icon { height: 86px; border-radius: 13px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-age { min-width: 58px; min-height: 72px; border-radius: 15px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-age strong { font-size: 27px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-summary .helper { margin-top: 4px; font-size: 11px; }
 }
 @media (max-width: 360px) {
   body.dashboard-page #control .pump-hero-card { padding: 12px; }
@@ -138,6 +207,10 @@ body.dashboard-page summary:focus-visible { outline: 3px solid rgba(35,155,85,.2
   body.dashboard-page #control .pump-visual { width: 42px; height: 42px; }
   body.dashboard-page #control .pump-title { font-size: 18px; }
   body.dashboard-page #control .pump-state-value { font-size: 23px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-summary { grid-template-columns: 82px minmax(0, 1fr) 54px; gap: 7px; padding: 8px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-icon { height: 74px; border-radius: 12px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-age { min-width: 54px; min-height: 64px; padding-inline: 3px; }
+  body.dashboard-page .cucumber-plot-card .crop-cycle-age strong { font-size: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
   body.dashboard-page #control .context-action { transition: none; }
