@@ -1,0 +1,47 @@
+name: Activate Dashboard UI Polish
+
+on:
+  push:
+    paths:
+      - 'dashboard-polish.css'
+
+permissions:
+  contents: write
+
+jobs:
+  activate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Add polish stylesheet to dashboard
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          tag = '<link rel="stylesheet" href="dashboard-polish.css?v=1">'
+          if tag not in s:
+              anchor = '<link rel="stylesheet" href="suanlungna-design-system.css?v=1">'
+              if anchor not in s:
+                  raise SystemExit('Expected stylesheet anchor not found; aborting without changing index.html')
+              s = s.replace(anchor, anchor + '\n  ' + tag, 1)
+              p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit activation
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --quiet -- index.html; then
+            echo 'Dashboard polish already active.'
+            exit 0
+          fi
+          git add index.html
+          git commit -m 'chore: activate dashboard UI polish'
+          git push
