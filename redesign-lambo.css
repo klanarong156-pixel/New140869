@@ -134,9 +134,9 @@ body.dashboard-page #control .pump-hero-card .context-action { min-height: 56px;
 body.dashboard-page #control .control-card:not(.pump-hero-card) {
   width: auto;
   grid-column: span 4;
-  min-height: 126px;
+  min-height: 112px;
   flex: 0 0 auto;
-  padding: 17px;
+  padding: 13px;
   border: 1px solid var(--dash-line);
   border-radius: 18px;
   background: #fff;
@@ -150,6 +150,11 @@ body.dashboard-page .sensor-overview .sensor-card strong { color: var(--dash-gre
 body.dashboard-page .sensor-overview .sensor-card small { color: var(--dash-muted); }
 body.dashboard-page .sensor-overview .metric-card:nth-child(n + 3) { display: none; }
 body.dashboard-page .cucumber-plot-card { border: 1px solid #cfe6d6; border-radius: 18px; background: #f4fbf6; box-shadow: none; }
+body.dashboard-page #cropCycleCard { width: 100%; overflow: hidden; }
+body.dashboard-page #cropCycleCard .crop-cycle-summary { width: 100%; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; }
+body.dashboard-page #cropCycleCard .crop-cycle-summary > div:nth-child(2) { min-width: 0; }
+body.dashboard-page #cropCycleCard .crop-cycle-summary strong,
+body.dashboard-page #cropCycleCard .crop-cycle-summary .helper { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 body.dashboard-page .dashboard-quick-actions { gap: 12px; }
 body.dashboard-page .dashboard-quick-action { border: 1px solid var(--dash-line); border-radius: 18px; background: #fff; color: var(--dash-green-dark); box-shadow: 0 7px 22px rgba(22, 71, 44, .06); }
 body.dashboard-page .dashboard-quick-action.schedule { border-color: #c9e5d0; }
@@ -187,10 +192,11 @@ body.dashboard-page .bottom-nav a.active { color: var(--dash-green-dark); backgr
   body.dashboard-page #control .pump-hero-state { grid-area: state; min-width: 0; }
   body.dashboard-page #control .pump-state-value { font-size: 30px; }
   body.dashboard-page #control .pump-hero-card .context-action { grid-area: action; width: 100%; min-height: 54px; margin-top: 6px; }
-  body.dashboard-page #control .control-card:not(.pump-hero-card) { width: auto; grid-column: span 4; min-height: 132px; padding: 12px; }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) { width: auto; grid-column: span 4; min-height: 104px; padding: 9px 7px; }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name .icon { width: 30px; height: 30px; flex-basis: 30px; font-size: 15px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { font-size: 14px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name small { font-size: 8px; }
-  body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { min-height: 44px; padding: 0 4px; font-size: 12px; }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { min-height: 38px; padding: 0 3px; font-size: 11px; }
 }
 @media (max-width: 430px) {
   body.dashboard-page .topbar,
@@ -198,7 +204,7 @@ body.dashboard-page .bottom-nav a.active { color: var(--dash-green-dark); backgr
   body.dashboard-page .dashboard-header-status .rtc-chip { display: none; }
   body.dashboard-page #control .pump-hero-card { padding: 15px; }
   body.dashboard-page #control .pump-hero-card .control-name strong { font-size: 21px; }
-  body.dashboard-page #control .control-card:not(.pump-hero-card) { min-height: 128px; padding: 10px 8px; }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) { min-height: 98px; padding: 8px 5px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { font-size: 13px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { font-size: 11px; }
   body.dashboard-page .dashboard-quick-actions { gap: 8px; }
