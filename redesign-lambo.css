@@ -334,3 +334,40 @@ body.dashboard-page .topbar-rtc b { overflow: hidden; text-overflow: ellipsis; }
   body.dashboard-page .topbar-ready i { width: 9px; height: 9px; }
   body.dashboard-page .topbar-rtc { padding-inline: 6px; }
 }
+
+/* The header already owns the canonical readiness/RTC controls. Do not let
+   the legacy hero status layer float upward and cover the mobile Topbar. */
+@media (max-width: 700px) {
+  body.dashboard-page .dashboard-header-status {
+    display: none !important;
+  }
+  body.dashboard-page .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+  }
+  body.dashboard-page .topbar-ready {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  body.dashboard-page .topbar-ready strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  body.dashboard-page .topbar-rtc {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  body.dashboard-page .topbar-rtc b {
+    display: inline-block;
+    min-width: 5ch;
+    overflow: visible;
+  }
+}

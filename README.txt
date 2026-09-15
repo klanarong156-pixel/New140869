@@ -157,7 +157,7 @@ git diff --check
 
 ไฟล์ firmware ที่สร้างจาก source ล่าสุดคือ `.pio/build/nodemcuv2/firmware.bin` และไฟล์สำหรับแจกจ่ายคือ `SmartFarm_V6_PRODUCTION1.bin` หลังคัดลอกด้วยคำสั่งด้านบน ไฟล์ `.bin` เป็น artifact สำหรับอัปโหลด OTA/แฟลชอุปกรณ์เท่านั้น ไม่ควรใช้แทนการทดสอบกับ NodeMCU จริง การ build จะติดตั้งและใช้ไลบรารีตาม `platformio.ini` และใช้ baud rate 115200
 
-Artifact ที่ตรงกับ source commit นี้มีขนาดประมาณ **588 KB** และ SHA-256 คือ `0a470ba72e8e577d17fa823e0684baa3cbf6d0dc62bdac888dc36b943255555c`
+Artifact ที่ตรงกับ source commit นี้มีขนาดประมาณ **588 KB** และ SHA-256 คือ `13012d75c163bbbcedeec4a20d3bb495c096ab60a6a8f915a196b901c20e1ec1`
 
 GitHub Actions รันชุดตรวจสอบเดียวกันทุก push และ pull request รวมถึง simulated
 browser integration สำหรับหน้า Settings/MQTT. งาน browser test ใช้ Chrome ที่
