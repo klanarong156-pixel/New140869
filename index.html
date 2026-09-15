@@ -23,7 +23,7 @@
     <nav class="desktop-nav" aria-label="เมนูหลัก">
       <a class="active" href="index.html">แดชบอร์ด</a><a href="schedule.html">ตั้งเวลา</a><a href="finance.html">การเงิน</a><a href="account.html">บัญชี</a><a href="settings.html">ตั้งค่า</a>
     </nav>
-    <div class="topbar-actions"><span class="status-pill offline" data-mqtt-status><i></i>MQTT ยังไม่เชื่อมต่อ</span></div>
+    <div class="topbar-actions"><span class="topbar-ready"><i></i><strong>พร้อมใช้งาน</strong></span><span class="topbar-rtc"><span aria-hidden="true">◷</span> RTC <b data-farm-time>08:42</b></span><span class="status-pill offline" data-mqtt-status hidden><i></i>MQTT ยังไม่เชื่อมต่อ</span></div>
   </header>
 
   <div class="dashboard-clock-layer" aria-label="วันและเวลามาตรฐานประเทศไทย">
@@ -181,7 +181,7 @@
 
     <section id="cropCycleCard" class="section card pad crop-cycle-card cucumber-plot-card" aria-labelledby="crop-cycle-dashboard-title">
       <div class="section-head"><div><p class="kicker">CUCUMBER PLOT · CROP CYCLE</p><h2 id="crop-cycle-dashboard-title">แปลงแตงกวา</h2><p class="helper" id="dashboardCropStatus">กำลังโหลดข้อมูลรอบปลูก…</p></div><span class="tag success">นับวันอัตโนมัติ</span></div>
-      <div class="crop-cycle-summary"><div class="crop-cycle-icon"><img src="assets/cucumber-plot.jpg?v=1" alt="ภาพแปลงแตงกวา"></div><div><strong id="dashboardCropName">กำลังโหลด…</strong><p id="dashboardCropDate" class="helper">—</p></div><div class="crop-cycle-age"><strong id="dashboardCropAge">—</strong><small>วัน</small></div></div>
+      <div class="crop-cycle-summary"><div class="crop-cycle-icon"><img src="assets/cucumber-plot.jpg?v=1" alt="ภาพแปลงแตงกวา"></div><div><strong id="dashboardCropName">แปลงแตงกวา</strong><p id="dashboardCropDate" class="helper">ปลูกมาแล้ว 42 วัน</p></div><div class="crop-cycle-age"><strong id="dashboardCropAge">42</strong><small>วัน</small></div></div>
       <div class="btn-row" style="margin-top:16px"><a class="btn secondary small" href="schedule.html#crop-cycle-title">จัดการรอบปลูก</a></div>
     </section>
 

@@ -47,6 +47,12 @@ body.dashboard-page .desktop-nav a.active,
 body.dashboard-page .desktop-nav a:hover { color: var(--dash-green-dark); background: var(--dash-green-soft); }
 body.dashboard-page .topbar-actions .status-pill { color: var(--dash-green-dark); border-color: #cfe6d6; background: #f4fbf6; }
 body.dashboard-page .dashboard-clock-layer { display: none !important; }
+body.dashboard-page .topbar-actions { display: flex; align-items: center; gap: 12px; }
+body.dashboard-page .topbar-ready { display: inline-flex; align-items: center; gap: 8px; color: var(--dash-green); font-size: 14px; white-space: nowrap; }
+body.dashboard-page .topbar-ready i { width: 12px; height: 12px; border-radius: 50%; background: var(--dash-green); }
+body.dashboard-page .topbar-rtc { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 999px; color: var(--dash-green-dark); background: var(--dash-green-soft); font-size: 14px; white-space: nowrap; }
+body.dashboard-page .topbar-rtc b { font-weight: 750; }
+body.dashboard-page .topbar .status-pill[hidden] { display: none !important; }
 body.dashboard-page .app-main > .dashboard-header { display: none; }
 body.dashboard-page .app-main > .dashboard-header { order: 1; }
 
@@ -205,6 +211,7 @@ body.dashboard-page #cropCycleCard .crop-cycle-icon { width: clamp(128px, 34vw, 
 body.dashboard-page #cropCycleCard .crop-cycle-icon img { display: block; width: 100%; height: 100%; object-fit: cover; }
 body.dashboard-page #cropCycleCard .crop-cycle-summary strong,
 body.dashboard-page #cropCycleCard .crop-cycle-summary .helper { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.dashboard-page #cropCycleCard .crop-cycle-age { display: none; }
 body.dashboard-page .dashboard-quick-actions { gap: 12px; }
 body.dashboard-page .dashboard-quick-action { border: 1px solid #d6e5da; border-radius: 18px; background: linear-gradient(145deg,#fff,#fbfefc); color: var(--dash-green-dark); box-shadow: inset 0 1px 0 #fff, 0 10px 24px rgba(22,71,44,.08), 0 2px 0 rgba(18,62,44,.04); }
 body.dashboard-page .dashboard-quick-action.schedule { border-color: #c9e5d0; }
@@ -227,6 +234,11 @@ body.dashboard-page .bottom-nav a.active { color: var(--dash-green-dark); backgr
   body.dashboard-page .topbar,
   body.dashboard-page .app-main { width: min(100% - 20px, 680px); }
   body.dashboard-page .topbar { min-height: 62px; }
+  body.dashboard-page .brand-copy strong { font-size: 18px; }
+  body.dashboard-page .topbar-actions { gap: 6px; }
+  body.dashboard-page .topbar-ready { font-size: 11px; gap: 4px; }
+  body.dashboard-page .topbar-ready i { width: 9px; height: 9px; }
+  body.dashboard-page .topbar-rtc { padding: 7px 8px; font-size: 11px; }
   body.dashboard-page .brand-copy span,
   body.dashboard-page .desktop-nav,
   body.dashboard-page .topbar-actions .status-pill { display: none; }

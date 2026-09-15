@@ -21,8 +21,9 @@
         return;
       }
       name.textContent = data.crop;
-      date.textContent = `วันที่ปลูก ${formatDate(data.startDate)}`;
-      age.textContent = `${window.cropCycle.age(data)} วัน`;
+      const days = window.cropCycle.age(data);
+      date.textContent = `ปลูกมาแล้ว ${days} วัน`;
+      age.textContent = `${days} วัน`;
       if (status) status.textContent = '● กำลังเจริญเติบโต · คำนวณจากวันที่ปลูกถึงวันนี้';
     } catch (error) {
       name.textContent = 'ไม่สามารถโหลดข้อมูลได้';
