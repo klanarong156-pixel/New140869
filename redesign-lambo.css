@@ -151,6 +151,16 @@ body.dashboard-page #control .pump-toggle input:checked + span { border-color: v
 body.dashboard-page #control .pump-toggle input:checked + span::after { transform: translateX(102px); }
 body.dashboard-page #control .pump-toggle input:focus-visible + span { outline: 3px solid rgba(35,155,85,.25); outline-offset: 4px; }
 body.dashboard-page #control .pump-hero-card .context-action { display: none; }
+body.dashboard-page #control .pump-hero-card .control-top { display: none; }
+body.dashboard-page #control .pump-hero-card .relay-timer { display: none; }
+body.dashboard-page #control .pump-hero-state { display: grid; align-content: center; justify-items: start; gap: 4px; }
+body.dashboard-page #control .pump-title { color: var(--dash-green-dark); font-size: clamp(28px, 4vw, 38px); line-height: 1; letter-spacing: -.06em; }
+body.dashboard-page #control .pump-off-badge { display: inline-grid; place-items: center; min-width: 92px; min-height: 48px; margin-top: 6px; padding: 0 22px; border-radius: 999px; color: #c53d46; background: #ffe5e5; font-size: 27px; font-weight: 800; letter-spacing: .02em; }
+body.dashboard-page #control .pump-state-label,
+body.dashboard-page #control .pump-state-value,
+body.dashboard-page #control .pump-state-note { display: none; }
+body.dashboard-page #control .pump-hero-card.active .pump-off-badge { color: #fff; background: var(--dash-green); }
+body.dashboard-page #control .quick-toggle .context-action-icon { display: none; }
 body.dashboard-page #control .quick-control-heading { margin-top: 2px; }
 body.dashboard-page #control .quick-control-heading h2 { margin: 0; color: var(--dash-green-dark); font-size: 25px; letter-spacing: -.04em; }
 
@@ -226,14 +236,18 @@ body.dashboard-page .bottom-nav a.active { color: var(--dash-green-dark); backgr
   body.dashboard-page .hero.dashboard-header .hero-meta { display: none; }
   body.dashboard-page .dashboard-header-status { gap: 6px; }
   body.dashboard-page .dashboard-header-status .rtc-chip { font-size: 11px; padding: 8px 9px; }
-  body.dashboard-page #control .pump-hero-card { min-height: 0; padding: 17px; }
-  body.dashboard-page #control .pump-hero-body { grid-template-columns: 76px minmax(0,1fr) 118px; grid-template-areas: "visual state toggle"; gap: 13px; min-height: 0; }
-  body.dashboard-page #control .pump-visual { grid-area: visual; width: 72px; height: 72px; border-radius: 22px; font-size: 28px; }
+  body.dashboard-page #control .pump-hero-card { min-height: 0; padding: 18px; }
+  body.dashboard-page #control .pump-hero-body { grid-template-columns: 88px minmax(0,1fr) 140px; grid-template-areas: "visual state toggle"; gap: 13px; min-height: 170px; }
+  body.dashboard-page #control .pump-visual { grid-area: visual; width: 88px; height: 88px; border-radius: 22px; font-size: 28px; }
   body.dashboard-page #control .pump-visual img { width: 94%; height: 94%; }
   body.dashboard-page #control .pump-hero-state { grid-area: state; min-width: 0; }
-  body.dashboard-page #control .pump-toggle { grid-area: toggle; width: 112px; height: 62px; }
-  body.dashboard-page #control .pump-toggle > span::after { top: 5px; left: 5px; width: 50px; height: 50px; }
-  body.dashboard-page #control .pump-toggle input:checked + span::after { transform: translateX(52px); }
+  body.dashboard-page #control .pump-hero-state { gap: 3px; }
+  body.dashboard-page #control .pump-title { font-size: 30px; }
+  body.dashboard-page #control .pump-off-badge { min-width: 78px; min-height: 42px; padding: 0 17px; font-size: 22px; }
+  body.dashboard-page #control .pump-visual { background: transparent; border: 0; box-shadow: none; border-radius: 0; }
+  body.dashboard-page #control .pump-toggle { grid-area: toggle; width: 140px; height: 76px; }
+  body.dashboard-page #control .pump-toggle > span::after { top: 6px; left: 6px; width: 62px; height: 62px; }
+  body.dashboard-page #control .pump-toggle input:checked + span::after { transform: translateX(64px); }
   body.dashboard-page #control .pump-state-value { font-size: 30px; }
   body.dashboard-page #control .pump-hero-card .context-action { grid-area: action; width: 100%; min-height: 54px; margin-top: 6px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) { width: auto; grid-column: span 4; min-height: 104px; padding: 9px 7px; }
