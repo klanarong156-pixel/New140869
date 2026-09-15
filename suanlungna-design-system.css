@@ -82,7 +82,6 @@ body.app-shell:not(.dashboard-page) .bottom-nav {
 }
 body.app-shell:not(.dashboard-page) .bottom-nav a { color: var(--slna-muted); }
 body.app-shell:not(.dashboard-page) .bottom-nav a.active { color: var(--slna-primary-dark); background: var(--slna-soft-strong); box-shadow: inset 0 0 0 1px #c9e5d0; }
-/* Schedule */
 body.app-shell:not(.dashboard-page) .schedule-picker,
 body.app-shell:not(.dashboard-page) .schedule-builder { background: var(--slna-soft); }
 body.app-shell:not(.dashboard-page) .schedule-tabs { gap: 8px; }
@@ -95,7 +94,6 @@ body.app-shell:not(.dashboard-page) .slot-card { box-shadow: none; }
 body.app-shell:not(.dashboard-page) .slot-card h3,
 body.app-shell:not(.dashboard-page) .step-title { color: var(--slna-primary-dark); }
 body.app-shell:not(.dashboard-page) .schedule-summary { color: var(--slna-primary-dark); border-color: #cfe6d6; background: var(--slna-soft); }
-/* Finance and sales */
 body.app-shell:not(.dashboard-page) .finance-metric { border-top: 4px solid var(--slna-primary); }
 body.app-shell:not(.dashboard-page) .finance-metric.expense { border-top-color: #d88d96; }
 body.app-shell:not(.dashboard-page) .finance-metric.pending { border-top-color: #d7ae58; }
@@ -106,7 +104,6 @@ body.app-shell:not(.dashboard-page) .cucumber-sales-stat strong { color: var(--s
 body.app-shell:not(.dashboard-page) .table-wrap { border: 1px solid var(--slna-line); border-radius: 18px; background: #fff; }
 body.app-shell:not(.dashboard-page) table th { color: var(--slna-primary-dark); background: var(--slna-soft); }
 body.app-shell:not(.dashboard-page) table td { color: var(--slna-text); border-color: var(--slna-line); }
-/* Account and settings */
 body.app-shell:not(.dashboard-page) .connection-icon { color: var(--slna-primary); background: var(--slna-soft-strong); }
 body.app-shell:not(.dashboard-page) .settings-map-grid a { border-color: var(--slna-line); border-radius: 18px; background: var(--slna-soft); }
 body.app-shell:not(.dashboard-page) .settings-map-grid a strong { color: var(--slna-primary-dark); }
@@ -130,4 +127,111 @@ body.app-shell:not(.dashboard-page) .usage-hero-card { background: var(--slna-so
   body.app-shell:not(.dashboard-page) .field.full { grid-column: auto; }
   body.app-shell:not(.dashboard-page) .schedule-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.app-shell:not(.dashboard-page) .schedule-tab { width: 100%; }
+}
+
+/* ================================================================
+   Unified Dashboard Layer
+   Uses the same semantic tokens as every other Smart Farm page.
+   Presentation only — no data, MQTT, Firebase or device behavior.
+   ================================================================ */
+body.dashboard-page {
+  --sf-bg: var(--slna-bg);
+  --sf-surface: var(--slna-surface);
+  --sf-surface-strong: var(--slna-soft-strong);
+  --sf-primary: var(--slna-primary-dark);
+  --sf-primary-strong: var(--slna-primary);
+  --sf-primary-soft: var(--slna-soft-strong);
+  --sf-text: var(--slna-text);
+  --sf-muted: var(--slna-muted);
+  --sf-line: var(--slna-line);
+  --sf-danger: var(--slna-danger);
+  --sf-danger-soft: var(--slna-danger-soft);
+  --sf-radius-card: var(--slna-radius);
+  --sf-radius-control: var(--slna-control-radius);
+  --sf-touch: 52px;
+  --sf-shadow: var(--slna-shadow);
+  background: var(--slna-bg);
+  color: var(--slna-text);
+  font-family: Kanit, "Noto Sans Thai", system-ui, sans-serif;
+}
+body.dashboard-page::before { display: none; }
+body.dashboard-page .app-main { padding-bottom: 92px; }
+body.dashboard-page .topbar {
+  border-bottom: 1px solid var(--slna-line);
+  background: rgba(255,255,255,.96);
+  box-shadow: none;
+}
+body.dashboard-page .brand-copy strong { color: var(--slna-primary-dark); }
+body.dashboard-page .brand-copy span { color: var(--slna-muted); }
+body.dashboard-page .desktop-nav { border-color: var(--slna-line); background: var(--slna-soft); box-shadow: none; }
+body.dashboard-page .desktop-nav a { color: var(--slna-muted); }
+body.dashboard-page .desktop-nav a.active,
+body.dashboard-page .desktop-nav a:hover { color: var(--slna-primary-dark); background: var(--slna-soft-strong); }
+body.dashboard-page .hero.dashboard-header {
+  border-radius: var(--slna-radius);
+  background: var(--slna-primary-dark);
+  box-shadow: 0 12px 30px rgba(18,62,44,.12);
+}
+body.dashboard-page .hero.dashboard-header .kicker { color: #bfe8cb; }
+body.dashboard-page .hero.dashboard-header h1,
+body.dashboard-page .hero.dashboard-header .subtitle { color: #fff; }
+body.dashboard-page .hero.dashboard-header .subtitle { opacity: .88; }
+body.dashboard-page .hero.dashboard-header .dashboard-header-status { color: #fff; }
+body.dashboard-page .hero.dashboard-header .rtc-chip { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.1); }
+body.dashboard-page .section-head h2 { color: var(--slna-primary-dark); text-shadow: none; }
+body.dashboard-page .section-head .helper { color: var(--slna-muted); }
+body.dashboard-page #control.pump-hero-section { margin-top: 22px; }
+body.dashboard-page #control .pump-hero-card {
+  border: 1px solid #cfe6d6;
+  border-radius: var(--slna-radius);
+  background: linear-gradient(145deg, var(--slna-soft) 0%, #fff 72%);
+  box-shadow: 0 12px 28px rgba(22,71,44,.08);
+}
+body.dashboard-page #control .pump-hero-card.active {
+  border-color: #a9dcb5;
+  background: linear-gradient(145deg, var(--slna-soft-strong) 0%, #fff 72%);
+}
+body.dashboard-page #control .pump-hero-card .control-name .icon {
+  color: var(--slna-primary-dark);
+  background: var(--slna-soft-strong);
+}
+body.dashboard-page #control .pump-hero-card .control-name strong { color: var(--slna-primary-dark); }
+body.dashboard-page #control .pump-hero-card .vintage-status { border-color: var(--slna-line); color: var(--slna-muted); background: #fff; }
+body.dashboard-page #control .pump-hero-card.active .vintage-status { color: var(--slna-primary-dark); background: var(--slna-soft-strong); border-color: #c9e5d0; }
+body.dashboard-page #control .pump-hero-card .context-action { background: var(--slna-primary); }
+body.dashboard-page #control .pump-hero-card .context-action:hover:not(:disabled),
+body.dashboard-page #control .pump-hero-card .context-action.is-running { background: var(--slna-primary-dark); }
+body.dashboard-page #control .pump-hero-card .relay-timer { border-color: var(--slna-line); border-radius: var(--slna-control-radius); background: #fff; }
+body.dashboard-page #control .control-card:not(.pump-hero-card) { border-color: var(--slna-line); background: #fff; box-shadow: var(--slna-shadow); }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { color: var(--slna-primary-dark); }
+body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { border-radius: var(--slna-control-radius); }
+body.dashboard-page #control .control-safety { border-color: #efc4c8; border-radius: var(--slna-control-radius); background: var(--slna-danger-soft); box-shadow: none; }
+body.dashboard-page .dashboard-quick-actions { gap: 12px; }
+body.dashboard-page .dashboard-quick-action {
+  border: 1px solid var(--slna-line);
+  border-radius: 18px;
+  background: #fff;
+  color: var(--slna-primary-dark);
+  box-shadow: var(--slna-shadow);
+}
+body.dashboard-page .dashboard-quick-action:hover { background: var(--slna-soft); }
+body.dashboard-page .dashboard-quick-action.schedule { border-color: #c9e5d0; }
+body.dashboard-page .dashboard-quick-action.timer { background: var(--slna-soft); }
+body.dashboard-page .dashboard-quick-action.emergency { color: #a33e48; border-color: #efc4c8; background: var(--slna-danger-soft); }
+body.dashboard-page .dashboard-notification-panel { border-color: var(--slna-line); border-radius: 18px; background: #fff; box-shadow: var(--slna-shadow); }
+body.dashboard-page .mqtt-live-panel { border-color: var(--slna-line); border-radius: 18px; background: var(--slna-soft); box-shadow: none; }
+body.dashboard-page .mqtt-live-panel .mqtt-live-dot { background: var(--slna-primary); }
+body.dashboard-page .control-safety .btn.danger { min-height: 52px; border-radius: var(--slna-control-radius); }
+@media (max-width: 700px) {
+  body.dashboard-page .app-main { padding-bottom: 104px; }
+  body.dashboard-page .hero.dashboard-header { border-radius: 20px; }
+  body.dashboard-page #control .pump-hero-card { border-radius: 22px; }
+  body.dashboard-page .dashboard-quick-actions { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  body.dashboard-page .dashboard-quick-action { min-height: 92px; padding: 14px 10px; }
+}
+@media (max-width: 430px) {
+  body.dashboard-page .dashboard-quick-actions { gap: 8px; }
+  body.dashboard-page .dashboard-quick-action { min-height: 84px; border-radius: 16px; }
+  body.dashboard-page .dashboard-quick-action strong { font-size: 13px; }
+  body.dashboard-page .dashboard-quick-action small { font-size: 10px; }
 }
