@@ -18,3 +18,22 @@ body.dashboard-page .sensor-overview{margin-top:20px}.sensor-overview .metric-ca
 @media (max-width:380px){body.dashboard-page .brand-logo,body.dashboard-page .brand-symbol{width:38px;height:38px}body.dashboard-page .brand-copy strong{font-size:18px}body.dashboard-page .hero.dashboard-header h1{font-size:27px}body.dashboard-page .hero.dashboard-header .subtitle{font-size:11px}body.dashboard-page #control .pump-hero-card{padding:13px}body.dashboard-page #control .pump-hero-card .control-name strong{font-size:19px}body.dashboard-page #control .pump-hero-card .control-name small{font-size:9px}body.dashboard-page #control .pump-state-value{font-size:27px}body.dashboard-page #control .pump-state-note{font-size:9px}body.dashboard-page #control .pump-hero-card .context-action{min-height:50px;font-size:14px}body.dashboard-page #control .control-card:not(.pump-hero-card){padding:10px;min-height:122px}}
 @media (min-width:701px) and (max-width:900px){body.dashboard-page .app-main,body.dashboard-page .topbar{width:min(100% - 28px,1120px)}#control .control-grid{gap:12px}}
 @media (prefers-reduced-motion:reduce){body.dashboard-page *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Concept A section hierarchy: preserve DOM/data hooks, change only visual order. */
+body.dashboard-page .app-main{display:flex;flex-direction:column}
+body.dashboard-page .app-main > .dashboard-header{order:1}
+body.dashboard-page .app-main > #control{order:2}
+body.dashboard-page .app-main > .sensor-overview{order:3}
+body.dashboard-page .app-main > .dashboard-quick-actions{order:4}
+body.dashboard-page .app-main > #cropCycleCard{order:5}
+body.dashboard-page .app-main > .compact-schedule-summary{order:6}
+body.dashboard-page .app-main > .compact-system-status{order:7}
+body.dashboard-page .app-main > .mqtt-live-panel{order:8}
+body.dashboard-page .app-main > #cropTasksCard{order:9}
+body.dashboard-page .app-main > #weatherBox{order:10}
+body.dashboard-page .app-main > #aiAdvisorPanel{order:11}
+body.dashboard-page .app-main > #systemHealthPanel{order:12}
+body.dashboard-page .app-main > #analyticsPanel{order:13}
+body.dashboard-page .app-main > #financeSummary{order:14}
+body.dashboard-page .app-main > footer{order:15}
+@media (max-width:700px){body.dashboard-page .app-main > .dashboard-header{order:1}body.dashboard-page .app-main > #control{order:2}body.dashboard-page .app-main > .sensor-overview{order:3}body.dashboard-page .app-main > .dashboard-quick-actions{order:4}body.dashboard-page .app-main > #cropCycleCard{order:5}body.dashboard-page .app-main > .compact-schedule-summary{order:6}body.dashboard-page .app-main > .compact-system-status{order:7}body.dashboard-page .app-main > .mqtt-live-panel{order:8}}
