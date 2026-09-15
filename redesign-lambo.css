@@ -130,6 +130,7 @@ body.dashboard-page #control .pump-hero-card::after { content: ""; position: abs
 body.dashboard-page #control .pump-hero-card > * { position: relative; z-index: 1; }
 body.dashboard-page #control .pump-hero-body { display: grid; grid-template-columns: 120px 1fr auto; align-items: center; gap: 22px; min-height: 130px; }
 body.dashboard-page #control .pump-visual { width: 112px; height: 112px; border-radius: 32px; display: grid; place-items: center; background: linear-gradient(145deg,#fff,#f1faf4); border: 1px solid #c7e4d0; color: var(--dash-green); font-size: 42px; box-shadow: inset 0 1px 0 #fff, 0 8px 20px rgba(22, 71, 44, .1), 0 0 0 5px rgba(232,246,237,.72); }
+body.dashboard-page #control .pump-visual img { width: 92%; height: 92%; object-fit: contain; filter: drop-shadow(0 7px 8px rgba(18,62,44,.16)); }
 body.dashboard-page #control .pump-state-label { display: block; color: var(--dash-muted); font-size: 13px; }
 body.dashboard-page #control .pump-state-value { display: block; margin-top: 2px; color: var(--dash-green-dark); font-size: clamp(30px, 5vw, 46px); font-weight: 750; letter-spacing: -.05em; }
 body.dashboard-page #control .pump-state-note { display: block; margin-top: 3px; color: var(--dash-muted); font-size: 12px; }
@@ -161,6 +162,8 @@ body.dashboard-page .cucumber-plot-card { border: 1px solid #bfe0ca; border-radi
 body.dashboard-page #cropCycleCard { width: 100%; overflow: hidden; }
 body.dashboard-page #cropCycleCard .crop-cycle-summary { width: 100%; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; }
 body.dashboard-page #cropCycleCard .crop-cycle-summary > div:nth-child(2) { min-width: 0; }
+body.dashboard-page #cropCycleCard .crop-cycle-icon { width: 96px; height: 72px; overflow: hidden; border: 1px solid #c7e4d0; border-radius: 14px; background: #e8f6ed; box-shadow: inset 0 1px 0 #fff, 0 5px 12px rgba(22,71,44,.08); }
+body.dashboard-page #cropCycleCard .crop-cycle-icon img { display: block; width: 100%; height: 100%; object-fit: cover; }
 body.dashboard-page #cropCycleCard .crop-cycle-summary strong,
 body.dashboard-page #cropCycleCard .crop-cycle-summary .helper { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 body.dashboard-page .dashboard-quick-actions { gap: 12px; }
@@ -197,6 +200,7 @@ body.dashboard-page .bottom-nav a.active { color: var(--dash-green-dark); backgr
   body.dashboard-page #control .pump-hero-card { min-height: 0; padding: 17px; }
   body.dashboard-page #control .pump-hero-body { grid-template-columns: 76px 1fr; grid-template-areas: "visual state" "action action"; gap: 13px; min-height: 0; }
   body.dashboard-page #control .pump-visual { grid-area: visual; width: 72px; height: 72px; border-radius: 22px; font-size: 28px; }
+  body.dashboard-page #control .pump-visual img { width: 94%; height: 94%; }
   body.dashboard-page #control .pump-hero-state { grid-area: state; min-width: 0; }
   body.dashboard-page #control .pump-state-value { font-size: 30px; }
   body.dashboard-page #control .pump-hero-card .context-action { grid-area: action; width: 100%; min-height: 54px; margin-top: 6px; }
@@ -205,6 +209,7 @@ body.dashboard-page .bottom-nav a.active { color: var(--dash-green-dark); backgr
   body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { font-size: 14px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name small { font-size: 8px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { min-height: 38px; padding: 0 3px; font-size: 11px; }
+  body.dashboard-page #cropCycleCard .crop-cycle-icon { width: 82px; height: 62px; }
 }
 @media (max-width: 430px) {
   body.dashboard-page .topbar,
