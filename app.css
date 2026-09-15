@@ -330,7 +330,6 @@ body::before { opacity:.035; background-size:36px 36px; }
 }
 
 
-/* Countdown mode: quick, clear and mobile-friendly */
 .relay-timer { gap:9px; margin-top:12px; padding:12px; border:1px solid rgba(119,215,156,.16); border-radius:16px; background:rgba(4,19,12,.20); }
 .relay-timer > label { position:relative; gap:6px; color:#c7d9cc; font-size:11px; font-weight:600; letter-spacing:.01em; }
 .relay-timer > label input { min-height:40px; padding-right:58px; border-color:rgba(139,220,169,.20); background:rgba(255,255,255,.06); font-size:16px; font-weight:700; }

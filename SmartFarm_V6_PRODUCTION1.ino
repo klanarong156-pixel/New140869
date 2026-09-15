@@ -309,7 +309,6 @@ const char *relayNames[RELAY_COUNT] = {"pump", "zone1", "lighthome",
 uint32_t pumpStartedAt = 0;
 uint32_t relayTimerUntil[RELAY_COUNT] = {};
 bool relayTimerUnlimited[RELAY_COUNT] = {};
-uint32_t lastTimerStatus = 0;
 bool pumpSafetyLatched = false;
 bool emergencyLock = false;
 uint32_t emergencyTimestamp = 0;
@@ -336,18 +335,10 @@ void clearRelayTimer(uint8_t i) {
 void publishRelayTimerStatus(uint8_t i) {
   if (!mqtt.connected() || i >= RELAY_COUNT)
     return;
-  StaticJsonDocument<160> d;
-  uint32_t remaining = relayTimerUnlimited[i]
-                           ? 0
-                           : (relayTimerUntil[i]
-                                  ? (int32_t)(relayTimerUntil[i] - millis()) > 0
-                                        ? (relayTimerUntil[i] - millis()) / 1000UL
-                                        : 0
-                                  : 0);
-  d["active"] = relayTimerUnlimited[i] || remaining > 0;
+  StaticJsonDocument<96> d;
+  d["active"] = relayTimerUnlimited[i] || relayTimerUntil[i] != 0;
   d["unlimited"] = relayTimerUnlimited[i];
-  d["remaining"] = remaining;
-  char out[160];
+  char out[96];
   serializeJson(d, out, sizeof(out));
   String t = String(MQTT_BASE) + "/relay/" + relayNames[i] + "/timer/status";
   mqtt.publish(t.c_str(), out, true);
@@ -372,9 +363,6 @@ bool startRelayTimer(uint8_t i, uint32_t seconds, bool unlimited = false) {
   return true;
 }
 void runRelayTimers() {
-  bool statusDue = (uint32_t)(millis() - lastTimerStatus) >= 1000UL;
-  if (statusDue)
-    lastTimerStatus = millis();
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     if (relayTimerUnlimited[i]) {
       if (!relayOn(i)) {
@@ -382,7 +370,6 @@ void runRelayTimers() {
         publishRelayTimerStatus(i);
         continue;
       }
-      if (statusDue) publishRelayTimerStatus(i);
       continue;
     }
     // A zero deadline means no finite timer. Do not treat a relay that is ON
@@ -399,8 +386,7 @@ void runRelayTimers() {
       if (!scheduleKeepsOn) relaySetRaw(i, false);
       publishRelayStatus(i);
       publishRelayTimerStatus(i);
-    } else if (statusDue)
-      publishRelayTimerStatus(i);
+    }
   }
 }
 

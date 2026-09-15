@@ -25,11 +25,11 @@ Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topi
 
 `AUTO` and `MANUAL` are active firmware modes. `AUTO` allows the four locally stored schedule slots per relay to control outputs when the clock is valid. `MANUAL` prevents `applyAutoState()` from changing relay outputs; direct relay commands and timers remain available subject to emergency/OTA safety locks. The firmware accepts `smartfarm/mode/set` with `AUTO` or `MANUAL` and publishes the retained state on `smartfarm/mode/status`.
 
-## Relay countdown timer
+## Relay timer
 
-Dashboard starts or cancels an automatic OFF timer with the non-retained topic `smartfarm/relay/{relay}/timer/set`. The payload is an integer number of seconds from `1` to `4294967`, `UNLIMITED`, `0` or `CANCEL`. A finite timer turns the selected relay OFF when the explicitly requested countdown expires. The retained status topic is `smartfarm/relay/{relay}/timer/status` with JSON payload `{ "active": true, "unlimited": false, "remaining": 120 }`.
+Dashboard starts or cancels an automatic OFF timer with the non-retained topic `smartfarm/relay/{relay}/timer/set`. The payload is an integer number of seconds from `1` to `4294967`, `UNLIMITED`, `0` or `CANCEL`. A finite timer turns the selected relay OFF after the requested duration. The retained status topic is `smartfarm/relay/{relay}/timer/status` with JSON payload `{ "active": true, "unlimited": false }`; no time-remaining value is published or displayed.
 
-`CANCEL` clears an active countdown timer. `UNLIMITED` intentionally has no timer expiry.
+`CANCEL` clears an active timer. `UNLIMITED` intentionally has no timer expiry.
 
 ## Schedule payload
 

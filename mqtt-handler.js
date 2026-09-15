@@ -480,12 +480,14 @@ class MqttHandler {
       if (!RELAYS.includes(relay)) return;
       try {
         const timer = JSON.parse(value);
-        const remaining = Math.max(0, Number(timer.remaining) || 0);
         this.markDeviceSeen('relay-timer-status');
-        const unlimited = Boolean(timer.unlimited) || (Boolean(timer.active) && remaining === 0);
-        this.dispatch('relay:timer', { relay, active: Boolean(timer.active), unlimited, remaining });
+        this.dispatch('relay:timer', {
+          relay,
+          active: Boolean(timer.active),
+          unlimited: Boolean(timer.unlimited),
+        });
       } catch (_) {
-        this.dispatch('relay:timer', { relay, active: false, remaining: 0 });
+        this.dispatch('relay:timer', { relay, active: false, unlimited: false });
       }
       return;
     }

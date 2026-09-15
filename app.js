@@ -4,18 +4,9 @@
   const $ = id => document.getElementById(id);
   const $$ = selector => Array.from(document.querySelectorAll(selector));
   const relayLabel = relay => window.RELAY_NAMES?.[relay] || relay;
-  const relayTimers = Object.create(null);
   const MAX_TIMER_MINUTES = 71582;
   const MAX_TIMER_SECONDS = MAX_TIMER_MINUTES * 60;
   let deviceOnline = false;
-
-  function formatCountdown(seconds) {
-    const total = Math.max(0, Math.floor(Number(seconds) || 0));
-    const hours = Math.floor(total / 3600);
-    const minutes = Math.floor((total % 3600) / 60);
-    const rest = total % 60;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
-  }
 
   function setText(target, value) {
     const element = typeof target === 'string' ? $(target) : target;
@@ -131,49 +122,22 @@
     });
   }
 
-  function renderRelayTimer(relay, active, remaining, unlimited = false) {
-    const seconds = Math.max(0, Math.floor(Number(remaining) || 0));
-    if (relayTimers[relay]?.interval) window.clearInterval(relayTimers[relay].interval);
+  function renderRelayTimer(relay, active, unlimited = false) {
     if (!active) {
-      delete relayTimers[relay];
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ยังไม่ได้ตั้งเวลา'; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'ตั้งเวลา'; });
-      if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = 'ไม่มี Timer'; });
       if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
       return;
     }
     if (unlimited) {
-      delete relayTimers[relay];
       $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
-      if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
       if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
       return;
     }
-    if (seconds <= 0) {
-      delete relayTimers[relay];
-      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'หมดเวลาแล้ว กำลังปิดรีเลย์'; });
-      return;
-    }
-    const state = { deadline: Date.now() + (seconds * 1000), remaining: seconds, interval: null };
-    const paint = () => {
-      state.remaining = Math.max(0, Math.ceil((state.deadline - Date.now()) / 1000));
-      const text = state.remaining > 0
-        ? `ปิดอัตโนมัติใน ${formatCountdown(state.remaining)}`
-        : 'หมดเวลาแล้ว กำลังปิดรีเลย์';
-      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = text; });
-      $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = text.replace('ปิดอัตโนมัติใน ', ''); });
-      if (relay === 'pump') $$('[data-dashboard-pump-timer]').forEach(element => { element.textContent = formatCountdown(state.remaining); });
-      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
-    };
-    paint();
-    state.interval = window.setInterval(() => {
-      paint();
-      if (state.remaining <= 0) {
-        window.clearInterval(state.interval);
-      }
-    }, 1000);
-    relayTimers[relay] = state;
+    $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ตั้งเวลาแล้ว'; });
+    $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'ตั้งเวลาแล้ว'; });
+    if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
   }
 
   function renderDashboardSchedule(relay, schedule) {
@@ -537,8 +501,8 @@
       if (relay) renderRelay(relay, status);
     });
     window.addEventListener('relay:timer', event => {
-      const { relay, active, unlimited, remaining } = event.detail || {};
-      if (relay) renderRelayTimer(relay, active, remaining, unlimited);
+      const { relay, active, unlimited } = event.detail || {};
+      if (relay) renderRelayTimer(relay, active, unlimited);
     });
     window.addEventListener('schedule:status', event => {
       const { relay, schedule } = event.detail || {};
