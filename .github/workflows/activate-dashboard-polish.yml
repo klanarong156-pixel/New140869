@@ -17,20 +17,23 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Add polish stylesheet to dashboard
+      - name: Activate latest polish stylesheet
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          tag = '<link rel="stylesheet" href="dashboard-polish.css?v=1">'
-          if tag not in s:
+          old = 'dashboard-polish.css?v=1'
+          new = 'dashboard-polish.css?v=2'
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif new not in s:
               anchor = '<link rel="stylesheet" href="suanlungna-design-system.css?v=1">'
               if anchor not in s:
                   raise SystemExit('Expected stylesheet anchor not found; aborting without changing index.html')
-              s = s.replace(anchor, anchor + '\n  ' + tag, 1)
-              p.write_text(s, encoding='utf-8')
+              s = s.replace(anchor, anchor + '\n  <link rel="stylesheet" href="' + new + '">', 1)
+          p.write_text(s, encoding='utf-8')
           PY
 
       - name: Commit activation
@@ -39,9 +42,9 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           if git diff --quiet -- index.html; then
-            echo 'Dashboard polish already active.'
+            echo 'Dashboard polish cache version already current.'
             exit 0
           fi
           git add index.html
-          git commit -m 'chore: activate dashboard UI polish'
+          git commit -m 'ui: activate latest dashboard polish'
           git push
