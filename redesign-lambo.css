@@ -19,26 +19,25 @@ body.dashboard-page .sensor-overview{margin-top:20px}.sensor-overview .metric-ca
 @media (min-width:701px) and (max-width:900px){body.dashboard-page .app-main,body.dashboard-page .topbar{width:min(100% - 28px,1120px)}#control .control-grid{gap:12px}}
 @media (prefers-reduced-motion:reduce){body.dashboard-page *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
-/* Concept A: the visual order is intentionally separated without changing IDs, data-* hooks or JS selectors. */
+/* Concept A hierarchy: flatten only the visual wrappers so the existing relay/data hooks remain untouched. */
 body.dashboard-page .app-main{display:flex;flex-direction:column;gap:0}
 body.dashboard-page .app-main > .dashboard-header{order:1}
 body.dashboard-page .app-main > #control{display:contents}
 body.dashboard-page #control > .control-grid{display:contents}
 body.dashboard-page #control > .control-grid > .pump-hero-card{order:2}
-body.dashboard-page #control > .control-grid > .control-card:not(.pump-hero-card){order:4;width:calc((100% - 28px)/3)}
 body.dashboard-page .app-main > .sensor-overview{order:3}
+body.dashboard-page #control > .control-grid > .control-card:not(.pump-hero-card){order:4;width:calc((100% - 28px)/3);flex:0 0 auto}
 body.dashboard-page .app-main > .dashboard-quick-actions{order:5}
-body.dashboard-page .app-main > .mqtt-live-panel{order:9}
 body.dashboard-page .app-main > .compact-schedule-summary{order:6}
-body.dashboard-page .app-main > .compact-system-status{order:8}
 body.dashboard-page .app-main > #cropCycleCard{order:7}
-body.dashboard-page .app-main > #cropTasksCard{order:10}
-body.dashboard-page .app-main > #weatherBox{order:11}
-body.dashboard-page .app-main > #aiAdvisorPanel{order:12}
-body.dashboard-page .app-main > #systemHealthPanel{order:13}
-body.dashboard-page .app-main > #analyticsPanel{order:14}
-body.dashboard-page .app-main > #financeSummary{order:15}
-body.dashboard-page #control > .control-safety{order:7;width:100%}
-body.dashboard-page #control > .control-grid > .control-card:not(.pump-hero-card){flex:0 0 auto}
-body.dashboard-page #control > .control-safety{display:block}
-@media (max-width:700px){body.dashboard-page #control > .control-grid > .control-card:not(.pump-hero-card){width:calc((100% - 9px)/2)}body.dashboard-page .app-main > .dashboard-quick-actions{order:6}body.dashboard-page .app-main > #cropCycleCard{order:7}body.dashboard-page .app-main > .compact-schedule-summary{order:8}body.dashboard-page #control > .control-safety{order:9}body.dashboard-page .app-main > .compact-system-status{order:10}body.dashboard-page .app-main > .mqtt-live-panel{order:11}body.dashboard-page .app-main > #cropTasksCard{order:12}body.dashboard-page .app-main > #weatherBox{order:13}body.dashboard-page .app-main > #aiAdvisorPanel{order:14}body.dashboard-page .app-main > #systemHealthPanel{order:15}body.dashboard-page .app-main > #analyticsPanel{order:16}body.dashboard-page .app-main > #financeSummary{order:17}}
+body.dashboard-page #control > .control-safety{order:8;width:100%}
+body.dashboard-page .app-main > .compact-system-status{order:9}
+body.dashboard-page .app-main > .mqtt-live-panel{order:10}
+body.dashboard-page .app-main > #cropTasksCard{order:11}
+body.dashboard-page .app-main > #weatherBox{order:12}
+body.dashboard-page .app-main > #aiAdvisorPanel{order:13}
+body.dashboard-page .app-main > #systemHealthPanel{order:14}
+body.dashboard-page .app-main > #analyticsPanel{order:15}
+body.dashboard-page .app-main > #financeSummary{order:16}
+body.dashboard-page .app-main > footer{order:17}
+@media (max-width:700px){body.dashboard-page #control > .control-grid > .control-card:not(.pump-hero-card){width:calc((100% - 9px)/2)}body.dashboard-page .app-main > .dashboard-quick-actions{order:6}body.dashboard-page .app-main > #cropCycleCard{order:7}body.dashboard-page .app-main > .compact-schedule-summary{order:8}body.dashboard-page #control > .control-safety{order:9}body.dashboard-page .app-main > .compact-system-status{order:10}body.dashboard-page .app-main > .mqtt-live-panel{order:11}body.dashboard-page .app-main > #cropTasksCard{order:12}body.dashboard-page .app-main > #weatherBox{order:13}body.dashboard-page .app-main > #aiAdvisorPanel{order:14}body.dashboard-page .app-main > #systemHealthPanel{order:15}body.dashboard-page .app-main > #analyticsPanel{order:16}body.dashboard-page .app-main > #financeSummary{order:17}body.dashboard-page .app-main > footer{order:18}}
