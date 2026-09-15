@@ -116,7 +116,7 @@ const checks = [
   ['Firmware validates every RTC read', /bool validRtcDateTime/.test(firmware) && /DateTime candidate = rtc\.now\(\)/.test(firmware) && /readRtcNow/.test(firmware)],
   ['Firmware verifies RTC read-back after NTP adjust', /rtc\.adjust\(DateTime\(localEpoch\)\)/.test(firmware) && /readBackOk/.test(firmware) && /delta <= 2UL/.test(firmware)],
   ['Firmware OTA uses max sketch space and PNA CORS', /maxSketchSpace/.test(firmware) && /Update\.begin\(maxSketchSpace, U_FLASH\)/.test(firmware) && /Access-Control-Allow-Private-Network/.test(firmware)],
-  ['Firmware OTA finalizes before delayed reboot', /otaUploadCompleted/.test(firmware) && /Update\.end\(true\)/.test(firmware) && /Connection", "close"/.test(firmware) && /otaHttpRestartAt = millis\(\) \+ 1500UL/.test(firmware)],
+  ['Firmware OTA finalizes before delayed reboot', /otaUploadCompleted/.test(firmware) && /Update\.end\(true\)/.test(firmware) && /Connection", "close"/.test(firmware) && /otaHttpRestartAt = millis\(\) \+ 3000UL/.test(firmware)],
   ['Firmware OTA frees MQTT/TLS before upload stream', /mqtt\.disconnect\(\);/.test(firmware) && /tls\.stop\(\);/.test(firmware) && /OTA HTTP: START/.test(firmware)],
   ['Firmware OTA rejects truncated upload before reboot', /completeSize/.test(firmware) && /upload\.totalSize == otaUploadBytes/.test(firmware) && /SIZE MISMATCH/.test(firmware)],
   ['Firmware OTA forces relays OFF and pauses schedules', /enterOtaSafeState/.test(firmware) && /otaUpdateInProgress/.test(firmware) && /if \(otaUpdateInProgress\) return/.test(firmware)],
