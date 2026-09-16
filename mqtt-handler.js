@@ -594,8 +594,9 @@ class MqttHandler {
       try {
         const sensor = JSON.parse(value);
         this.markDeviceSeen('dht11');
-        if (Number.isFinite(Number(sensor.temperature))) this.dispatch('sensor:data', { type: 'temperature', value: Number(sensor.temperature) });
-        if (Number.isFinite(Number(sensor.humidity))) this.dispatch('sensor:data', { type: 'humidity', value: Number(sensor.humidity) });
+        const numeric = input => input !== null && input !== '' && Number.isFinite(Number(input));
+        if (numeric(sensor.temperature)) this.dispatch('sensor:data', { type: 'temperature', value: Number(sensor.temperature) });
+        if (numeric(sensor.humidity)) this.dispatch('sensor:data', { type: 'humidity', value: Number(sensor.humidity) });
       } catch (_) { /* Ignore malformed sensor packet. */ }
     }
   }
