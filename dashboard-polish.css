@@ -264,6 +264,12 @@ body.dashboard-page .emergency-shortcut-actions button { flex: 1; min-height: 38
 body.dashboard-page .emergency-shortcut-actions button:disabled { cursor: not-allowed; opacity: .48; }
 body.dashboard-page .quick-emergency-stop { color: #fff; border-color: #c9515b; background: #c9515b; }
 body.dashboard-page .quick-emergency-reset { color: #8e3d46; border-color: #efc4c8; background: #fff; }
+body.dashboard-page #control .pump-hero-card .pump-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; }
+body.dashboard-page #control .pump-hero-card .pump-toggle .context-action { display: grid !important; grid-area: auto; min-height: 42px; margin: 0; border: 0; border-radius: 999px; color: #31564a; background: #eaf2ed; box-shadow: none; font-size: 14px; }
+body.dashboard-page #control .pump-hero-card .pump-toggle .context-action span[data-relay-action-label] { font-size: 0; }
+body.dashboard-page #control .pump-hero-card .pump-toggle .context-action span[data-relay-action-label]::after { content: "ON"; font-size: 14px; }
+body.dashboard-page #control .pump-hero-card.active .pump-toggle .context-action { color: #fff; background: var(--dash-green); }
+body.dashboard-page #control .pump-hero-card .pump-toggle .quick-off { min-height: 42px; }
 
 @media (max-width: 560px) {
   body.dashboard-page .emergency-panel { align-items: stretch; flex-direction: column; padding: 16px; }
