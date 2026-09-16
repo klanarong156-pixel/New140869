@@ -79,11 +79,6 @@ body.dashboard-page #control .pump-toggle { grid-area: toggle; width: 124px; hei
 body.dashboard-page #control .pump-toggle > span::after { top: 4px; left: 4px; width: 44px; height: 44px; }
 body.dashboard-page #control .pump-toggle input:checked + span::after { transform: translateX(68px); }
 body.dashboard-page #control .pump-hero-card .context-action { grid-area: action; width: 100%; min-height: 48px; margin: 0; font-size: 15px; }
-body.dashboard-page #control .pump-hero-card .relay-timer { display: block; margin-top: 7px; padding-top: 2px; border-top: 1px solid rgba(18,62,44,.09); }
-body.dashboard-page #control .pump-hero-card .relay-timer > summary { min-height: 44px; }
-body.dashboard-page #control .pump-hero-card .timer-presets button,
-body.dashboard-page #control .pump-hero-card .timer-actions .btn { min-height: 44px; }
-
 /* Quick controls remain compact, with touch-safe actions. */
 body.dashboard-page #control .control-card:not(.pump-hero-card) { min-height: 128px; padding: 12px; box-shadow: 0 7px 18px rgba(18,62,44,.055); }
 body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { color: var(--polish-green-dark); }

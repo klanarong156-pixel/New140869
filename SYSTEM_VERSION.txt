@@ -6,7 +6,6 @@ Firebase Auth/Roles: per-user profile, finance, crop, reminder and analytics pat
 Firmware: V7.1.0-FIELD-STABILITY
 Hardware map: DHT11 D2; DS3231 D3/D4; relays D5–D8; soil sensor A0 reserved
 Pump policy: no forced 30-minute runtime cutoff and no automatic MQTT-loss cutoff; schedule/manual/timer behavior follows the operator's explicit command
-Timer boundary: finite values up to 4,294,967 seconds (about 71,582 minutes); `UNLIMITED` intentionally has no expiry; invalid overflow values are rejected
 Emergency: `EMERGENCY_STOP` turns all relays OFF, cancels timers and blocks ON until `EMERGENCY_RESET`; software latch is not a physical E-stop
 PWA cache: smartfarm-v7.1-field-stability-1
 

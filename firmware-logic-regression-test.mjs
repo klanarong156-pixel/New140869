@@ -16,43 +16,26 @@ function scheduleDesired(slots, minute) {
   return slots.some(slot => slotIsOn(slot, minute));
 }
 
-// This is a small executable model of the exact safety-relevant branch in
-// runRelayTimers(): clear the timer, then perform at most one OFF transition
-// unless a valid RTC schedule still requires ON.
-function resolveExpiredTimer({ relayOn, slots, minute, rtcValid, emergencyLock, otaUpdateInProgress }) {
-  const scheduleKeepsOn = !emergencyLock && !otaUpdateInProgress && rtcValid && scheduleDesired(slots, minute);
-  return {
-    timerCleared: true,
-    relayOn: scheduleKeepsOn ? relayOn : false,
-    gpioWrites: scheduleKeepsOn && relayOn ? [] : relayOn ? ['OFF'] : []
-  };
+function applyOnOff({ requestedOn, emergencyLock, otaUpdateInProgress, pumpSafetyLatched = false }) {
+  if (requestedOn && (emergencyLock || otaUpdateInProgress || pumpSafetyLatched)) return false;
+  return Boolean(requestedOn);
 }
 
 const daytime = [{ enabled: true, onH: 6, onM: 0, offH: 8, offM: 0 }];
 const crossMidnight = [{ enabled: true, onH: 23, onM: 0, offH: 1, offM: 0 }];
 
-let result = resolveExpiredTimer({ relayOn: true, slots: daytime, minute: 7 * 60, rtcValid: true, emergencyLock: false, otaUpdateInProgress: false });
-assert.deepEqual(result.gpioWrites, [], 'timer expiry inside an active schedule must not create an OFF pulse');
-assert.equal(result.relayOn, true, 'active schedule must keep relay ON after timer expiry');
-
-result = resolveExpiredTimer({ relayOn: true, slots: daytime, minute: 9 * 60, rtcValid: true, emergencyLock: false, otaUpdateInProgress: false });
-assert.deepEqual(result.gpioWrites, ['OFF'], 'timer expiry outside schedule must turn relay OFF once');
-assert.equal(result.relayOn, false, 'outside schedule relay must be OFF');
-
-result = resolveExpiredTimer({ relayOn: true, slots: crossMidnight, minute: 30, rtcValid: true, emergencyLock: false, otaUpdateInProgress: false });
-assert.deepEqual(result.gpioWrites, [], 'cross-midnight schedule must also prevent an OFF pulse');
-
+assert.equal(applyOnOff({ requestedOn: true, emergencyLock: false, otaUpdateInProgress: false }), true, 'ON command must turn relay ON');
+assert.equal(applyOnOff({ requestedOn: false, emergencyLock: false, otaUpdateInProgress: false }), false, 'OFF command must turn relay OFF');
 for (const safetyState of [
   { emergencyLock: true, otaUpdateInProgress: false },
   { emergencyLock: false, otaUpdateInProgress: true },
-  { emergencyLock: true, otaUpdateInProgress: true }
+  { emergencyLock: false, otaUpdateInProgress: false, pumpSafetyLatched: true }
 ]) {
-  result = resolveExpiredTimer({ relayOn: true, slots: daytime, minute: 7 * 60, rtcValid: true, ...safetyState });
-  assert.deepEqual(result.gpioWrites, ['OFF'], 'Emergency/OTA state must always resolve to OFF');
-  assert.equal(result.relayOn, false, 'Emergency/OTA state must never keep relay ON');
+  assert.equal(applyOnOff({ requestedOn: true, ...safetyState }), false, 'safety locks must block ON');
 }
+assert.equal(scheduleDesired(daytime, 7 * 60), true, 'active daytime schedule must request ON');
+assert.equal(scheduleDesired(daytime, 9 * 60), false, 'outside daytime schedule must request OFF');
+assert.equal(scheduleDesired(crossMidnight, 30), true, 'cross-midnight schedule must request ON');
+assert.equal(scheduleDesired(crossMidnight, 12 * 60), false, 'outside cross-midnight schedule must request OFF');
 
-result = resolveExpiredTimer({ relayOn: true, slots: daytime, minute: 7 * 60, rtcValid: false, emergencyLock: false, otaUpdateInProgress: false });
-assert.deepEqual(result.gpioWrites, ['OFF'], 'invalid RTC must fail safe to OFF at timer expiry');
-
-console.log('PASS firmware-logic-regression: timer expiry has no OFF pulse inside active schedule, turns OFF outside schedule, and remains safety-first');
+console.log('PASS firmware-logic-regression: relay uses ON/OFF only, safety blocks ON, and Schedule state remains correct');

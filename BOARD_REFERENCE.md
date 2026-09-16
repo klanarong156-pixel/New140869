@@ -41,8 +41,6 @@
 |---|---|
 | สั่งรีเลย์ | `smartfarm/relay/{relay}/set` |
 | สถานะรีเลย์ | `smartfarm/relay/{relay}/status` |
-| ตั้ง timer ของรีเลย์ | `smartfarm/relay/{relay}/timer/set` |
-| สถานะ timer | `smartfarm/relay/{relay}/timer/status` |
 | ตั้งตารางอัตโนมัติ | `smartfarm/schedule/{relay}/set` |
 | สถานะตาราง | `smartfarm/schedule/{relay}/status` |
 | เซนเซอร์ DHT11 | `smartfarm/sensor/dht11` |

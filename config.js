@@ -28,8 +28,6 @@ const MQTT_CONFIG = Object.freeze({
   topics: Object.freeze({
     relaySet: relay => `smartfarm/relay/${relay}/set`,
     relayStatus: relay => `smartfarm/relay/${relay}/status`,
-    relayTimerSet: relay => `smartfarm/relay/${relay}/timer/set`,
-    relayTimerStatus: relay => `smartfarm/relay/${relay}/timer/status`,
     sensor: sensor => `smartfarm/sensor/${sensor}`,
     scheduleSet: relay => `smartfarm/schedule/${relay}/set`,
     scheduleStatus: relay => `smartfarm/schedule/${relay}/status`,

@@ -5,7 +5,7 @@ body{font-weight:450;line-height:1.55}
 .brand-copy span,.helper,.subtitle,.muted,.field .field-note,.metric-card small,.control-name small,.metric-top,.control-state,.notice,.forecast-day span,.slot-card span,.farm-clock small{color:#c0d8c8}
 .kicker{color:#9af2ba;font-weight:650;text-shadow:0 1px 8px rgba(0,0,0,.18)}
 h1{font-weight:750}h2{font-weight:700}h3{font-weight:650}
-.field label,.relay-timer label,.form-row label{color:#e4f5e9;font-weight:650}
+.field label,.form-row label{color:#e4f5e9;font-weight:650}
 input,select,textarea{border-color:rgba(205,239,216,.28);background:rgba(2,15,9,.48);color:#f7fff9}
 input::placeholder,textarea::placeholder{color:#9fb9a8;opacity:1}
 select option{color:#102219;background:#eaf7ee}

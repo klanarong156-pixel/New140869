@@ -80,7 +80,6 @@ DS3231 เป็นแหล่งเวลาหลักเมื่อพบ�
 | sync RTC/NTP | 6 ชั่วโมง |
 | timeout heartbeat ใน Dashboard | 25 วินาที |
 
-ระบบไม่มี hard cutoff 30 นาที สำหรับปั้ม (no forced 30-minute pump cutoff) และ MQTT หลุดจะไม่ตัดตารางที่กำลังทำงานบน ESP8266 โดยอัตโนมัติ Timer แบบกำหนดเวลารองรับสูงสุด 71,582 นาทีต่อคำสั่งตามข้อจำกัด `millis()` และ `UNLIMITED` ต้องเป็นตัวเลือกที่ผู้ใช้สั่งเอง ส่วน Dashboard ไม่แสดงโหมดนับถอยหลังหรือเวลาคงเหลือใน Quick Action แล้ว การตั้ง Timer และการทำงานตามเวลายังอยู่ใน firmware และหน้า **ตั้งเวลา** ตามเดิม
 
 ## MQTT topics
 
@@ -89,7 +88,6 @@ DS3231 เป็นแหล่งเวลาหลักเมื่อพบ�
 | หน้าที่ | Topic |
 |---|---|
 | สั่งรีเลย์ / สถานะ | `smartfarm/relay/{relay}/set` / `smartfarm/relay/{relay}/status` |
-| Timer / สถานะ timer | `smartfarm/relay/{relay}/timer/set` / `smartfarm/relay/{relay}/timer/status` |
 | ตาราง / สถานะตาราง | `smartfarm/schedule/{relay}/set` / `smartfarm/schedule/{relay}/status` |
 | เซนเซอร์ DHT11 | `smartfarm/sensor/dht11` |
 | ออนไลน์ | `smartfarm/status/online` |
@@ -103,7 +101,7 @@ DS3231 เป็นแหล่งเวลาหลักเมื่อพบ�
 
 ## ความปลอดภัยและการป้องกันปั้ม
 
-รีเลย์ทุกจุดเริ่มต้นเป็น OFF ตอนบูต Emergency Stop จะปิดรีเลย์ทั้ง 4 จุด, ยกเลิก timer และล็อกการเปิดซ้ำจนกว่าจะปลดล็อก แต่ Emergency Stop ใน Dashboard เป็นคำสั่ง MQTT ไม่ใช่ physical emergency disconnect
+รีเลย์ทุกจุดเริ่มต้นเป็น OFF ตอนบูต Emergency Stop จะปิดรีเลย์ทั้ง 4 จุดและล็อกการเปิดซ้ำจนกว่าจะปลดล็อก แต่ Emergency Stop ใน Dashboard เป็นคำสั่ง MQTT ไม่ใช่ physical emergency disconnect
 
 สำหรับปั้มจริงควรติดตั้ง physical E-stop หรือ contactor, ลูกลอยกันปั้มแห้ง, pressure switch และ thermal overload ตามวงจรไฟฟ้าที่เหมาะสม การตรวจว่ารีเลย์เป็น ON ไม่ได้ยืนยันว่าปั้มหมุนจริง ต้องตรวจไฟ, หน้าสัมผัส, คอนแทคเตอร์ และปั้มแยกต่างหาก
 
@@ -167,5 +165,3 @@ workflow ติดตั้งและส่งตำแหน่ง executable
 ก่อนแก้ระบบครั้งต่อไป ให้ตรวจ `BOARD_REFERENCE.md`, firmware, `config.js` และ smoke test พร้อมกัน หากเปลี่ยน pin, topic, ชื่อรีเลย์, storage key หรือ DOM id ต้องอัปเดตเอกสารและ regression assertion ใน commit เดียวกัน
 
 ## สถานะการตรวจสอบล่าสุด
-
-เอกสารนี้อ้างอิงระบบปัจจุบันที่ Dashboard ลบสามเลเยอร์ซ้ำด้านล่างแล้ว, ซ่อนการแสดงผล countdown ใน Quick Action แล้ว และยังคง Timer ที่ทำงานบน firmware/หน้า ตั้งเวลาไว้ Repository ต้องไม่มี credential จริง และไฟล์ build ที่สร้างเพื่อแจกจ่ายควรตรวจสอบขนาดและ checksum ก่อนนำไปแฟลชอุปกรณ์

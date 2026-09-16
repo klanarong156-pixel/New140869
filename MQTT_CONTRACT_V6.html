@@ -72,14 +72,6 @@
   <li>Schedules are stored in ESP8266 LittleFS and continue locally when MQTT is temporarily unavailable.</li>
 </ul>
 
-<h2 id="timer">Relay timer</h2>
-<ul>
-  <li>Command: <code>smartfarm/relay/{relay}/timer/set</code> (non-retained).</li>
-  <li>Payload: integer seconds from <code>1</code> to <code>4294967</code> (about 71,582 minutes), <code>UNLIMITED</code>, <code>0</code> or <code>CANCEL</code>.</li>
-  <li>Finite timers turn the selected relay OFF after the requested duration. Values beyond the technical <code>millis()</code> range are rejected; this is not a 30-minute pump policy.</li>
-  <li>Status: <code>smartfarm/relay/{relay}/timer/status</code> with retained JSON such as <code>{ "active": true, "unlimited": false }</code>. No time-remaining value is published or displayed.</li>
-</ul>
-
 <h2 id="telegram">Telegram configuration</h2>
 <ul>
   <li>Configuration command: <code class="language-plaintext highlighter-rouge">smartfarm/config/telegram/set</code></li>
@@ -129,7 +121,7 @@
 <h2 id="pump-safety">Pump and emergency safety</h2>
 <ul>
   <li>There is no forced 30-minute pump runtime cutoff and no automatic MQTT-loss cutoff.</li>
-  <li>The pump follows the locally stored schedule or the explicit relay/timer command selected by the operator.</li>
+  <li>The pump follows the locally stored schedule or the explicit ON/OFF command selected by the operator.</li>
   <li><code>EMERGENCY_STOP</code> turns all relays OFF, cancels timers and blocks schedule/manual/timer ON until <code>EMERGENCY_RESET</code>.</li>
   <li>HTTP/ArduinoOTA forces all relays OFF only during the firmware update. ESP8266 boots with all four relays OFF.</li>
   <li>The software emergency latch is not a physical E-stop; a real pump circuit requires independent protective hardware.</li>

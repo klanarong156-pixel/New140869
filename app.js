@@ -4,8 +4,6 @@
   const $ = id => document.getElementById(id);
   const $$ = selector => Array.from(document.querySelectorAll(selector));
   const relayLabel = relay => window.RELAY_NAMES?.[relay] || relay;
-  const MAX_TIMER_MINUTES = 71582;
-  const MAX_TIMER_SECONDS = MAX_TIMER_MINUTES * 60;
   let deviceOnline = false;
   const relayFeedback = new Set();
 
@@ -127,24 +125,6 @@
     });
   }
 
-  function renderRelayTimer(relay, active, unlimited = false) {
-    if (!active) {
-      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ยังไม่ได้ตั้งเวลา'; });
-      $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'ตั้งเวลา'; });
-      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
-      return;
-    }
-    if (unlimited) {
-      $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
-      $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'เปิดไม่จำกัดเวลา'; });
-      if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
-      return;
-    }
-    $$(`[data-timer-status="${relay}"]`).forEach(element => { element.textContent = 'ตั้งเวลาแล้ว'; });
-    $$(`[data-timer-summary="${relay}"]`).forEach(element => { element.textContent = 'ตั้งเวลาแล้ว'; });
-    if (relay === 'pump') $$('[data-dashboard-quick-timer]').forEach(element => { element.textContent = 'ตั้งเวลาเปิด–ปิด'; });
-  }
-
   function renderDashboardSchedule(relay, schedule) {
     if (relay !== 'pump') return;
     const list = document.querySelector('[data-dashboard-schedule-list]');
@@ -170,27 +150,6 @@
       list.appendChild(row);
     });
     $$('[data-dashboard-schedule-source]').forEach(element => { element.textContent = 'บันทึกใน ESP8266'; });
-  }
-
-  function commandRelayTimer(relay, seconds) {
-    const handler = window.mqttHandler;
-    const topic = window.MQTT_CONFIG?.topics?.relayTimerSet?.(relay);
-    if (!handler?.publish || !topic) return false;
-    const numericSeconds = Number(seconds);
-    if (seconds !== 'UNLIMITED' && (!Number.isInteger(numericSeconds) || numericSeconds < 0 || numericSeconds > MAX_TIMER_SECONDS)) {
-      showToast(`timer ต้องอยู่ระหว่าง 1–${MAX_TIMER_MINUTES.toLocaleString('th-TH')} นาที หรือเลือกไม่จำกัดเวลา`, 'warning');
-      return false;
-    }
-    const payload = seconds === 'UNLIMITED' ? 'UNLIMITED' : String(numericSeconds);
-    const sent = handler.publish(topic, payload);
-
-    if (!sent) {
-      showToast(window.APP_STATE?.mqttConnected ? 'ส่งคำสั่งไม่สำเร็จ กรุณาลองใหม่' : 'MQTT ยังไม่เชื่อมต่อ กรุณารอให้สถานะออนไลน์ก่อน', 'warning');
-      if (!window.APP_STATE?.mqttConnected) handler.showSetup?.();
-      return false;
-    }
-    showToast(seconds > 0 || seconds === 'UNLIMITED' ? `${relayLabel(relay)}: ส่งคำสั่งตั้งเวลาแล้ว` : `${relayLabel(relay)}: ส่งคำสั่งยกเลิกเวลาแล้ว`, 'success');
-    return true;
   }
 
   function renderEmergency(active, source = '') {
@@ -224,31 +183,15 @@
   function commandRelay(relay, on) {
     const handler = window.mqttHandler;
     if (!handler?.publish || !window.MQTT_CONFIG?.topics) return false;
-    if (on) {
-      const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
-      const unlimited = document.querySelector(`[data-timer-unlimited="${relay}"]`)?.checked;
-      const minutes = Number(input?.value);
-      if (unlimited) {
-        const sent = commandRelayTimer(relay, 'UNLIMITED');
-        if (sent) renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]));
-        return sent;
-      }
-      if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_TIMER_MINUTES) {
-        showToast('กรุณาตั้งเวลา 1–71,582 นาที หรือเลือกไม่จำกัดเวลา ก่อนกดเปิดรีเลย์', 'warning');
-        return false;
-      }
-      const sent = commandRelayTimer(relay, minutes * 60);
-      if (sent) renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]));
-      return sent;
-    }
-    const sent = handler.publish(MQTT_CONFIG.topics.relaySet(relay), 'OFF');
+    const state = on ? 'ON' : 'OFF';
+    const sent = handler.publish(MQTT_CONFIG.topics.relaySet(relay), state);
     if (!sent) {
       showToast(window.APP_STATE?.mqttConnected ? 'ส่งคำสั่งไม่สำเร็จ กรุณาลองใหม่' : 'MQTT ยังไม่เชื่อมต่อ กรุณารอให้สถานะออนไลน์ก่อน', 'warning');
       if (!window.APP_STATE?.mqttConnected) handler.showSetup();
       return false;
     }
     renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]));
-    showToast(`${relayLabel(relay)}: ส่งคำสั่งปิดแล้ว · รออุปกรณ์ยืนยัน`, 'success');
+    showToast(`${relayLabel(relay)}: ส่งคำสั่ง ${state} แล้ว · รออุปกรณ์ยืนยัน`, 'success');
     return true;
   }
 
@@ -396,33 +339,6 @@
       input.checked = !input.checked;
       input.dispatchEvent(new Event('change', { bubbles: true }));
     }));
-    $$('[data-timer-start]').forEach(button => button.addEventListener('click', () => {
-      const relay = button.dataset.timerStart;
-      const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
-      const minutes = Number(input?.value);
-      if (document.querySelector(`[data-timer-unlimited="${relay}"]`)?.checked) {
-        commandRelayTimer(relay, 'UNLIMITED');
-        return;
-      }
-      if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_TIMER_MINUTES) {
-        showToast('กรุณาตั้งเวลา 1–71,582 นาที หรือเลือกไม่จำกัดเวลา', 'warning');
-        return;
-      }
-      commandRelayTimer(relay, minutes * 60);
-    }));
-    $$('[data-timer-cancel]').forEach(button => button.addEventListener('click', () => commandRelayTimer(button.dataset.timerCancel, 0)));
-    $$('[data-timer-preset]').forEach(button => button.addEventListener('click', () => {
-      const relay = button.dataset.timerFor;
-      const input = document.querySelector(`[data-timer-minutes="${relay}"]`);
-      if (!input) return;
-      input.value = button.dataset.timerPreset;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      button.closest('.relay-timer')?.querySelectorAll('[data-timer-preset]').forEach(item => item.classList.toggle('active', item === button));
-    }));
-    $$('[data-dashboard-timer-action]').forEach(link => link.addEventListener('click', () => {
-      const details = document.querySelector('[data-timer-minutes="pump"]')?.closest('details');
-      if (details) window.setTimeout(() => { details.open = true; }, 0);
-    }));
     $$('[data-dashboard-notifications]').forEach(button => button.addEventListener('click', () => {
       const panel = document.getElementById('dashboardNotificationPanel');
       if (!panel) return;
@@ -512,10 +428,6 @@
         renderRelay(relay, Boolean(status), true);
       }
     });
-    window.addEventListener('relay:timer', event => {
-      const { relay, active, unlimited } = event.detail || {};
-      if (relay) renderRelayTimer(relay, active, unlimited);
-    });
     window.addEventListener('schedule:status', event => {
       const { relay, schedule } = event.detail || {};
       if (relay) renderDashboardSchedule(relay, schedule);
@@ -569,7 +481,7 @@
   }
 
   window.showToast = showToast;
-  window.SmartFarmUI = { showToast, openMqttSetup, commandRelay, commandRelayTimer };
+  window.SmartFarmUI = { showToast, openMqttSetup, commandRelay };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();

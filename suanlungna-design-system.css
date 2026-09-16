@@ -71,7 +71,7 @@ body.app-shell:not(.dashboard-page) input:focus,
 body.app-shell:not(.dashboard-page) select:focus,
 body.app-shell:not(.dashboard-page) textarea:focus { border-color: #8ccca0; background: #fff; box-shadow: 0 0 0 3px rgba(35,155,85,.1); }
 body.app-shell:not(.dashboard-page) .field label,
-body.app-shell:not(.dashboard-page) .relay-timer label { color: var(--slna-text); }
+
 body.app-shell:not(.dashboard-page) .notice { border-color: var(--slna-line); border-radius: var(--slna-control-radius); color: var(--slna-muted); background: var(--slna-soft); }
 body.app-shell:not(.dashboard-page) .notice strong { color: var(--slna-text); }
 body.app-shell:not(.dashboard-page) .notice.warning { border-color: #efdcae; color: #87692c; background: #fff9e9; }
@@ -201,7 +201,7 @@ body.dashboard-page #control .pump-hero-card.active .vintage-status { color: var
 body.dashboard-page #control .pump-hero-card .context-action { background: var(--slna-primary); }
 body.dashboard-page #control .pump-hero-card .context-action:hover:not(:disabled),
 body.dashboard-page #control .pump-hero-card .context-action.is-running { background: var(--slna-primary-dark); }
-body.dashboard-page #control .pump-hero-card .relay-timer { border-color: var(--slna-line); border-radius: var(--slna-control-radius); background: #fff; }
+
 body.dashboard-page #control .control-card:not(.pump-hero-card) { border-color: var(--slna-line); background: #fff; box-shadow: var(--slna-shadow); }
 body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { color: var(--slna-primary-dark); }
 body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { border-radius: var(--slna-control-radius); }

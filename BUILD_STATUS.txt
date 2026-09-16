@@ -5,22 +5,20 @@ The most recent historical CI evidence in this repository predates the V7.0 sour
 Current source changes requiring validation
 - Firmware version string is now V7.1.0-FIELD-STABILITY with bounded recurrence, plot labels, quiet-hour scheduler settings and field diagnostics.
 - Field-stability patch adds bounded Telegram event queue, additive heartbeat diagnostics and an OTA safe state that forces all relays OFF while firmware is being written; reminder/test messages retain their existing synchronous result behavior.
-- Firmware ไม่มี active AUTO/MANUAL topic; ตารางทำงานใน ESP8266 เมื่อ clock ถูกต้อง และ relay/timer เป็นคำสั่งโดยตรงตาม topic เดิม
-- Emergency Stop latch ใหม่ปิดรีเลย์ ยกเลิก timer และบล็อกคำสั่ง ON จนกว่าจะได้รับ `EMERGENCY_RESET`; คำสั่ง OFF เดิมยังคงรองรับ
+- Firmware ไม่มี active AUTO/MANUAL topic; ตารางทำงานใน ESP8266 เมื่อ clock ถูกต้อง และ relay ใช้คำสั่ง ON/OFF โดยตรงตาม topic เดิม
+- Emergency Stop latch ใหม่ปิดรีเลย์และบล็อกคำสั่ง ON จนกว่าจะได้รับ `EMERGENCY_RESET`; คำสั่ง OFF เดิมยังคงรองรับ
 - Dashboard MQTT credentials were removed from source and must now be supplied by the operator in the browser.
 - Dashboard pin-map content was aligned to the current firmware: DHT11=D2, DS3231 SDA=D3, DS3231 SCL=D4, relays D5–D8.
 
 Required validation before production use
 1. Compile SmartFarm_V6_PRODUCTION1.ino for esp8266:esp8266:nodemcuv2 with the project libraries.
 2. Flash a test NodeMCU and verify boot state: all relays are OFF.
-3. Verify MQTT connect, retained relay/timer/schedule/emergency statuses, and DHT11 heartbeat.
 4. Verify all four schedule slots for every relay when the local clock is valid, including an overnight slot.
-5. Verify `EMERGENCY_STOP` turns all relays OFF, cancels timers, blocks ON commands, and `EMERGENCY_RESET` restores the explicitly requested schedule behavior.
-6. Verify that the pump follows the saved schedule and explicit relay/timer commands without an unrequested 30-minute or MQTT-loss cutoff; verify `CANCEL`, a long finite timer up to 71,582 minutes, and `UNLIMITED` separately.
+5. Verify `EMERGENCY_STOP` turns all relays OFF, blocks ON commands, and `EMERGENCY_RESET` restores the explicitly requested schedule behavior.
 7. Verify OTA with a stable power supply and the configured OTA password. Confirm all relays go OFF before writing, a failed upload does not reboot, and a successful upload reboots only after the HTTP response completes.
 8. Verify Emergency Stop from the Dashboard, then test a separately wired physical E-stop/contactor with the real pump load.
 
-The current local compile profile for the emergency-latch/timer patch is 49% global RAM (39,820/80,192 bytes), 94% IRAM (62,099/65,536 bytes) and 52% flash (550,448/1,048,576 bytes). IRAM headroom remains limited; avoid adding large firmware arrays or history buffers. The RTC path validates every `rtc.now()` result and verifies the read-back value after `rtc.adjust()`. The HTTP OTA path starts Update with max sketch space, forces relays OFF during the update and responds to Private Network Access preflight. Wi-Fi recovery clears stale MQTT/TLS state on Wi-Fi loss; the SharedWorker owns exponential MQTT reconnect backoff. Telegram event notifications use a four-entry bounded queue with a 15-second send interval. No 30-minute pump ceiling or automatic MQTT-loss pump cutoff is implemented.
+The current local compile profile for the emergency-latch patch is 49% global RAM (39,820/80,192 bytes), 94% IRAM (62,099/65,536 bytes) and 52% flash (550,448/1,048,576 bytes). IRAM headroom remains limited; avoid adding large firmware arrays or history buffers. The RTC path validates every `rtc.now()` result and verifies the read-back value after `rtc.adjust()`. The HTTP OTA path starts Update with max sketch space, forces relays OFF during the update and responds to Private Network Access preflight. Wi-Fi recovery clears stale MQTT/TLS state on Wi-Fi loss; the SharedWorker owns exponential MQTT reconnect backoff. Telegram event notifications use a four-entry bounded queue with a 15-second send interval. No 30-minute pump ceiling or automatic MQTT-loss pump cutoff is implemented.
 
 
 Latest V7 CI verification

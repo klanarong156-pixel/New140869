@@ -20,7 +20,6 @@
 | ตารางเวลา | เดิมพึ่ง mode และเสี่ยงทำงานไม่สอดคล้องกับหน้าเว็บ | ให้ ESP8266 ตรวจตารางเองเมื่อเวลาถูกต้อง และรับตารางใหม่แล้วนำไปใช้ทันที |
 | AUTO/MANUAL | มี contract เก่าใน firmware, handler และ smoke test | ถอด topic, callback, UI binding และข้อความโหมดออกจากไฟล์ใช้งานจริง |
 | ปั๊ม | มี safety cutoff 30 นาทีและ logic ตัดเมื่อ MQTT หลุด | เอาเพดาน 30 นาทีและการตัดจาก MQTT หลุดออก ปั๊มทำตามตารางหรือคำสั่งล่าสุด |
-| Timer | ต้องรองรับเวลาที่ผู้ใช้เลือกไม่จำกัด | เพิ่ม payload `UNLIMITED`; สถานะรายงาน `active`, `unlimited`, `remaining` |
 | Timer ปกติ | ต้องป้องกัน overflow และหมดเวลาแล้วปิดรีเลย์ | ใช้ `uint32_t` และการเปรียบเทียบแบบรองรับ millis rollover ใน loop |
 | MQTT | ต้องให้ topic Dashboard กับ firmware ตรงกัน | ตรวจ relay, timer, schedule, device status และ Telegram topics แล้ว |
 | Schedule ว่าง | ตารางว่างไม่ควรไปปิดคำสั่ง manual ของรีเลย์อื่น | `applyAutoState()` ทำงานเฉพาะรีเลย์ที่มีตารางจริง |
@@ -37,8 +36,6 @@
 |---|---|
 | Base topic | `smartfarm` |
 | Relay command | `smartfarm/relay/{relay}/set` |
-| Relay timer | `smartfarm/relay/{relay}/timer/set` |
-| Timer unlimited | payload `UNLIMITED` |
 | Timer cancel | payload `CANCEL` หรือค่า `0` ตาม flow ที่รองรับ |
 | Schedule set | `smartfarm/schedule/{relay}/set` |
 | Schedule status | `smartfarm/schedule/{relay}/status` |
@@ -51,7 +48,6 @@
 
 การตรวจ syntax ของ JavaScript ที่เกี่ยวข้องผ่านทั้งหมด ได้แก่ `config.js`, `mqtt-handler.js`, `app.js`, `schedule.js`, `telegram-settings.js`, `weather.js`, `auto-weather-guard.js` และ `dashboard-ota.js`
 
-Dashboard runtime contract smoke test ผ่าน **26/26 รายการ** ครอบคลุม endpoint MQTT, relay IDs, relay/timer/schedule topics, unlimited timer, schedule schema, Telegram payload, firmware topic subscription, OTA controller, weather advisory และการไม่เหลือ mode contract ในไฟล์ใช้งานจริง
 
 Firmware คอมไพล์ผ่านสำหรับ `esp8266:esp8266:nodemcuv2` ด้วย Arduino ESP8266 core 3.1.2 โดยใช้หน่วยความจำดังนี้
 
@@ -78,7 +74,6 @@ Firmware คอมไพล์ผ่านสำหรับ `esp8266:esp8266:no
 
 ควรเพิ่ม **การล็อก IP หรือ mDNS ที่แสดงผลแน่นอน** สำหรับ OTA เช่นแสดง IP ปัจจุบันใน Dashboard และรองรับชื่อ `smartfarm-v8.local` เฉพาะเมื่อทดสอบกับเราเตอร์จริงแล้ว เพื่อไม่ให้ผู้ใช้ลอง IP ตัวอย่างผิดตัว
 
-ควรเพิ่ม **failsafe ทางไฟฟ้าแยกจากข้อกำหนด unlimited** สำหรับปั๊ม เช่น emergency stop, ลูกลอย, pressure switch หรือ thermal overload ตามวงจรจริง เพราะการไม่จำกัดเวลาใน software ไม่ควรถูกตีความว่าให้ปั๊มทำงานโดยไม่มีการป้องกันทางกายภาพ
 
 ## สิ่งที่ควรลดหรือไม่ควรเพิ่ม
 
@@ -92,7 +87,6 @@ Firmware คอมไพล์ผ่านสำหรับ `esp8266:esp8266:no
 
 ## แผนทดสอบกับบอร์ดจริงก่อนใช้งานเต็มรูปแบบ
 
-ให้เริ่มจากปิดโหลดไฟฟ้าหรือถอดสายปั๊มออก แล้วทดสอบด้วย LED/รีเลย์เปล่า ตรวจว่าเวลาเปิดและปิดตรงกับตารางปกติและตารางข้ามเที่ยงคืน จากนั้นทดสอบ timer ปกติ, `UNLIMITED`, `CANCEL`, MQTT หลุด, Wi‑Fi หลุด และการรีบูต โดยบันทึกเวลาจริงและสถานะจาก Telegram
 
 หลังจากนั้นจึงต่อโหลดจริงผ่านอุปกรณ์ป้องกันที่เหมาะสม ทดสอบปั๊มด้วยช่วงเวลาสั้นก่อน และตรวจว่าการปิดจากตาราง, การกดปิดจาก Dashboard และ emergency stop สามารถหยุดรีเลย์ได้จริง การทดสอบนี้ควรมีผู้ดูแลอยู่หน้างานตลอดเวลา
 

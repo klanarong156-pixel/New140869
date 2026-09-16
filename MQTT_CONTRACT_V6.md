@@ -5,7 +5,6 @@
 | Feature | Command topic | Status topic | Payload |
 | --- | --- | --- | --- |
 | Relay | `smartfarm/relay/{relay}/set` | `smartfarm/relay/{relay}/status` | `ON` or `OFF` |
-| Relay timer | `smartfarm/relay/{relay}/timer/set` | `smartfarm/relay/{relay}/timer/status` | seconds, `UNLIMITED`, `0` or `CANCEL` |
 | Emergency latch | `smartfarm/emergency/set` | `smartfarm/emergency/status` | `STOP`/`EMERGENCY_STOP` or `RESET`/`EMERGENCY_RESET` |
 | Mode | `smartfarm/mode/set` | `smartfarm/mode/status` | `AUTO` or `MANUAL` |
 | Schedule | `smartfarm/schedule/{relay}/set` | `smartfarm/schedule/{relay}/status` | JSON slots or `DELETE` |
@@ -19,17 +18,11 @@
 | Crop reminder | `smartfarm/reminder/set` | `smartfarm/reminder/status` | JSON operation `settings`, `upsert`, `done`, `snooze`, `delete`, `sync` or `test` |
 | Farm AI alert | `smartfarm/ai/alert/set` | `smartfarm/ai/alert/status` | JSON `{ "id": "...", "severity": "info|warning|critical", "title": "...", "message": "..." }`; analysis only, never a relay command |
 
-Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay, timer, schedule, mode and emergency status messages are retained by the device so a newly connected dashboard can render the current state.
+Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay, schedule, mode and emergency status messages are retained by the device so a newly connected dashboard can render the current state.
 
 ## Mode behavior
 
-`AUTO` and `MANUAL` are active firmware modes. `AUTO` allows the four locally stored schedule slots per relay to control outputs when the clock is valid. `MANUAL` prevents `applyAutoState()` from changing relay outputs; direct relay commands and timers remain available subject to emergency/OTA safety locks. The firmware accepts `smartfarm/mode/set` with `AUTO` or `MANUAL` and publishes the retained state on `smartfarm/mode/status`.
-
-## Relay timer
-
-Dashboard starts or cancels an automatic OFF timer with the non-retained topic `smartfarm/relay/{relay}/timer/set`. The payload is an integer number of seconds from `1` to `4294967`, `UNLIMITED`, `0` or `CANCEL`. A finite timer turns the selected relay OFF after the requested duration. The retained status topic is `smartfarm/relay/{relay}/timer/status` with JSON payload `{ "active": true, "unlimited": false }`; no time-remaining value is published or displayed.
-
-`CANCEL` clears an active timer. `UNLIMITED` intentionally has no timer expiry.
+`AUTO` and `MANUAL` are active firmware modes. `AUTO` allows the four locally stored schedule slots per relay to control outputs when the clock is valid. `MANUAL` prevents `applyAutoState()` from changing relay outputs; direct ON/OFF commands remain available subject to emergency/OTA safety locks. The firmware accepts `smartfarm/mode/set` with `AUTO` or `MANUAL` and publishes the retained state on `smartfarm/mode/status`.
 
 ## Schedule payload
 
@@ -54,7 +47,7 @@ The client-side Smart Farm Rule Engine analyzes sensor, weather, RTC, device hea
 
 ## Control and safety behavior
 
-The pump has **no forced 30-minute continuous-runtime cutoff** and no automatic MQTT-loss cutoff; it follows the selected manual command, timer or local schedule. `EMERGENCY_STOP` turns all relays OFF, cancels timers and blocks schedule/manual/timer ON until `EMERGENCY_RESET`.
+The pump has **no forced 30-minute continuous-runtime cutoff** and no automatic MQTT-loss cutoff; it follows the selected ON/OFF command or local schedule. `EMERGENCY_STOP` turns all relays OFF and blocks schedule/manual ON until `EMERGENCY_RESET`.
 
 Before HTTP or ArduinoOTA firmware writing starts, the firmware forces all relays OFF and pauses schedule application. A failed or aborted update does not reboot the device and releases the temporary OTA safe state. This software state is not a replacement for a physical E-stop, contactor, float switch, pressure switch or thermal overload on a real pump circuit.
 

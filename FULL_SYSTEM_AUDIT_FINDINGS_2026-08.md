@@ -12,7 +12,6 @@
 | JavaScript syntax | ผ่านทุกไฟล์ active JS/MJS ที่ตรวจ |
 | Dashboard smoke/contract | ผ่าน 85 checks ก่อนเพิ่ม rule check |
 | Schedule regression | ผ่าน normal/adjacent/cross-midnight/invalid-time/duplicate publish |
-| Firmware host model | ผ่าน timer expiry, schedule priority, Emergency/OTA safety cases |
 | AI advisor regression | ผ่าน rule, cooldown, payload และ no-relay-command cases |
 | MQTT contract | ผ่าน และ AI alert แยกจาก Relay |
 | HTML IDs | ไม่พบ duplicate IDs ใน active HTML |

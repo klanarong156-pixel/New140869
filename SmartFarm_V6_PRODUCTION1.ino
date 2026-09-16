@@ -307,13 +307,10 @@ const uint8_t relayPins[RELAY_COUNT] = {RELAY_PUMP, RELAY_ZONE1,
 const char *relayNames[RELAY_COUNT] = {"pump", "zone1", "lighthome",
                                        "lightsala"};
 uint32_t pumpStartedAt = 0;
-uint32_t relayTimerUntil[RELAY_COUNT] = {};
-bool relayTimerUnlimited[RELAY_COUNT] = {};
 bool pumpSafetyLatched = false;
 bool emergencyLock = false;
 uint32_t emergencyTimestamp = 0;
 char emergencySource[24] = "";
-static const uint32_t MAX_TIMER_SECONDS = 4294967UL;
 
 void relaySet(uint8_t i, bool on);
 void publishRelayStatus(uint8_t i);
@@ -326,84 +323,6 @@ bool readRtcNow(DateTime &value);
 bool scheduleClockMinutes(uint16_t &minutes);
 bool relayScheduleDesired(uint8_t r, uint16_t now);
 
-void clearRelayTimer(uint8_t i) {
-  if (i < RELAY_COUNT) {
-    relayTimerUntil[i] = 0;
-    relayTimerUnlimited[i] = false;
-  }
-}
-void publishRelayTimerStatus(uint8_t i) {
-  if (!mqtt.connected() || i >= RELAY_COUNT)
-    return;
-  StaticJsonDocument<96> d;
-  d["active"] = relayTimerUnlimited[i] || relayTimerUntil[i] != 0;
-  d["unlimited"] = relayTimerUnlimited[i];
-  char out[96];
-  serializeJson(d, out, sizeof(out));
-  String t = String(MQTT_BASE) + "/relay/" + relayNames[i] + "/timer/status";
-  mqtt.publish(t.c_str(), out, true);
-}
-bool startRelayTimer(uint8_t i, uint32_t seconds, bool unlimited = false) {
-  if (i >= RELAY_COUNT || (!unlimited && seconds > MAX_TIMER_SECONDS))
-    return false;
-  if (!seconds && !unlimited) {
-    clearRelayTimer(i);
-    relaySet(i, false);
-    publishRelayStatus(i);
-    publishRelayTimerStatus(i);
-    return true;
-  }
-  if (emergencyLock || otaUpdateInProgress)
-    return false;
-  relayTimerUnlimited[i] = unlimited;
-  relayTimerUntil[i] = unlimited ? 0 : millis() + seconds * 1000UL;
-  relaySet((uint8_t)i, true);
-  publishRelayStatus(i);
-  publishRelayTimerStatus(i);
-  return true;
-}
-void runRelayTimers() {
-  for (uint8_t i = 0; i < RELAY_COUNT; i++) {
-    if (relayTimerUnlimited[i]) {
-      if (!relayOn(i)) {
-        clearRelayTimer(i);
-        publishRelayTimerStatus(i);
-        continue;
-      }
-      continue;
-    }
-    // A zero deadline means no finite timer. Do not treat a relay that is ON
-    // from a schedule/manual command as an already-expired timer.
-    if (!relayTimerUntil[i]) continue;
-    if ((int32_t)(millis() - relayTimerUntil[i]) >= 0) {
-      DateTime timerNow(2000, 1, 1);
-      bool scheduleKeepsOn = !emergencyLock && !otaUpdateInProgress &&
-                             readRtcNow(timerNow) && relayHasSchedule(i) &&
-                             relayScheduleDesired(i, timerNow.hour() * 60U + timerNow.minute());
-      clearRelayTimer(i);
-      // If the active RTC schedule still wants ON, keep the relay ON and let
-      // runSchedules() maintain it. Otherwise perform one OFF transition.
-      if (!scheduleKeepsOn) relaySetRaw(i, false);
-      publishRelayStatus(i);
-      publishRelayTimerStatus(i);
-    }
-  }
-}
-
-bool parseTimerSeconds(const String &value, uint32_t &seconds) {
-  if (!value.length()) return false;
-  uint32_t parsed = 0;
-  for (size_t index = 0; index < value.length(); index++) {
-    char c = value[index];
-    if (c < '0' || c > '9') return false;
-    uint32_t digit = (uint32_t)(c - '0');
-    if (parsed > (MAX_TIMER_SECONDS - digit) / 10UL) return false;
-    parsed = parsed * 10UL + digit;
-  }
-  if (parsed == 0) return false;
-  seconds = parsed;
-  return true;
-}
 bool validHM(uint8_t h, uint8_t m) { return h < 24 && m < 60; }
 bool parseHM(const char *s, uint8_t &h, uint8_t &m) {
   if (!s || strlen(s) != 5 || s[2] != ':' || s[0] < '0' || s[0] > '9' ||
@@ -530,7 +449,6 @@ void relaySetRaw(uint8_t i, bool on) {
 void enterOtaSafeState() {
   otaUpdateInProgress = true;
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
-    clearRelayTimer(i);
     digitalWrite(relayPins[i], RELAY_OFF);
   }
   pumpStartedAt = 0;
@@ -549,8 +467,6 @@ void relaySet(uint8_t i, bool on) {
     return;
   if (on && (emergencyLock || otaUpdateInProgress))
     return;
-  if (!on)
-    clearRelayTimer(i);
   if (i != 0) {
     relaySetRaw(i, on);
     return;
@@ -1284,7 +1200,6 @@ void engageEmergencyStop(const char *source) {
   emergencyTimestamp = millis();
   strlcpy(emergencySource, source && source[0] ? source : "unknown", sizeof(emergencySource));
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
-    clearRelayTimer(i);
     relaySetRaw(i, false);
   }
   Serial.printf("EMERGENCY STOP: active source=%s\n", emergencySource);
@@ -1306,7 +1221,6 @@ void publishStatus() {
     return;
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     publishRelayStatus(i);
-    publishRelayTimerStatus(i);
     publishScheduleStatus(i);
   }
   publishEmergencyStatus();
@@ -1322,10 +1236,6 @@ void applyAutoState(uint16_t now) {
   if (!clockIsValid()) return;
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     if (!relayHasSchedule(i)) continue;
-    // Timer/manual command owns the relay until it expires or is cleared.
-    if (relayTimerUnlimited[i] ||
-        (relayTimerUntil[i] && (int32_t)(relayTimerUntil[i] - millis()) > 0))
-      continue;
     bool desired = relayScheduleDesired(i, now);
     if (i == 0) {
       if (!desired) {
@@ -1537,27 +1447,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
   }
 
   String rp = String(MQTT_BASE) + "/relay/";
-  String tp = String(MQTT_BASE) + "/relay/";
-  if (t.startsWith(tp) && t.endsWith("/timer/set")) {
-    String n = t.substring(tp.length(), t.length() - 10);
-    int i = relayIndex(n);
-    if (i < 0)
-      return;
-    bool unlimited = msg.equalsIgnoreCase("UNLIMITED");
-    uint32_t seconds = 0;
-    bool valid = unlimited || msg.equalsIgnoreCase("CANCEL") || parseTimerSeconds(msg, seconds);
-    if (!valid || !startRelayTimer((uint8_t)i, seconds, unlimited)) {
-      Serial.printf("MQTT TIMER: rejected relay=%s payload=%s\n", n.c_str(), msg.c_str());
-      publishRelayTimerStatus((uint8_t)i);
-      publishSystemError("INVALID_COMMAND", "Invalid relay timer command");
-      return;
-    }
-    Serial.printf("MQTT TIMER: relay=%s seconds=%lu unlimited=%s\n", n.c_str(),
-                  (unsigned long)seconds, unlimited ? "true" : "false");
-    Serial.printf("MQTT TIMER: relay=%s state=%s\n", n.c_str(),
-                  relayOn((uint8_t)i) ? "ON" : "OFF");
-    return;
-  }
   if (t.startsWith(rp) && t.endsWith("/set")) {
     String n = t.substring(rp.length(), t.length() - 4);
     int i = relayIndex(n);
@@ -2219,7 +2108,6 @@ void loop() {
   if (otaHttpRestartPending && (int32_t)(millis() - otaHttpRestartAt) >= 0)
     ESP.restart();
   runSafety();
-  runRelayTimers();
   runSchedules();
   runReminders();
   if ((uint32_t)(millis() - lastSensor) >= SENSOR_INTERVAL_MS) {

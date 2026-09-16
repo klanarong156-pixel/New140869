@@ -14,12 +14,8 @@
 | เส้นทาง | ผลการตรวจและ policy ที่คงไว้ |
 |---|---|
 | MQTT `relay/<name>/set` | เข้า `relaySet()` จุดเดียว; ON ถูกบล็อกโดย Emergency/OTA; OFF ล้าง timer ก่อนเปลี่ยน GPIO |
-| MQTT `relay/<name>/timer/set` | เข้า `startRelayTimer()` จุดเดียว; `UNLIMITED` และ seconds ที่ถูกต้องเปิด timer; `0`/`CANCEL` ยกเลิกและปิดครั้งเดียว |
 | MQTT `schedule/<name>/set` | parse แบบ candidate ก่อน commit; `DELETE` ล้างทั้ง 4 slot; malformed enabled time, slot count เกิน 4 และ overlap ถูก reject โดยไม่เปลี่ยนตารางเดิม |
-| Main loop timer/schedule | `runRelayTimers()` ทำก่อน `runSchedules()`; เมื่อ timer หมดจะอ่าน RTC แล้วคำนวณ desired schedule ก่อน จึงไม่สั่ง OFF หาก schedule ปัจจุบันยังต้อง ON; นอก schedule จะ OFF ได้ครั้งเดียว |
-| Manual/timer priority | timer ที่ active (`finite` หรือ `UNLIMITED`) เป็นเจ้าของ relay จนหมด/ถูกยกเลิก; schedule ทำงานต่อเมื่อไม่มี timer active; manual ON/OFF ใช้ contract เดิม ไม่เพิ่ม mode หรือ topic ใหม่ |
 | Actual GPIO writes | `relaySetRaw()` มี `if (wasOn == on) return` จึงไม่เขียน GPIO ซ้ำเมื่อ state ไม่เปลี่ยน; Emergency/OTA ยังบังคับ OFF โดยตรงตาม behavior เดิม |
-| Status publication | timer status ของ timer ที่ active publish เป็นระยะ; relay ที่ไม่มี finite/unlimited timerไม่เข้า expiry branch จึงไม่เกิด repeated publish จากเงื่อนไข `!relayOn(i)` เดิม; retained status replay ยังอาจทำให้ UI ได้ event ซ้ำได้ แต่ไม่ใช่คำสั่งควบคุมซ้ำ |
 
 > Schedule automation ใช้ `readRtcNow()` โดยตรงและหยุดเมื่อ RTC invalid; การมี NTP fallback ใน `clockIsValid()`, `currentMinutes()` และ reminder/diagnostic path ไม่ถูกเปลี่ยน เพราะไม่ใช่ schedule clock path
 
@@ -27,7 +23,6 @@
 
 ### Firmware
 
-`runRelayTimers()` ตรวจ `relayTimerUntil[i]` ก่อนเข้า expiry branch และข้าม relay ที่ไม่มี finite deadline หาก timer หมดอายุ จะอ่าน RTC ที่ valid, ตรวจ Emergency/OTA และตรวจ schedule desired ปัจจุบันก่อนเลือกปลายทาง หาก schedule ยังต้องเปิด จะคง relay ON; หากไม่ต้องเปิดจะเรียก `relaySetRaw(i, false)` เพียงครั้งเดียว จากนั้นจึง publish status ของ transition นั้น
 
 `parseHM()` ตรวจความยาว 5 ตัวอักษร รูปแบบ `HH:MM` และช่วงชั่วโมง `00–23`/นาที `00–59` แบบ strict ส่วน MQTT schedule parser และ persisted config parser จะ reject enabled slot ที่ malformed หรือเวลาเปิดเท่ากับเวลาปิด และตรวจ overlap แบบครอบคลุมช่วงข้ามเที่ยงคืนด้วยการตรวจทุกนาทีใน 24 ชั่วโมง
 
@@ -50,8 +45,6 @@
 | normal interval และ adjacent interval | ผ่าน |
 | overlap ปกติและ cross-midnight | ผ่าน client regression และ Firmware source/logic checks |
 | invalid `24:00`/`12:60` | ผ่าน client regression และ strict Firmware parser |
-| timer expiry ใน active schedule ไม่มี OFF pulse | ผ่าน host-model regression และ compiled source |
-| timer expiry นอก schedule ปิด OFF หนึ่งครั้ง | ผ่าน host-model regression |
 | Emergency/OTA/RTC invalid fail safe | ผ่าน host-model regression และ source checks |
 | malformed schedule ไม่ commit บางส่วน | ผ่าน source review; enabled malformed slot และ slot count เกิน 4 ถูก reject ก่อน commit |
 | persistence write failure ไม่ประกาศ success | ผ่าน source review และ smoke check |
@@ -65,7 +58,6 @@
 |---|---|
 | `node --check` สำหรับไฟล์ `*.js`/`*.mjs` จำนวน 34 ไฟล์ | ผ่าน |
 | `schedule-regression-test.mjs` | ผ่าน: normal, adjacent, ACK release, duplicate guard, delete ordering, cross-midnight overlap, invalid HH:MM; ส่งจริงใน mock 3 คำสั่งตาม scenario |
-| `firmware-logic-regression-test.mjs` | ผ่าน: timer expiry, active schedule, outside schedule, cross-midnight, Emergency, OTA และ invalid RTC |
 | `dashboard-smoke-test.mjs` | ผ่าน 81 runtime contract checks |
 | `tools/mqtt_contract_audit.py` | `MQTT_CONTRACT_AUDIT_OK` |
 | Firebase Database rules emulator | ผ่าน `FIREBASE_RULES_PARSED` ด้วย firebase-tools 15.28.1 |

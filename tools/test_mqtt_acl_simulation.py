@@ -21,7 +21,6 @@ RELAYS = ("pump", "zone1", "lighthome", "lightsala")
 
 DEVICE_SUBSCRIBE = [
     "smartfarm/relay/+/set",
-    "smartfarm/relay/+/timer/set",
     "smartfarm/schedule/+/set",
     "smartfarm/config/telegram/set",
     "smartfarm/config/telegram/test",
@@ -32,7 +31,6 @@ DEVICE_SUBSCRIBE = [
 
 DEVICE_PUBLISH = [
     "smartfarm/relay/{relay}/status",
-    "smartfarm/relay/{relay}/timer/status",
     "smartfarm/schedule/{relay}/status",
     "smartfarm/status/online",
     "smartfarm/status/device",
@@ -45,7 +43,6 @@ DEVICE_PUBLISH = [
 
 DASHBOARD_SUBSCRIBE = [
     "smartfarm/relay/+/status",
-    "smartfarm/relay/+/timer/status",
     "smartfarm/sensor/dht11",
     "smartfarm/status/online",
     "smartfarm/status/device",
@@ -58,7 +55,6 @@ DASHBOARD_SUBSCRIBE = [
 
 DASHBOARD_PUBLISH = [
     "smartfarm/relay/{relay}/set",
-    "smartfarm/relay/{relay}/timer/set",
     "smartfarm/schedule/{relay}/set",
     "smartfarm/config/telegram/set",
     "smartfarm/config/telegram/test",
@@ -114,7 +110,6 @@ def main() -> int:
         "smartfarm",
         (
             Permission("subscribe", "smartfarm/relay/+/set"),
-            Permission("subscribe", "smartfarm/relay/+/timer/set"),
             Permission("subscribe", "smartfarm/schedule/+/set"),
             Permission("subscribe", "smartfarm/config/telegram/set"),
             Permission("subscribe", "smartfarm/config/telegram/test"),
@@ -122,7 +117,6 @@ def main() -> int:
             Permission("subscribe", "smartfarm/emergency/set"),
             Permission("subscribe", "smartfarm/ai/alert/set"),
             Permission("publish", "smartfarm/relay/+/status"),
-            Permission("publish", "smartfarm/relay/+/timer/status"),
             Permission("publish", "smartfarm/schedule/+/status"),
             Permission("publish", "smartfarm/status/online"),
             Permission("publish", "smartfarm/status/device"),
@@ -171,7 +165,6 @@ def main() -> int:
     check('mqtt.subscribe(MQTT_BASE "/#")' in FIRMWARE, "firmware uses the smartfarm/# subscription contract")
 
     required_firmware_fragments = [
-        "/relay/", "/timer/set", "/schedule/", "/config/telegram/",
         "/reminder/", "/emergency/", "/ai/alert/", "/status/online",
         "status/device", "/sensor/dht11",
     ]

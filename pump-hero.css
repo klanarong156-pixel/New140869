@@ -113,19 +113,9 @@ body.dashboard-page #control .pump-hero-card .context-action {
 }
 body.dashboard-page #control .pump-hero-card .context-action:hover:not(:disabled) { background: var(--sf-primary); }
 body.dashboard-page #control .pump-hero-card .context-action.is-running { background: var(--sf-primary); }
-body.dashboard-page #control .pump-hero-card .relay-timer {
-  margin-top: 0;
-  border: 1px solid var(--sf-line);
-  border-radius: var(--sf-radius-control);
-  background: #ffffff;
-}
-body.dashboard-page #control .pump-hero-card .relay-timer summary {
-  min-height: var(--sf-touch);
-  padding: 12px 15px;
-  color: var(--sf-primary);
-  font-size: 14px;
-}
-body.dashboard-page #control .pump-hero-card .relay-timer [data-timer-status] { color: var(--sf-primary); background: var(--sf-surface); }
+
+
+
 body.dashboard-page #control .control-safety {
   border-color: #efd0d3;
   border-radius: var(--sf-radius-control);
@@ -199,9 +189,7 @@ body.dashboard-page.device-offline #control .control-card.device-unknown .vintag
   border-color: #eadcbd;
   background: #fff8e7;
 }
-body.dashboard-page.device-offline #control .control-card.device-unknown .relay-timer {
-  opacity: .72;
-}
+
 body.dashboard-page .mqtt-live-meta {
   flex-wrap: wrap;
   row-gap: 2px;
@@ -298,11 +286,7 @@ body.dashboard-page #control .control-card:not(.pump-hero-card).active .context-
   background: var(--sf-primary-strong);
   box-shadow: 0 8px 16px rgba(33, 128, 82, .16);
 }
-body.dashboard-page #control .control-card:not(.pump-hero-card) .relay-timer summary {
-  min-height: 44px;
-  color: var(--sf-muted);
-  font-size: 12px;
-}
+
 @media (max-width: 700px) {
   body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name .icon { width: 40px; height: 40px; flex-basis: 40px; font-size: 19px; }
   body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong { font-size: 16px; }
@@ -510,7 +494,7 @@ body.dashboard-page .pump-state-value { color: var(--sf-text); font-size: 26px; 
 body.dashboard-page .pump-state-note { color: var(--sf-muted); font-size: 11px; }
 body.dashboard-page #control .pump-hero-card .context-action { min-height: 62px; margin: 0; border-radius: 18px; color: #fff; background: var(--sf-primary-strong); box-shadow: 0 9px 18px rgba(35,155,85,.16); font-size: 17px; }
 body.dashboard-page #control .pump-hero-card .context-action.is-running { background: var(--sf-danger); }
-body.dashboard-page #control .pump-hero-card .relay-timer { margin-top: 16px; border-color: #dcebe0; background: rgba(255,255,255,.72); }
+
 body.dashboard-page #control .control-card:not(.pump-hero-card) { min-height: 168px; padding: 16px; border: 1px solid var(--sf-line); border-radius: 20px; background: #fff; box-shadow: var(--sf-shadow-soft); }
 body.dashboard-page #control .control-card:not(.pump-hero-card) .control-top { display: block; }
 body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name { display: grid; justify-items: center; gap: 8px; text-align: center; }
@@ -520,7 +504,7 @@ body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name sm
 body.dashboard-page #control .control-card:not(.pump-hero-card) .vintage-status { display: none; }
 body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action { min-height: 48px; margin: 14px 0 0; border: 0; border-radius: 999px; color: var(--sf-primary); background: #f1f5f2; box-shadow: none; font-size: 14px; }
 body.dashboard-page #control .control-card:not(.pump-hero-card).active .context-action { color: #fff; background: var(--sf-primary-strong); }
-body.dashboard-page #control .control-card:not(.pump-hero-card) .relay-timer { display: none; }
+
 body.dashboard-page #control .control-safety { margin-top: 16px; border-color: #f1c9cc; border-radius: 20px; background: var(--sf-danger-soft); }
 body.dashboard-page #control .control-safety-actions .btn.danger { color: #fff; border-color: var(--sf-danger); background: var(--sf-danger); }
 body.dashboard-page .mqtt-live-panel, body.dashboard-page .crop-tasks-card, body.dashboard-page #aiAdvisorPanel, body.dashboard-page #weatherBox, body.dashboard-page #systemHealthPanel, body.dashboard-page #analyticsPanel, body.dashboard-page #financeSummary { display: none; }
