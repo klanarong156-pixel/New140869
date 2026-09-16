@@ -229,6 +229,10 @@ body.dashboard-page summary:focus-visible { outline: 3px solid rgba(35,155,85,.2
 /* Safety controls remain visible and ordered after the dashboard shortcuts. */
 body.dashboard-page .emergency-panel {
   order: 7;
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
