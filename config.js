@@ -47,8 +47,6 @@ const MQTT_CONFIG = Object.freeze({
     emergencySet: 'smartfarm/emergency/set',
     emergencyStatus: 'smartfarm/emergency/status'
   }),
-  // Keep the original simple Smart Farm contract: one subscription filter.
-  // HiveMQ ACL must allow this same filter for the shared credential.
   allowedSubscribeTopics: Object.freeze(['smartfarm/#']),
   deviceHeartbeatTimeoutMs: 25000
 });
@@ -85,3 +83,116 @@ window.HARDWARE_PINS = HARDWARE_PINS;
 window.RELAYS = RELAYS;
 window.RELAY_NAMES = RELAY_NAMES;
 window.APP_STATE = APP_STATE;
+
+// Emergency control bridge. The firmware contract already exposes
+// smartfarm/emergency/set with STOP / RESET payloads. Keep the UI control
+// explicit so RESET is only available after an active emergency is confirmed.
+(function installEmergencyDashboardControl() {
+  const STYLE = `
+    .emergency-control-panel{margin:18px 0;padding:18px;border:1px solid rgba(190,45,45,.22);border-radius:20px;background:linear-gradient(135deg,#fff8f8,#fff);box-shadow:0 8px 28px rgba(80,30,30,.08)}
+    .emergency-control-panel.active{border-color:rgba(190,45,45,.48);box-shadow:0 10px 32px rgba(190,30,30,.14)}
+    .emergency-control-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .emergency-control-title{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+    .emergency-control-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#b42318;color:#fff;font-weight:900}
+    .emergency-control-state{font-size:13px;font-weight:800;padding:7px 10px;border-radius:999px;background:#eef7ef;color:#24713b}
+    .emergency-control-state.active{background:#fdecec;color:#b42318}
+    .emergency-control-detail{margin:0 0 14px;color:#667085;font-size:14px}
+    .emergency-control-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .emergency-control-actions button{min-height:48px;border:0;border-radius:14px;font:inherit;font-weight:800;cursor:pointer}
+    .emergency-stop-button{background:#b42318;color:#fff}
+    .emergency-reset-button{background:#eaf5ec;color:#216b36;border:1px solid #b9d8bf!important}
+    .emergency-control-actions button:disabled{opacity:.45;cursor:not-allowed}
+    @media(max-width:560px){.emergency-control-actions{grid-template-columns:1fr}.emergency-control-head{align-items:flex-start;flex-direction:column}}
+  `;
+
+  function addStyle() {
+    if (document.getElementById('emergency-dashboard-style')) return;
+    const style = document.createElement('style');
+    style.id = 'emergency-dashboard-style';
+    style.textContent = STYLE;
+    document.head.appendChild(style);
+  }
+
+  function publish(payload) {
+    const handler = window.mqttHandler;
+    if (!handler?.publish || !window.MQTT_CONFIG?.topics?.emergencySet) {
+      window.showToast?.('ยังไม่พบช่องทาง MQTT สำหรับหยุดฉุกเฉิน', 'error');
+      return false;
+    }
+    if (!window.APP_STATE?.mqttConnected) {
+      window.showToast?.('MQTT ยังไม่เชื่อมต่อ ไม่ส่งคำสั่งหยุดฉุกเฉิน', 'warning');
+      handler.showSetup?.();
+      return false;
+    }
+    const ok = handler.publish(window.MQTT_CONFIG.topics.emergencySet, payload);
+    if (ok) window.showToast?.(payload === 'STOP' ? 'ส่งคำสั่งหยุดฉุกเฉินแล้ว · รอ ESP8266 ยืนยัน' : 'ส่งคำสั่งปลดล็อกแล้ว · รอ ESP8266 ยืนยัน', 'success');
+    return ok;
+  }
+
+  function render(active, source = '') {
+    const panel = document.querySelector('[data-emergency-panel]');
+    if (!panel) return;
+    panel.classList.toggle('active', Boolean(active));
+    const state = panel.querySelector('[data-emergency-ui-state]');
+    const detail = panel.querySelector('[data-emergency-ui-detail]');
+    const stop = panel.querySelector('[data-emergency-stop]');
+    const reset = panel.querySelector('[data-emergency-reset]');
+    if (state) {
+      state.textContent = active ? 'หยุดฉุกเฉิน ACTIVE' : 'ระบบปกติ';
+      state.classList.toggle('active', Boolean(active));
+    }
+    if (detail) detail.textContent = active
+      ? `รีเลย์ถูกล็อก · แหล่งคำสั่ง: ${source || 'อุปกรณ์'}`
+      : 'หากเกิดเหตุฉุกเฉิน กด STOP เพื่อปิดรีเลย์ทั้งหมดทันที';
+    if (stop) stop.disabled = Boolean(active);
+    if (reset) reset.disabled = !active;
+  }
+
+  function mount() {
+    if (document.querySelector('[data-emergency-panel]')) return;
+    const anchor = document.querySelector('.dashboard-quick-actions');
+    if (!anchor) return;
+    addStyle();
+    const panel = document.createElement('section');
+    panel.className = 'emergency-control-panel';
+    panel.dataset.emergencyPanel = '';
+    panel.setAttribute('aria-labelledby', 'emergencyControlTitle');
+    panel.innerHTML = `
+      <div class="emergency-control-head">
+        <div class="emergency-control-title"><span class="emergency-control-icon">!</span><span id="emergencyControlTitle">หยุดฉุกเฉิน</span></div>
+        <span class="emergency-control-state" data-emergency-ui-state>ระบบปกติ</span>
+      </div>
+      <p class="emergency-control-detail" data-emergency-ui-detail>หากเกิดเหตุฉุกเฉิน กด STOP เพื่อปิดรีเลย์ทั้งหมดทันที</p>
+      <div class="emergency-control-actions">
+        <button class="emergency-stop-button" type="button" data-emergency-stop>STOP · หยุดฉุกเฉิน</button>
+        <button class="emergency-reset-button" type="button" data-emergency-reset disabled>RESET · ปลดล็อก</button>
+      </div>`;
+    anchor.insertAdjacentElement('afterend', panel);
+
+    panel.querySelector('[data-emergency-stop]').addEventListener('click', () => {
+      if (window.APP_STATE?.emergencyLock) return;
+      if (window.confirm('ยืนยันหยุดฉุกเฉิน? ระบบจะสั่งปิดรีเลย์ทั้งหมด')) publish('STOP');
+    });
+    panel.querySelector('[data-emergency-reset]').addEventListener('click', () => {
+      if (!window.APP_STATE?.emergencyLock) return;
+      if (window.confirm('ยืนยันปลดล็อกหยุดฉุกเฉิน? ระบบ AUTO อาจกลับมาทำงานตามตารางทันที')) publish('RESET');
+    });
+    render(Boolean(window.APP_STATE?.emergencyLock));
+  }
+
+  function boot() {
+    mount();
+    window.addEventListener('emergency:status', event => {
+      const detail = event.detail || {};
+      window.APP_STATE.emergencyLock = Boolean(detail.active);
+      render(Boolean(detail.active), detail.source || '');
+    });
+    window.addEventListener('device:data', event => {
+      const detail = event.detail || {};
+      if (typeof detail.emergencyLock === 'boolean') render(detail.emergencyLock, detail.emergencySource || '');
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
