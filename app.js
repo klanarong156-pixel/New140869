@@ -104,23 +104,27 @@
   }
 
   function renderRelay(relay, on, hasFeedback = relayFeedback.has(relay)) {
-    const unknown = !deviceOnline && !hasFeedback;
-    $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = Boolean(on); input.disabled = unknown; });
-    const stateLabel = unknown ? (window.APP_STATE?.mqttConnected ? 'รอข้อมูลจาก ESP8266' : 'ไม่ทราบสถานะ') : (on ? 'กำลังทำงาน' : 'ปิดอยู่');
-    const actionLabel = unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (on ? `ON · หยุด${relayLabel(relay)}` : `OFF · เปิด${relayLabel(relay)}`);
+    const emergencyLock = Boolean(window.APP_STATE?.emergencyLock);
+    const unknown = !emergencyLock && !deviceOnline && !hasFeedback;
+    const forcedOff = emergencyLock;
+    const visibleOn = forcedOff ? false : Boolean(on);
+    $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = visibleOn; input.disabled = unknown || forcedOff; });
+    const stateLabel = forcedOff ? 'หยุดฉุกเฉิน · ปิดอยู่' : unknown ? (window.APP_STATE?.mqttConnected ? 'รอข้อมูลจาก ESP8266' : 'ไม่ทราบสถานะ') : (visibleOn ? 'กำลังทำงาน' : 'ปิดอยู่');
+    const actionLabel = forcedOff ? 'ล็อกโดย Emergency Stop' : unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (visibleOn ? `ON · หยุด${relayLabel(relay)}` : `OFF · เปิด${relayLabel(relay)}`);
     $$(`[data-relay-state="${relay}"]`).forEach(element => { element.textContent = stateLabel; });
     $$(`[data-relay-action-label="${relay}"]`).forEach(element => { element.textContent = actionLabel; });
     $$(`[data-relay-action="${relay}"]`).forEach(button => {
-      button.disabled = unknown;
-      button.classList.toggle('is-running', !unknown && Boolean(on));
+      button.disabled = unknown || forcedOff;
+      button.classList.toggle('is-running', !unknown && !forcedOff && visibleOn);
       button.dataset.feedback = hasFeedback ? 'confirmed' : 'pending';
-      button.setAttribute('aria-label', unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (on ? `สถานะ ON · กดเพื่อหยุด${relayLabel(relay)}` : `สถานะ OFF · กดเพื่อเปิด${relayLabel(relay)}`));
+      button.setAttribute('aria-label', forcedOff ? 'ถูกล็อกโดย Emergency Stop' : unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (visibleOn ? `สถานะ ON · กดเพื่อหยุด${relayLabel(relay)}` : `สถานะ OFF · กดเพื่อเปิด${relayLabel(relay)}`));
       const icon = button.querySelector('.context-action-icon');
-      if (icon) icon.textContent = on ? '■' : '↗';
+      if (icon) icon.textContent = visibleOn ? '■' : '↗';
     });
     $$(`[data-relay-card="${relay}"]`).forEach(card => {
-      card.classList.toggle('active', !unknown && Boolean(on));
+      card.classList.toggle('active', !unknown && !forcedOff && visibleOn);
       card.classList.toggle('device-unknown', unknown);
+      card.classList.toggle('emergency-locked', forcedOff);
       card.classList.toggle('status-confirmed', hasFeedback);
     });
   }
@@ -153,6 +157,7 @@
   }
 
   function renderEmergency(active, source = '') {
+    if (window.APP_STATE) window.APP_STATE.emergencyLock = Boolean(active);
     const label = active ? `EMERGENCY STOP ACTIVE${source ? ` · ${source}` : ''}` : 'Emergency Stop ปกติ';
     $$('[data-emergency-panel]').forEach(panel => panel.classList.toggle('active', Boolean(active)));
     $$('[data-emergency-stop]').forEach(button => {
@@ -169,6 +174,9 @@
       element.classList.toggle('success', !active);
     });
     setText('systemEmergencyDetail', label);
+    ['pump', 'zone1', 'lighthome', 'lightsala'].forEach(relay => {
+      renderRelay(relay, active ? false : Boolean(window.APP_STATE?.relays?.[relay]), relayFeedback.has(relay));
+    });
   }
 
   function renderSensor(type, value) {
@@ -181,6 +189,10 @@
   }
 
   function commandRelay(relay, on) {
+    if (window.APP_STATE?.emergencyLock) {
+      showToast('Emergency Stop ทำงานอยู่ ต้อง RESET และรอ ESP8266 ยืนยันก่อน', 'warning');
+      return false;
+    }
     const handler = window.mqttHandler;
     if (!handler?.publish || !window.MQTT_CONFIG?.topics) return false;
     const state = on ? 'ON' : 'OFF';

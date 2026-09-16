@@ -225,3 +225,43 @@ body.dashboard-page summary:focus-visible { outline: 3px solid rgba(35,155,85,.2
 @media (prefers-reduced-motion: reduce) {
   body.dashboard-page #control .context-action { transition: none; }
 }
+
+/* Safety controls remain visible and ordered after the dashboard shortcuts. */
+body.dashboard-page .emergency-panel {
+  order: 7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  border: 1px solid #efc4c8;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fff8f8, #ffffff);
+  box-shadow: 0 8px 24px rgba(143, 56, 65, .07);
+}
+body.dashboard-page .emergency-panel.active {
+  border-color: #dc8890;
+  background: linear-gradient(145deg, #fff0f1, #ffffff);
+}
+body.dashboard-page .emergency-panel-copy { min-width: 0; }
+body.dashboard-page .emergency-panel h2 { margin: 2px 0 4px; color: #8e3d46; font-size: clamp(20px, 3vw, 26px); }
+body.dashboard-page .emergency-panel .kicker { color: #b05b64; }
+body.dashboard-page .emergency-panel .helper { margin: 0; color: #8c6c70; }
+body.dashboard-page .emergency-status { display: inline-block; margin-top: 8px; color: #2f7650; font-size: 13px; }
+body.dashboard-page .emergency-status.danger { color: #a33e48; }
+body.dashboard-page .emergency-panel-actions { display: flex; flex: 0 0 auto; gap: 8px; }
+body.dashboard-page .emergency-panel-actions .btn { min-height: 48px; white-space: nowrap; }
+body.dashboard-page .emergency-panel-actions .btn.danger { color: #fff; border-color: #c9515b; background: #c9515b; }
+body.dashboard-page #control .control-card.emergency-locked { border-color: #e3aeb3; background: #fff5f5; }
+body.dashboard-page #control .control-card.emergency-locked .vintage-status { color: #a33e48; border-color: #efc4c8; background: #fff0f1; }
+body.dashboard-page .emergency-shortcut { cursor: default; }
+body.dashboard-page .emergency-shortcut-actions { display: flex; gap: 6px; width: 100%; margin-top: 8px; }
+body.dashboard-page .emergency-shortcut-actions button { flex: 1; min-height: 38px; padding: 0 10px; border: 1px solid; border-radius: 12px; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+body.dashboard-page .emergency-shortcut-actions button:disabled { cursor: not-allowed; opacity: .48; }
+body.dashboard-page .quick-emergency-stop { color: #fff; border-color: #c9515b; background: #c9515b; }
+body.dashboard-page .quick-emergency-reset { color: #8e3d46; border-color: #efc4c8; background: #fff; }
+
+@media (max-width: 560px) {
+  body.dashboard-page .emergency-panel { align-items: stretch; flex-direction: column; padding: 16px; }
+  body.dashboard-page .emergency-panel-actions { display: block; }
+}

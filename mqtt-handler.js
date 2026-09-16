@@ -534,7 +534,8 @@ class MqttHandler {
         this.markDeviceSeen('emergency-status');
         this.dispatch('emergency:status', emergency);
       } catch (_) {
-        this.dispatch('emergency:status', { active: false, source: 'invalid-status' });
+        // An invalid status must never be interpreted as a safe RESET.
+        this.dispatch('emergency:status', { active: Boolean(APP_STATE.emergencyLock), source: 'invalid-status' });
       }
       return;
     }
