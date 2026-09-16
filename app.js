@@ -6,6 +6,8 @@
   const relayLabel = relay => window.RELAY_NAMES?.[relay] || relay;
   let deviceOnline = false;
   const relayFeedback = new Set();
+  const relayPending = new Set();
+  const relayPendingPrevious = new Map();
 
   function setText(target, value) {
     const element = typeof target === 'string' ? $(target) : target;
@@ -105,7 +107,8 @@
 
   function renderRelay(relay, on, hasFeedback = relayFeedback.has(relay)) {
     const emergencyLock = Boolean(window.APP_STATE?.emergencyLock);
-    const unknown = !emergencyLock && !deviceOnline && !hasFeedback;
+    const pending = relayPending.has(relay);
+    const unknown = !emergencyLock && !deviceOnline && !hasFeedback && !pending;
     const forcedOff = emergencyLock;
     const visibleOn = forcedOff ? false : Boolean(on);
     $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = visibleOn; input.disabled = unknown || forcedOff; });
@@ -116,7 +119,7 @@
     $$(`[data-relay-action="${relay}"]`).forEach(button => {
       button.disabled = unknown || forcedOff;
       button.classList.toggle('is-running', !unknown && !forcedOff && visibleOn);
-      button.dataset.feedback = hasFeedback ? 'confirmed' : 'pending';
+      button.dataset.feedback = hasFeedback ? 'confirmed' : pending ? 'pending' : 'unknown';
       button.setAttribute('aria-label', forcedOff ? 'ถูกล็อกโดย Emergency Stop' : unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (visibleOn ? `สถานะ ON · กดเพื่อหยุด${relayLabel(relay)}` : `สถานะ OFF · กดเพื่อเปิด${relayLabel(relay)}`));
       const icon = button.querySelector('.context-action-icon');
       if (icon) icon.textContent = visibleOn ? '■' : '↗';
@@ -126,6 +129,7 @@
       card.classList.toggle('device-unknown', unknown);
       card.classList.toggle('emergency-locked', forcedOff);
       card.classList.toggle('status-confirmed', hasFeedback);
+      card.classList.toggle('status-pending', pending);
     });
   }
 
@@ -158,6 +162,7 @@
 
   function renderEmergency(active, source = '') {
     if (window.APP_STATE) window.APP_STATE.emergencyLock = Boolean(active);
+    if (active) relayPending.clear();
     const label = active ? `EMERGENCY STOP ACTIVE${source ? ` · ${source}` : ''}` : 'Emergency Stop ปกติ';
     $$('[data-emergency-panel]').forEach(panel => panel.classList.toggle('active', Boolean(active)));
     $$('[data-emergency-stop]').forEach(button => {
@@ -202,7 +207,10 @@
       if (!window.APP_STATE?.mqttConnected) handler.showSetup();
       return false;
     }
-    renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]));
+    relayPendingPrevious.set(relay, Boolean(window.APP_STATE?.relays?.[relay]));
+    if (window.APP_STATE?.relays) window.APP_STATE.relays[relay] = on;
+    relayPending.add(relay);
+    renderRelay(relay, on, false);
     showToast(`${relayLabel(relay)}: ส่งคำสั่ง ${state} แล้ว · รออุปกรณ์ยืนยัน`, 'success');
     return true;
   }
@@ -414,6 +422,14 @@
     window.addEventListener('mqtt:publish-error', event => {
       const topic = event.detail?.topic ? ` (${event.detail.topic})` : '';
       const error = event.detail?.error?.message || String(event.detail?.error || 'MQTT publish failed');
+      const match = String(event.detail?.topic || '').match(/^smartfarm\/relay\/([^/]+)\/set$/);
+      if (match && relayPending.has(match[1])) {
+        const relay = match[1];
+        relayPending.delete(relay);
+        if (window.APP_STATE?.relays && relayPendingPrevious.has(relay)) window.APP_STATE.relays[relay] = relayPendingPrevious.get(relay);
+        relayPendingPrevious.delete(relay);
+        renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]), relayFeedback.has(relay));
+      }
       showToast(`ส่งข้อความ MQTT ไม่สำเร็จ${topic}: ${error}`, 'error');
     });
     window.addEventListener('mqtt:command-status', event => {
@@ -436,6 +452,8 @@
     window.addEventListener('relay:status', event => {
       const { relay, status } = event.detail || {};
       if (relay) {
+        relayPending.delete(relay);
+        relayPendingPrevious.delete(relay);
         relayFeedback.add(relay);
         renderRelay(relay, Boolean(status), true);
       }
