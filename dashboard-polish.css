@@ -254,9 +254,14 @@ body.dashboard-page .emergency-panel-actions .btn { min-height: 48px; white-spac
 body.dashboard-page .emergency-panel-actions .btn.danger { color: #fff; border-color: #c9515b; background: #c9515b; }
 body.dashboard-page #control .control-card.emergency-locked { border-color: #e3aeb3; background: #fff5f5; }
 body.dashboard-page #control .control-card.emergency-locked .vintage-status { color: #a33e48; border-color: #efc4c8; background: #fff0f1; }
+body.dashboard-page .emergency-shortcut { cursor: default; }
+body.dashboard-page .emergency-shortcut-actions { display: flex; gap: 6px; width: 100%; margin-top: 8px; }
+body.dashboard-page .emergency-shortcut-actions button { flex: 1; min-height: 38px; padding: 0 10px; border: 1px solid; border-radius: 12px; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+body.dashboard-page .emergency-shortcut-actions button:disabled { cursor: not-allowed; opacity: .48; }
+body.dashboard-page .quick-emergency-stop { color: #fff; border-color: #c9515b; background: #c9515b; }
+body.dashboard-page .quick-emergency-reset { color: #8e3d46; border-color: #efc4c8; background: #fff; }
 
 @media (max-width: 560px) {
   body.dashboard-page .emergency-panel { align-items: stretch; flex-direction: column; padding: 16px; }
-  body.dashboard-page .emergency-panel-actions { display: grid; grid-template-columns: 1fr 1fr; }
-  body.dashboard-page .emergency-panel-actions .btn { width: 100%; }
+  body.dashboard-page .emergency-panel-actions { display: block; }
 }

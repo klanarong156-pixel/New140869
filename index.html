@@ -96,7 +96,13 @@
 
     <section class="dashboard-quick-actions" aria-label="ทางลัดการจัดการสวน">
       <a class="dashboard-quick-action schedule" href="schedule.html#scheduleRelayTitle"><span aria-hidden="true">◫</span><strong>Schedule</strong><small>ตั้งเวลา</small></a>
-      <a class="dashboard-quick-action emergency" href="#control" data-dashboard-emergency-action><span aria-hidden="true">!</span><strong>Emergency Stop</strong><small>หยุดฉุกเฉิน</small></a>
+      <div class="dashboard-quick-action emergency emergency-shortcut">
+        <span aria-hidden="true">!</span><strong>Emergency Stop</strong><small>หยุดฉุกเฉิน / ปลดล็อก</small>
+        <div class="emergency-shortcut-actions">
+          <button class="quick-emergency-stop" type="button" data-emergency-stop>STOP</button>
+          <button class="quick-emergency-reset" type="button" data-emergency-reset disabled>RESET</button>
+        </div>
+      </div>
     </section>
     <section class="section card emergency-panel" data-emergency-panel aria-labelledby="emergency-title">
       <div class="emergency-panel-copy">
@@ -106,8 +112,7 @@
         <strong class="emergency-status" data-emergency-status>Emergency Stop ปกติ</strong>
       </div>
       <div class="emergency-panel-actions">
-        <button class="btn danger" type="button" data-emergency-stop>หยุดฉุกเฉิน</button>
-        <button class="btn secondary" type="button" data-emergency-reset disabled>RESET / ปลดล็อก</button>
+        <span class="helper">ใช้ปุ่ม STOP / RESET ในทางลัดด้านบน</span>
       </div>
     </section>
 
