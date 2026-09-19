@@ -365,3 +365,122 @@ body.dashboard-page .topbar .status-pill.online{
     margin-top:10px;
   }
 }
+
+/* iPhone screenshot pass #2 — compact relay controls + safe bottom clearance.
+   CSS only: no DOM, MQTT, Firebase, relay or safety logic changes. */
+@media (max-width:700px){
+  body.dashboard-page .app-main{
+    padding-bottom:150px !important;
+  }
+
+  /* Keep the three quick controls on one row, but make their actions fit. */
+  body.dashboard-page #control .control-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card){
+    min-height:164px !important;
+    padding:12px !important;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .control-top{
+    gap:6px;
+    align-items:flex-start;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name{
+    gap:7px;
+    min-width:0;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name .icon{
+    width:38px;
+    height:38px;
+    flex-basis:38px;
+    border-radius:12px;
+    font-size:19px;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong{
+    display:block;
+    font-size:15px;
+    line-height:1.15;
+    white-space:nowrap;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name small{
+    display:none;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .vintage-status{
+    display:none;
+  }
+
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .relay-action-row{
+    display:grid;
+    grid-template-columns:42px minmax(0,1fr);
+    gap:6px;
+    align-items:center;
+    width:100%;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action{
+    width:42px;
+    min-width:42px;
+    min-height:44px;
+    height:44px;
+    padding:0;
+    border-radius:13px;
+    display:grid;
+    place-items:center;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action-icon{
+    font-size:17px;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action span:not(.context-action-icon){
+    display:none;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .quick-off{
+    width:100%;
+    min-width:0;
+    min-height:44px;
+    height:44px;
+    margin:0;
+    border-radius:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 8px;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .quick-off span{
+    font-size:14px;
+    font-weight:850;
+  }
+
+  /* Keep the cucumber card clear of the fixed mobile navigation. */
+  body.dashboard-page #cropCycleCard{
+    margin-bottom:18px;
+  }
+}
+
+@media (max-width:390px){
+  body.dashboard-page .app-main{padding-left:10px;padding-right:10px}
+  body.dashboard-page #control .control-grid{gap:8px !important}
+  body.dashboard-page #control .control-card:not(.pump-hero-card){
+    padding:10px !important;
+    min-height:156px !important;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .control-name strong{
+    font-size:14px;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .context-action{
+    width:38px;
+    min-width:38px;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .relay-action-row{
+    grid-template-columns:38px minmax(0,1fr);
+    gap:5px;
+  }
+  body.dashboard-page #control .control-card:not(.pump-hero-card) .quick-off{
+    min-height:42px;
+    height:42px;
+  }
+}
