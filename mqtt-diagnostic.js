@@ -1,0 +1,1 @@
+window.MqttDiagnostic={version:'1.0'};
