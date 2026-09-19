@@ -83,6 +83,7 @@
       element.dataset.state = connected ? 'online' : 'offline';
     });
     renderDashboardReadiness();
+    window.MqttDiagnostic?.render?.();
   }
 
   function renderDevice(online) {
