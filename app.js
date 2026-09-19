@@ -515,7 +515,12 @@
         renderMqtt(true);
         return;
       }
-      renderMqtt(false, `MQTT เชื่อมต่อไม่สำเร็จ${detail}`);
+      const handler = window.mqttHandler;
+      if (handler?.connecting || handler?.reconnectTimer) {
+        renderMqtt(false, 'MQTT กำลังเชื่อมต่อใหม่');
+      } else {
+        renderMqtt(false, `MQTT เชื่อมต่อไม่สำเร็จ${detail}`);
+      }
       const modal = document.getElementById('mqttSetupModal');
       if (modal) {
         const submit = modal.querySelector('#mqttSetupForm button[type="submit"]');
