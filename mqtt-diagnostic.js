@@ -36,7 +36,7 @@ function install(){
 }
 function inject(){
  if(document.querySelector('[data-mqtt-diagnostic-root]'))return;
- const panel=document.createElement('section'); panel.className='section card pad'; panel.dataset.mqttDiagnosticRoot='';
+ const panel=document.createElement('section'); panel.className='section card pad advanced-only'; panel.dataset.mqttDiagnosticRoot='';
  panel.style.cssText='border:1px solid rgba(24,130,74,.16);margin-top:16px';
  panel.innerHTML='<div class="section-head"><div><p class="kicker">MQTT CONNECTION DIAGNOSTIC</p><h2>วิเคราะห์การเชื่อมต่อ MQTT</h2><p class="helper" data-mqtt-diagnostic-detail>ไม่ได้เชื่อมต่อ</p></div><span class="tag" data-mqtt-diagnostic-state data-state="disconnected">Disconnected</span></div><div class="mqtt-diag-grid"><div><span>Connect ล่าสุด</span><strong data-mqtt-last-connected>—</strong></div><div><span>Disconnect ล่าสุด</span><strong data-mqtt-last-disconnected>—</strong></div><div><span>จำนวน Reconnect</span><strong data-mqtt-reconnect-count>0</strong></div><div><span>เหตุผลล่าสุด</span><strong data-mqtt-disconnect-reason>initial</strong></div></div><div class="mqtt-diag-error"><span>รายละเอียด Error</span><strong data-mqtt-last-error>ไม่มี error ล่าสุด</strong></div><h3>เหตุการณ์ล่าสุด</h3><div data-mqtt-diagnostic-history class="mqtt-diag-history"></div><p class="helper">ช่วยแยกว่าเหตุการณ์มาจาก Dashboard/UI หรือ broker/socket โดยไม่เปลี่ยน logic ของ ESP8266</p>';
  const target=document.querySelector('#systemHealthPanel')||document.querySelector('[data-mqtt-live-panel]')?.nextElementSibling;
