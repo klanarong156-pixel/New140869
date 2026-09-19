@@ -246,3 +246,111 @@ body.dashboard-page .topbar .status-pill.online{
   body.dashboard-page .mqtt-live-meta{grid-template-columns:1fr}
   body.dashboard-page .sensor-overview .metric-card strong{font-size:27px}
 }
+
+/* iPhone final pass — spacing, typography and tap targets; structure unchanged */
+@media (max-width: 760px){
+  body.dashboard-page .app-main{padding-left:12px;padding-right:12px;padding-bottom:92px}
+  body.dashboard-page .topbar{min-height:58px}
+  body.dashboard-page .brand-copy strong{font-size:16px}
+  body.dashboard-page .brand-copy span{font-size:11px}
+  body.dashboard-page .hero.dashboard-header{
+    margin-top:10px;padding:18px 16px;gap:14px;min-height:190px
+  }
+  body.dashboard-page .hero.dashboard-header h1{font-size:34px;line-height:1.05;margin:4px 0 7px}
+  body.dashboard-page .hero.dashboard-header .subtitle{font-size:14px;line-height:1.45}
+  body.dashboard-page .hero.dashboard-header .kicker{font-size:11px;letter-spacing:.08em}
+  body.dashboard-page .hero-meta{gap:7px;flex-wrap:wrap}
+  body.dashboard-page .hero-meta .status-pill,
+  body.dashboard-page .hero-meta .tag{font-size:12px;padding:7px 9px}
+  body.dashboard-page .dashboard-header-status{gap:7px;flex-wrap:wrap}
+  body.dashboard-page .dashboard-header-status strong{font-size:14px}
+  body.dashboard-page .rtc-chip{font-size:12px!important;padding:7px 9px!important}
+  body.dashboard-page .notification-button{width:42px;height:42px}
+
+  body.dashboard-page .section{margin-top:14px}
+  body.dashboard-page .section-head{gap:10px}
+  body.dashboard-page .section-head h2{font-size:21px;line-height:1.18}
+  body.dashboard-page .section-head .kicker{font-size:11px}
+  body.dashboard-page .section-head .helper{font-size:12px;line-height:1.45}
+  body.dashboard-page .card{border-radius:18px}
+
+  body.dashboard-page #control{padding:12px}
+  body.dashboard-page #control .pump-hero-card{border-radius:17px}
+  body.dashboard-page #control .control-name strong{font-size:17px}
+  body.dashboard-page #control .control-name small{font-size:10px}
+  body.dashboard-page #control .vintage-status{font-size:12px;padding:6px 8px}
+  body.dashboard-page #control .pump-title{font-size:20px}
+  body.dashboard-page #control .pump-state-value{font-size:22px;font-weight:850}
+  body.dashboard-page #control .pump-state-note{font-size:11px;line-height:1.35}
+  body.dashboard-page #control .context-action{min-height:46px;font-size:14px;padding:10px 12px}
+  body.dashboard-page #control .quick-off{min-height:46px;padding:10px 12px}
+  body.dashboard-page .quick-control-heading h2{font-size:19px}
+
+  body.dashboard-page .dashboard-quick-actions{
+    gap:10px
+  }
+  body.dashboard-page .dashboard-quick-action{
+    min-height:104px;border-radius:17px;padding:12px
+  }
+  body.dashboard-page .dashboard-quick-action strong{font-size:15px}
+  body.dashboard-page .dashboard-quick-action small{font-size:11px}
+
+  body.dashboard-page .mqtt-live-panel{padding:15px;border-radius:18px}
+  body.dashboard-page .mqtt-live-copy h2{font-size:19px;line-height:1.2}
+  body.dashboard-page .mqtt-live-copy .helper,
+  body.dashboard-page .mqtt-command-status{font-size:12px;line-height:1.4}
+  body.dashboard-page .mqtt-live-meta>div{padding:10px;border-radius:13px}
+  body.dashboard-page .mqtt-live-meta span,
+  body.dashboard-page .mqtt-live-meta small{font-size:11px}
+  body.dashboard-page .mqtt-live-meta strong{font-size:16px}
+  body.dashboard-page .mqtt-live-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  body.dashboard-page .mqtt-live-actions .btn{min-height:44px;font-size:13px}
+  body.dashboard-page .mqtt-live-actions .btn:last-child{grid-column:1/-1}
+
+  body.dashboard-page .sensor-overview .metric-card{
+    min-height:112px;padding:13px;border-radius:16px
+  }
+  body.dashboard-page .sensor-overview .metric-card strong{
+    font-size:27px;line-height:1.05
+  }
+  body.dashboard-page .sensor-overview .metric-top{font-size:13px}
+  body.dashboard-page .sensor-overview .metric-icon{width:36px;height:36px;border-radius:11px}
+
+  body.dashboard-page #cropCycleCard,
+  body.dashboard-page #cropTasksCard,
+  body.dashboard-page #aiAdvisorPanel,
+  body.dashboard-page #weatherBox,
+  body.dashboard-page #financeSummary{padding:15px}
+  body.dashboard-page .crop-cycle-age strong{font-size:30px}
+  body.dashboard-page .crop-cycle-age small{font-size:11px}
+  body.dashboard-page .btn.small{min-height:42px;font-size:13px}
+}
+@media (max-width:430px){
+  body.dashboard-page .app-main{padding-left:10px;padding-right:10px}
+  body.dashboard-page .hero.dashboard-header{padding:16px 14px;min-height:180px}
+  body.dashboard-page .hero.dashboard-header h1{font-size:30px}
+  body.dashboard-page .hero.dashboard-header .subtitle{font-size:13px}
+  body.dashboard-page .hero-meta .status-pill,
+  body.dashboard-page .hero-meta .tag{font-size:11px;padding:6px 8px}
+  body.dashboard-page .dashboard-header-status{font-size:12px}
+  body.dashboard-page .dashboard-header-status strong{font-size:13px}
+  body.dashboard-page .notification-button{width:40px;height:40px}
+  body.dashboard-page .section{margin-top:12px}
+  body.dashboard-page .section-head h2{font-size:20px}
+  body.dashboard-page #control{padding:10px}
+  body.dashboard-page #control .pump-hero-body{gap:10px}
+  body.dashboard-page #control .pump-state-value{font-size:20px}
+  body.dashboard-page #control .context-action{font-size:13px}
+  body.dashboard-page .mqtt-live-actions{grid-template-columns:1fr}
+  body.dashboard-page .mqtt-live-actions .btn:last-child{grid-column:auto}
+  body.dashboard-page .sensor-overview .metric-card{min-height:106px;padding:12px}
+  body.dashboard-page .sensor-overview .metric-card strong{font-size:25px}
+  body.dashboard-page .sensor-overview .metric-top{font-size:12px}
+  body.dashboard-page .bottom-nav a{min-height:58px}
+  body.dashboard-page .bottom-nav small{font-size:10px}
+}
+@media (max-width:360px){
+  body.dashboard-page .hero.dashboard-header h1{font-size:28px}
+  body.dashboard-page .sensor-overview .metric-card strong{font-size:23px}
+  body.dashboard-page .control-name strong{font-size:16px!important}
+}
