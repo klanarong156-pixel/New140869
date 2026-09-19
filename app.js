@@ -481,8 +481,19 @@
         relayPendingPrevious.clear();
         renderDevice(false);
       }
-      renderMqtt(connected);
-      if (connected) document.getElementById('mqttSetupModal')?.remove();
+      if (connected) {
+        renderMqtt(true);
+        document.getElementById('mqttSetupModal')?.remove();
+        return;
+      }
+      // A socket close is immediately followed by the single reconnect loop.
+      // Keep the UI in a neutral "reconnecting" state instead of flashing Offline.
+      const handler = window.mqttHandler;
+      if (handler?.connecting || handler?.reconnectTimer) {
+        renderMqtt(false, 'MQTT กำลังเชื่อมต่อใหม่');
+      } else {
+        renderMqtt(false);
+      }
     });
     window.addEventListener('mqtt:connecting', () => renderMqtt(false, 'MQTT กำลังเชื่อมต่อ'));
     window.addEventListener('mqtt:reconnecting', event => {
