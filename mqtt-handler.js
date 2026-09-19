@@ -357,7 +357,7 @@ class MqttHandler {
     if (typeof SharedWorker === 'undefined') return false;
     try {
       if (!this.worker) {
-        this.worker = new SharedWorker(`mqtt-shared-worker.js?v=1`);
+        this.worker = new SharedWorker(`mqtt-shared-worker.js?v=2`);
         this.usingSharedWorker = true;
         this.worker.port.onmessage = event => this.handleWorkerMessage(event.data || {});
         this.worker.onerror = error => {
