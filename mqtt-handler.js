@@ -17,10 +17,37 @@ class MqttHandler {
     this.usingSharedWorker = false;
     this.storageUser = 'smartfarm.mqtt.username';
     this.storagePass = 'smartfarm.mqtt.password';
+    this.diagnosticState = {
+      state: 'disconnected',
+      lastConnectedAt: 0,
+      lastDisconnectedAt: 0,
+      reconnectCount: 0,
+      lastReason: 'initial',
+      lastError: '',
+      disconnectOrigin: 'initial'
+    };
   }
 
   dispatch(name, detail) {
     window.dispatchEvent(new CustomEvent(name, { detail }));
+  }
+
+  updateDiagnostic(state, detail = {}) {
+    const now = Date.now();
+    const previous = this.diagnosticState.state;
+    if (state === 'connected') this.diagnosticState.lastConnectedAt = now;
+    if (state === 'disconnected') this.diagnosticState.lastDisconnectedAt = now;
+    if (state === 'reconnecting' && previous !== 'reconnecting') this.diagnosticState.reconnectCount += 1;
+    this.diagnosticState.state = state;
+    if (detail.reason) this.diagnosticState.lastReason = String(detail.reason);
+    if (detail.error) this.diagnosticState.lastError = String(detail.error);
+    if (detail.origin) this.diagnosticState.disconnectOrigin = String(detail.origin);
+    this.dispatch('mqtt:diagnostic', {
+      state,
+      timestamp: now,
+      previousState: previous,
+      ...this.diagnosticState
+    });
   }
 
   nextPublishId() {
@@ -70,6 +97,10 @@ class MqttHandler {
       this.reconnectTimer = null;
       if (!APP_STATE.mqttConnected && this.hasCredentials()) this.connect(false);
     }, delay);
+    this.updateDiagnostic('reconnecting', {
+      reason: this.lastConnectError ? 'broker/socket error' : 'connection closed',
+      error: this.lastConnectError || ''
+    });
     this.dispatch('mqtt:reconnecting', { delay, attempt });
   }
 
@@ -202,8 +233,12 @@ class MqttHandler {
     this.dispatch('mqtt:credentials-required', { configured: false, manual: true });
   }
 
-  disconnect() {
+  disconnect(origin = 'ui') {
     this.clearReconnectTimer(true);
+    this.updateDiagnostic('disconnected', {
+      reason: origin === 'ui' ? 'Dashboard/UI requested disconnect' : origin,
+      origin
+    });
     clearInterval(this.deviceTimer);
     this.deviceTimer = null;
     if (this.client) {
@@ -248,6 +283,7 @@ class MqttHandler {
     if (message.type === 'connect') {
       this.connecting = false;
       APP_STATE.mqttConnected = true;
+      this.updateDiagnostic('connected', { reason: 'MQTT connection established', origin: 'broker' });
       this.dispatch('mqtt:connected', true);
       this.startDeviceWatchdog();
       this.flushPending();
@@ -256,22 +292,29 @@ class MqttHandler {
     if (message.type === 'close') {
       APP_STATE.mqttConnected = false;
       this.connecting = false;
+      this.updateDiagnostic('disconnected', { reason: 'SharedWorker connection closed', origin: 'broker/worker' });
       this.dispatch('mqtt:connected', false);
-      if (this.hasCredentials()) this.dispatch('mqtt:reconnecting', true);
+      if (this.hasCredentials()) {
+        this.updateDiagnostic('reconnecting', { reason: 'SharedWorker reconnect requested' });
+        this.dispatch('mqtt:reconnecting', true);
+      }
       return;
     }
     if (message.type === 'connecting') {
       this.connecting = true;
       this.dispatch('mqtt:connecting', true);
+      this.updateDiagnostic('reconnecting', { reason: 'SharedWorker connecting' });
       return;
     }
     if (message.type === 'reconnect') {
       this.connecting = true;
       this.dispatch('mqtt:reconnecting', true);
+      this.updateDiagnostic('reconnecting', { reason: 'SharedWorker reconnect' });
       return;
     }
     if (message.type === 'reconnect-scheduled') {
       this.connecting = true;
+      this.updateDiagnostic('reconnecting', { reason: 'SharedWorker reconnect scheduled' });
       this.dispatch('mqtt:reconnecting', { delay: Number(message.delay) || 0 });
       return;
     }
@@ -305,6 +348,7 @@ class MqttHandler {
     if (message.type === 'error') {
       this.connecting = false;
       this.lastConnectError = String(message.error || '');
+      this.updateDiagnostic('disconnected', { reason: 'SharedWorker error', error: this.lastConnectError, origin: 'worker' });
       this.dispatch('mqtt:error', new Error(this.lastConnectError || 'MQTT worker error'));
     }
   }
@@ -395,6 +439,7 @@ class MqttHandler {
       this.connecting = false;
       this.clearReconnectTimer(true);
       APP_STATE.mqttConnected = true;
+      this.updateDiagnostic('connected', { reason: 'MQTT connection established', origin: 'broker' });
       this.dispatch('mqtt:connected', true);
       this.config.allowedSubscribeTopics.forEach(topic => {
         nextClient.subscribe(topic, { qos: 0 }, error => {
@@ -412,6 +457,11 @@ class MqttHandler {
       this.client = null;
       APP_STATE.mqttConnected = false;
       this.connecting = false;
+      this.updateDiagnostic('disconnected', {
+        reason: this.lastConnectError ? `broker/socket closed: ${this.lastConnectError}` : 'broker/socket closed',
+        error: this.lastConnectError,
+        origin: 'broker/socket'
+      });
       this.dispatch('mqtt:connected', false);
       this.scheduleReconnect();
     });
@@ -425,6 +475,11 @@ class MqttHandler {
       this.connecting = false;
       this.lastConnectError = String(error?.message || error || '');
       this.dispatch('mqtt:error', error);
+      this.updateDiagnostic('disconnected', {
+        reason: `MQTT error: ${this.lastConnectError || 'unknown error'}`,
+        error: this.lastConnectError,
+        origin: 'broker/socket'
+      });
     });
     return true;
   }
