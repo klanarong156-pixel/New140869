@@ -422,12 +422,17 @@ class MqttHandler {
     } catch (error) {
       this.connecting = false;
       this.lastConnectError = String(error?.message || error || '');
-      // An MQTT error can be emitted before the socket actually closes.
-      // The close event owns the authoritative disconnected transition.
+      // mqtt.connect() can fail before a client instance exists.
+      // Do not reference nextClient here; it is declared only after connect() succeeds.
+      this.updateDiagnostic('reconnecting', {
+        reason: 'MQTT connect() failed',
+        error: this.lastConnectError,
+        origin: 'browser'
+      });
       this.dispatch('mqtt:error', {
         message: this.lastConnectError,
-        connected: Boolean(nextClient.connected),
-        transient: Boolean(nextClient && !nextClient.destroyed)
+        connected: false,
+        transient: false
       });
       this.scheduleReconnect();
       return false;
@@ -437,6 +442,7 @@ class MqttHandler {
     this.client.on('connect', () => {
       if (this.client !== nextClient) return;
       this.connecting = false;
+      this.lastConnectError = '';
       this.clearReconnectTimer(true);
       APP_STATE.mqttConnected = true;
       this.updateDiagnostic('connected', { reason: 'MQTT connection established', origin: 'broker' });
@@ -472,11 +478,16 @@ class MqttHandler {
     });
     this.client.on('error', error => {
       if (this.client !== nextClient) return;
-      this.connecting = false;
       this.lastConnectError = String(error?.message || error || '');
-      this.dispatch('mqtt:error', error);
-      this.updateDiagnostic('disconnected', {
-        reason: `MQTT error: ${this.lastConnectError || 'unknown error'}`,
+      // Error is informational. The close event owns the actual disconnected
+      // transition, preventing Connected -> Offline -> Reconnecting flicker.
+      this.dispatch('mqtt:error', {
+        message: this.lastConnectError,
+        connected: Boolean(nextClient.connected),
+        transient: Boolean(nextClient && !nextClient.destroyed)
+      });
+      this.updateDiagnostic(this.client?.connected ? 'connected' : 'reconnecting', {
+        reason: `MQTT socket error: ${this.lastConnectError || 'unknown error'}`,
         error: this.lastConnectError,
         origin: 'broker/socket'
       });
