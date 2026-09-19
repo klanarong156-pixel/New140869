@@ -354,3 +354,14 @@ body.dashboard-page .topbar .status-pill.online{
   body.dashboard-page .sensor-overview .metric-card strong{font-size:23px}
   body.dashboard-page .control-name strong{font-size:16px!important}
 }
+
+/* iPhone visual correction: the legacy dashboard hero is intentionally empty in the compact layout.
+   Keep the DOM/logic intact but remove the empty visual block on small screens. */
+@media (max-width:700px){
+  body.dashboard-page .hero.dashboard-header{
+    display:none;
+  }
+  body.dashboard-page #control.pump-hero-section{
+    margin-top:10px;
+  }
+}
