@@ -21,17 +21,21 @@
 
   function renderDashboardReadiness() {
     const mqtt = Boolean(window.APP_STATE?.mqttConnected);
+    const handler = window.mqttHandler;
+    const mqttBusy = Boolean(handler?.connecting || handler?.reconnectTimer);
     const esp = Boolean(deviceOnline);
-    const label = mqtt && esp ? 'พร้อมใช้งาน' : mqtt ? 'ESP ออฟไลน์' : 'MQTT ไม่เชื่อมต่อ';
+    const label = mqtt && esp ? 'พร้อมใช้งาน' : mqtt ? 'ESP ออฟไลน์' : mqttBusy ? 'กำลังเชื่อมต่อ MQTT' : 'MQTT ไม่เชื่อมต่อ';
     const detail = mqtt && esp
       ? 'อุปกรณ์ออนไลน์ ควบคุมได้ตามสถานะยืนยันจาก ESP8266'
       : mqtt
         ? 'MQTT เชื่อมต่ออยู่ แต่ยังไม่พบ heartbeat จาก ESP8266'
-        : 'เชื่อมต่อ MQTT เพื่อดูสถานะจริงและสั่งงานอุปกรณ์';
-    $$('[data-dashboard-readiness]').forEach(element => { element.textContent = label; });
+        : mqttBusy
+          ? 'กำลังเชื่อมต่อใหม่โดยอัตโนมัติ · ยังไม่ถือว่าออฟไลน์ถาวร'
+          : 'เชื่อมต่อ MQTT เพื่อดูสถานะจริงและสั่งงานอุปกรณ์';
+    $('[data-dashboard-readiness]').forEach(element => { element.textContent = label; });
     const header = document.querySelector('.dashboard-header-status');
     if (header) {
-      header.dataset.state = mqtt && esp ? 'ready' : mqtt ? 'device-offline' : 'mqtt-offline';
+      header.dataset.state = mqtt && esp ? 'ready' : mqtt ? 'device-offline' : mqttBusy ? 'mqtt-reconnecting' : 'mqtt-offline';
       header.title = detail;
     }
     setText('[data-dashboard-notification-text]', detail);
@@ -479,7 +483,8 @@
         relayPending.clear();
         relayPendingSince.clear();
         relayPendingPrevious.clear();
-        renderDevice(false);
+        // MQTT loss must not force ESP8266 offline. Device presence is
+        // authoritative only from heartbeat/watchdog data.
       }
       if (connected) {
         renderMqtt(true);
