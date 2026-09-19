@@ -1,5 +1,5 @@
 /* Shared MQTT connection for Smart Farm pages. It keeps one WebSocket per browser origin. */
-importScripts('mqtt.min.js?v=1');
+importScripts('mqtt.min.js?v=2');
 
 const ports = new Set();
 let client = null;
@@ -111,8 +111,10 @@ function connect(force = false) {
     if (client !== nextClient) return;
     client = null;
     connecting = false;
-    broadcast({ type: 'close' });
+    // Schedule first so pages can render a reconnecting state immediately
+    // instead of showing a transient Offline state.
     scheduleReconnect();
+    broadcast({ type: 'close' });
   });
   nextClient.on('reconnect', () => {
     if (client !== nextClient) return;
