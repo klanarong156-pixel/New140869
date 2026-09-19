@@ -463,13 +463,15 @@ class MqttHandler {
       this.client = null;
       APP_STATE.mqttConnected = false;
       this.connecting = false;
+      // Schedule the single reconnect loop BEFORE notifying the UI. This
+      // guarantees the UI sees "reconnecting" rather than flashing Offline.
+      this.scheduleReconnect();
       this.updateDiagnostic('disconnected', {
         reason: this.lastConnectError ? `broker/socket closed: ${this.lastConnectError}` : 'broker/socket closed',
         error: this.lastConnectError,
         origin: 'broker/socket'
       });
       this.dispatch('mqtt:connected', false);
-      this.scheduleReconnect();
     });
     this.client.on('reconnect', () => {
       if (this.client !== nextClient) return;
