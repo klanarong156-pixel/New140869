@@ -378,7 +378,13 @@ class MqttHandler {
     } catch (error) {
       this.connecting = false;
       this.lastConnectError = String(error?.message || error || '');
-      this.dispatch('mqtt:error', error);
+      // An MQTT error can be emitted before the socket actually closes.
+      // The close event owns the authoritative disconnected transition.
+      this.dispatch('mqtt:error', {
+        message: this.lastConnectError,
+        connected: Boolean(nextClient.connected),
+        transient: Boolean(nextClient && !nextClient.destroyed)
+      });
       this.scheduleReconnect();
       return false;
     }
