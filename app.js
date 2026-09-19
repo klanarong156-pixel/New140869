@@ -492,6 +492,12 @@
     window.addEventListener('mqtt:error', event => {
       const raw = event.detail?.message || String(event.detail || '');
       const detail = raw && raw !== '[object Object]' ? `: ${raw}` : '';
+      // Do not make the dashboard indicator flicker offline on a transient
+      // MQTT error when the underlying client is still connected.
+      if (event.detail?.connected || window.APP_STATE?.mqttConnected) {
+        renderMqtt(true);
+        return;
+      }
       renderMqtt(false, `MQTT เชื่อมต่อไม่สำเร็จ${detail}`);
       const modal = document.getElementById('mqttSetupModal');
       if (modal) {
