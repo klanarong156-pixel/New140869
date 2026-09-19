@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-const S={state:'disconnected',lastConnectedAt:0,lastDisconnectedAt:0,reconnectCount:0,lastReason:'initial',lastError:'',history:[]};
+const S={state:'disconnected',lastConnectedAt:0,lastDisconnectedAt:0,reconnectCount:0,lastReason:'initial',lastError:'',history:[],uiDisconnectAt:0};
 const fmt=t=>t?new Intl.DateTimeFormat('th-TH',{dateStyle:'short',timeStyle:'medium'}).format(new Date(t)):'—';
 function reason(d){return d&&d.message?String(d.message):'MQTT connection event';}
 function render(){
@@ -27,9 +27,9 @@ function record(state,why,err){
 function install(){
  if(!window.mqttHandler||window.mqttHandler.__diagnosticInstalled)return;
  const h=window.mqttHandler, original=h.disconnect.bind(h);
- h.disconnect=function(){record('disconnected','Dashboard/UI requested disconnect');return original(...arguments)};
+ h.disconnect=function(){S.uiDisconnectAt=Date.now();record('disconnected','Dashboard/UI requested disconnect');return original(...arguments)};
  h.__diagnosticInstalled=true;
- window.addEventListener('mqtt:connected',e=>record(e.detail?'connected':'disconnected',e.detail?'MQTT connection established':'broker/socket closed'));
+ window.addEventListener('mqtt:connected',e=>{if(e.detail)record('connected','MQTT connection established');else if(Date.now()-S.uiDisconnectAt>800)record('disconnected','broker/socket closed')});
  window.addEventListener('mqtt:reconnecting',e=>record('reconnecting','reconnect scheduled'+(e.detail&&e.detail.attempt?' · attempt '+e.detail.attempt:'')));
  window.addEventListener('mqtt:connecting',()=>record('reconnecting','connection attempt started'));
  window.addEventListener('mqtt:error',e=>{const d=e.detail||{};if(d.connected||window.APP_STATE?.mqttConnected)return;record('disconnected','MQTT error: '+reason(d),reason(d));});
@@ -43,6 +43,11 @@ function inject(){
  target?.parentNode?.insertBefore(panel,target);
  render();
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();inject()});else{install();inject()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{addStyle();install();inject()});else{addStyle();install();inject()}
+function addStyle(){
+ if(document.getElementById('mqttDiagStyle'))return;
+ const st=document.createElement('style');st.id='mqttDiagStyle';st.textContent='.mqtt-diag-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}.mqtt-diag-grid>div,.mqtt-diag-error{padding:12px 14px;border-radius:14px;background:rgba(24,130,74,.055)}.mqtt-diag-grid span,.mqtt-diag-error span{display:block;font-size:.78rem;opacity:.72;margin-bottom:5px}.mqtt-diag-grid strong,.mqtt-diag-error strong{display:block;overflow-wrap:anywhere}.mqtt-diag-history{display:grid;gap:7px;margin-top:8px}.mqtt-diag-row{padding:9px 10px;border-radius:10px;background:rgba(0,0,0,.025);font-size:.82rem;overflow-wrap:anywhere}.mqtt-diag-row+ .mqtt-diag-row{margin-top:0}@media(max-width:760px){.mqtt-diag-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}';
+ document.head.appendChild(st);
+}
 window.MqttDiagnostic={getState:()=>({...S}),render};
 })();
