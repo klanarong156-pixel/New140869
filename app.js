@@ -62,7 +62,30 @@
     window.setTimeout(() => toast.remove(), 4400);
   }
 
+  let mqttOfflineTimer = null;
+  let mqttLastStableConnectedAt = 0;
+
   function renderMqtt(connected, text) {
+    const handler = window.mqttHandler;
+    const reconnecting = Boolean(handler?.connecting || handler?.reconnectTimer);
+    if (connected) {
+      if (mqttOfflineTimer) { window.clearTimeout(mqttOfflineTimer); mqttOfflineTimer = null; }
+      mqttLastStableConnectedAt = Date.now();
+    } else if (reconnecting && !text) {
+      text = 'MQTT กำลังเชื่อมต่อใหม่';
+    } else if (!reconnecting && !text && mqttLastStableConnectedAt && (Date.now() - mqttLastStableConnectedAt) < 5000) {
+      // Suppress a short-lived Offline flash while the broker socket is
+      // being re-established. The MQTT handler remains the source of truth.
+      text = 'MQTT กำลังเชื่อมต่อใหม่';
+      if (!mqttOfflineTimer) {
+        mqttOfflineTimer = window.setTimeout(() => {
+          mqttOfflineTimer = null;
+          if (!window.APP_STATE?.mqttConnected && !(window.mqttHandler?.connecting || window.mqttHandler?.reconnectTimer)) {
+            renderMqtt(false);
+          }
+        }, 5000);
+      }
+    }
     const label = text || (connected ? 'MQTT เชื่อมต่อ' : 'MQTT ยังไม่เชื่อมต่อ');
     const detail = connected ? 'ช่องทางสั่งงานพร้อมใช้งาน' : (text || 'รอการเชื่อมต่อช่องทางสั่งงาน');
     $$('[data-mqtt-status]').forEach(element => {
