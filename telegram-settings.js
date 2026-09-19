@@ -1,6 +1,12 @@
 (() => {
-  const form = document.querySelector('#telegramSettingsForm');
-  if (!form) return;
+  'use strict';
+  let initialized = false;
+
+  function init(access) {
+    if (initialized || access?.role !== 'admin') return;
+    initialized = true;
+    const form = document.querySelector('#telegramSettingsForm');
+    if (!form) return;
 
   const tokenInput = document.querySelector('#telegramBotToken');
   const chatInput = document.querySelector('#telegramChatId');
@@ -30,12 +36,12 @@
     event.preventDefault();
     const botToken = String(tokenInput?.value || '').trim();
     const chatId = String(chatInput?.value || '').trim();
-    if (!botToken || !chatId) {
-      setStatus('กรุณากรอก Bot Token และ Chat ID ให้ครบ', 'warning');
+    if (!/^[0-9]{6,12}:[A-Za-z0-9_-]{20,}$/.test(botToken)) {
+      setStatus('รูปแบบ Telegram Bot Token ไม่ถูกต้อง', 'warning');
       return;
     }
-    if (botToken.length > 79 || chatId.length > 31) {
-      setStatus('ความยาว Bot Token หรือ Chat ID เกินขนาดที่เฟิร์มแวร์รองรับ', 'warning');
+    if (!/^-?[0-9]{5,20}$/.test(chatId)) {
+      setStatus('รูปแบบ Telegram Chat ID ไม่ถูกต้อง', 'warning');
       return;
     }
     const payload = JSON.stringify({ botToken, chatId });
@@ -54,4 +60,9 @@
     const configured = Boolean(event.detail?.configured);
     setStatus(configured ? 'ESP8266 ตั้งค่า Telegram แล้ว' : 'ยังไม่ได้ตั้งค่า Telegram บนอุปกรณ์', configured ? 'success' : 'warning');
   });
+    [saveButton, testButton].forEach(button => button?.removeAttribute('disabled'));
+  }
+
+  window.addEventListener('access:ready', event => init(event.detail || {}), { once: true });
+  if (window.SMARTFARM_ACCESS?.ready) init(window.SMARTFARM_ACCESS);
 })();

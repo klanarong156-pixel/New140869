@@ -22,7 +22,7 @@ function buildMqttBrokerUrl(broker) {
 const MQTT_CONFIG = Object.freeze({
   broker: MQTT_BROKER,
   url: buildMqttBrokerUrl(MQTT_BROKER),
-  credentialSource: 'browser-storage',
+  credentialSource: 'session-storage-only',
   defaultUsername: 'smartfarm',
   clientId: `SmartFarmWeb-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`,
   topics: Object.freeze({
@@ -47,9 +47,21 @@ const MQTT_CONFIG = Object.freeze({
     emergencySet: 'smartfarm/emergency/set',
     emergencyStatus: 'smartfarm/emergency/status'
   }),
-  // Keep the original simple Smart Farm contract: one subscription filter.
-  // HiveMQ ACL must allow this same filter for the shared credential.
-  allowedSubscribeTopics: Object.freeze(['smartfarm/#']),
+  // Dashboard receives telemetry/status only. Command permissions belong in
+  // the broker ACL; never grant the browser a broad smartfarm/# subscription.
+  allowedSubscribeTopics: Object.freeze([
+    'smartfarm/relay/+/status',
+    'smartfarm/sensor/+',
+    'smartfarm/schedule/+/status',
+    'smartfarm/status/+',
+    'smartfarm/mode/status',
+    'smartfarm/time',
+    'smartfarm/system/error',
+    'smartfarm/config/telegram/status',
+    'smartfarm/reminder/status',
+    'smartfarm/ai/alert/status',
+    'smartfarm/emergency/status'
+  ]),
   deviceHeartbeatTimeoutMs: 25000
 });
 

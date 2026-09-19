@@ -17,7 +17,6 @@ class MqttHandler {
     this.usingSharedWorker = false;
     this.storageUser = 'smartfarm.mqtt.username';
     this.storagePass = 'smartfarm.mqtt.password';
-    this.storageRemember = 'smartfarm.mqtt.remember';
   }
 
   dispatch(name, detail) {
@@ -107,12 +106,16 @@ class MqttHandler {
     const configuredPass = String(this.config?.password || '');
     if (configuredUser && configuredPass) return { username: configuredUser, password: configuredPass, remember: false };
     try {
-      const remembered = localStorage.getItem(this.storageRemember) === 'true';
-      const store = remembered ? localStorage : sessionStorage;
+      localStorage.removeItem(this.storageUser);
+      localStorage.removeItem(this.storagePass);
+      localStorage.removeItem('smartfarm.mqtt.remember');
+      // MQTT passwords are session-only. Do not persist them across browser
+      // restarts because any script running on this origin can read storage.
+      const store = sessionStorage;
       return {
         username: store.getItem(this.storageUser) || this.config?.defaultUsername || '',
         password: store.getItem(this.storagePass) || '',
-        remember: remembered
+        remember: false
       };
     } catch (_) {
       return { username: '', password: '', remember: false };
@@ -136,16 +139,18 @@ class MqttHandler {
       };
     }
     try {
-      const remember = localStorage.getItem(this.storageRemember) === 'true';
-      const storage = remember ? localStorage : sessionStorage;
+      localStorage.removeItem(this.storageUser);
+      localStorage.removeItem(this.storagePass);
+      localStorage.removeItem('smartfarm.mqtt.remember');
+      const storage = sessionStorage;
       const usernamePresent = Boolean(String(storage.getItem(this.storageUser) || this.config?.defaultUsername || '').trim());
       const passwordPresent = Boolean(storage.getItem(this.storagePass));
       return {
         complete: usernamePresent && passwordPresent,
         usernamePresent,
         passwordPresent,
-        storage: remember ? 'localStorage' : 'sessionStorage',
-        remember,
+        storage: 'sessionStorage',
+        remember: false,
         missing: [
           ...(usernamePresent ? [] : ['username']),
           ...(passwordPresent ? [] : ['password'])
@@ -168,17 +173,14 @@ class MqttHandler {
     return this.getCredentialStatus().complete;
   }
 
-  setCredentials(username, password, remember = false) {
+  setCredentials(username, password, _remember = false) {
     const cleanUser = String(username || '').trim();
     const cleanPass = String(password || '');
     if (!cleanUser || !cleanPass) throw new Error('กรุณากรอก MQTT username และ password ให้ครบ');
     this.clearCredentials(false);
-    const store = remember ? localStorage : sessionStorage;
-    store.setItem(this.storageUser, cleanUser);
-    store.setItem(this.storagePass, cleanPass);
-    if (remember) localStorage.setItem(this.storageRemember, 'true');
-    else localStorage.removeItem(this.storageRemember);
-    this.dispatch('mqtt:credentials-saved', { username: cleanUser, remember: Boolean(remember), status: this.getCredentialStatus() });
+    sessionStorage.setItem(this.storageUser, cleanUser);
+    sessionStorage.setItem(this.storagePass, cleanPass);
+    this.dispatch('mqtt:credentials-saved', { username: cleanUser, remember: false, status: this.getCredentialStatus() });
     return this.connect(true);
   }
 
@@ -187,7 +189,6 @@ class MqttHandler {
       store.removeItem(this.storageUser);
       store.removeItem(this.storagePass);
     });
-    localStorage.removeItem(this.storageRemember);
     this.pendingPublishes = [];
     this.disconnect();
     if (announce) this.dispatch('mqtt:credentials-cleared', true);

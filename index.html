@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="app.css?v=40">
   <link rel="stylesheet" href="redesign-lambo.css?v=3">
   <link rel="stylesheet" href="pump-hero.css?v=1"><link rel="stylesheet" href="suanlungna-design-system.css?v=1">
-  <link rel="stylesheet" href="dashboard-polish.css?v=7">
+  <link rel="stylesheet" href="dashboard-polish.css?v=9">
   <title>สวนลุงนะ · Smart Farm</title>
 </head>
 <body class="app-shell compact-ui dashboard-page" data-auth-required="true">
@@ -66,7 +66,7 @@
   <div class="pump-hero-body">
     <div class="pump-visual" aria-hidden="true"><img src="assets/pump-hero.png?v=1" alt=""></div>
     <div class="pump-hero-state"><strong class="pump-title">ปั๊มน้ำ</strong><span class="pump-off-badge">OFF</span><span class="pump-state-label">สถานะปั๊มน้ำ</span><span class="pump-state-value" data-relay-state="pump">ปิดอยู่</span><span class="pump-state-note">ยืนยันจาก MQTT device status เท่านั้น</span></div>
-    <div class="pump-toggle"><button class="context-action" type="button" data-relay-action="pump" aria-label="เปิดปั๊มน้ำ"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="pump">เปิดปั๊มน้ำ</span></button><label class="quick-off"><input class="relay-toggle-input" data-relay-toggle="pump" type="checkbox" aria-label="เปิดหรือปิดปั๊มน้ำ"><span>OFF</span></label></div>
+    <div class="relay-action-row pump-toggle"><button class="context-action" type="button" data-relay-action="pump" aria-label="เปิดปั๊มน้ำ"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="pump">เปิดปั๊มน้ำ</span></button><label class="quick-off"><input class="relay-toggle-input" data-relay-toggle="pump" type="checkbox" aria-label="เปิดหรือปิดปั๊มน้ำ"><span>OFF</span></label></div>
   </div>
 </article>
 <div class="quick-control-heading"><h2>ควบคุมด่วน</h2></div>
@@ -75,21 +75,21 @@
     <div class="control-name"><span class="icon icon-zone1" aria-hidden="true">🌿</span><span><strong>โซน 1</strong><small>RELAY · ZONE 1</small></span></div>
     <span class="vintage-status" data-relay-status-badge="zone1"><i></i><span data-relay-state="zone1">ปิดอยู่</span></span>
   </div>
-  <div class="quick-toggle"><button class="context-action" type="button" data-relay-action="zone1" aria-label="เปิดโซน 1"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="zone1">เปิดโซน 1</span></button><label class="quick-off"><input class="relay-toggle-input" data-relay-toggle="zone1" type="checkbox" aria-label="เปิดหรือปิดโซน 1"><span>OFF</span></label></div>
+  <div class="relay-action-row quick-toggle"><button class="context-action" type="button" data-relay-action="zone1" aria-label="เปิดโซน 1"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="zone1">เปิดโซน 1</span></button><label class="quick-off"><input class="relay-toggle-input" data-relay-toggle="zone1" type="checkbox" aria-label="เปิดหรือปิดโซน 1"><span>OFF</span></label></div>
 </article>
 <article class="card control-card" data-relay-card="lighthome">
   <div class="control-top">
     <div class="control-name"><span class="icon icon-lighthome" aria-hidden="true">🏠</span><span><strong>ไฟบ้าน</strong><small>RELAY · HOME LIGHT</small></span></div>
     <span class="vintage-status" data-relay-status-badge="lighthome"><i></i><span data-relay-state="lighthome">ปิดอยู่</span></span>
   </div>
-  <div class="quick-toggle"><button class="context-action" type="button" data-relay-action="lighthome" aria-label="เปิดไฟบ้าน"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="lighthome">เปิดไฟบ้าน</span></button><label class="quick-off"><input class="relay-toggle-input" data-relay-toggle="lighthome" type="checkbox" aria-label="เปิดหรือปิดไฟบ้าน"><span>OFF</span></label></div>
+  <div class="relay-action-row quick-toggle"><button class="context-action" type="button" data-relay-action="lighthome" aria-label="เปิดไฟบ้าน"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="lighthome">เปิดไฟบ้าน</span></button><label class="quick-off"><input class="relay-toggle-input" data-relay-toggle="lighthome" type="checkbox" aria-label="เปิดหรือปิดไฟบ้าน"><span>OFF</span></label></div>
 </article>
 <article class="card control-card" data-relay-card="lightsala">
   <div class="control-top">
     <div class="control-name"><span class="icon icon-lightsala" aria-hidden="true">🌾</span><span><strong>ไฟศาลา</strong><small>RELAY · SALA LIGHT</small></span></div>
     <span class="vintage-status" data-relay-status-badge="lightsala"><i></i><span data-relay-state="lightsala">ปิดอยู่</span></span>
   </div>
-  <div class="quick-toggle"><button class="context-action" type="button" data-relay-action="lightsala" aria-label="เปิดไฟศาลา"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="lightsala">เปิดไฟศาลา</span></button><label class="quick-off"><input class="relay-toggle-input" data-relay-toggle="lightsala" type="checkbox" aria-label="เปิดหรือปิดไฟศาลา"><span>OFF</span></label></div>
+  <div class="relay-action-row quick-toggle"><button class="context-action" type="button" data-relay-action="lightsala" aria-label="เปิดไฟศาลา"><span class="context-action-icon" aria-hidden="true">↗</span><span data-relay-action-label="lightsala">เปิดไฟศาลา</span></button><label class="quick-off"><input class="relay-toggle-input" data-relay-toggle="lightsala" type="checkbox" aria-label="เปิดหรือปิดไฟศาลา"><span>OFF</span></label></div>
 </article></div>
 </section>
 
@@ -120,7 +120,7 @@
         <span class="mqtt-live-dot" data-mqtt-live-dot aria-hidden="true"></span>
         <div class="mqtt-live-copy"><p class="kicker">CONNECTION · REALTIME</p><h2 id="mqtt-live-title" data-mqtt-live-label>MQTT ยังไม่เชื่อมต่อ</h2><p class="helper" data-mqtt-live-detail>กำลังตรวจสอบช่องทางสั่งงาน</p><p class="mqtt-command-status" data-mqtt-command-status aria-live="polite">พร้อมรับคำสั่งสำคัญ</p></div>
       </div>
-      <div class="mqtt-live-meta"><div><span>ESP8266</span><strong data-mqtt-device-status>รอตรวจสอบ</strong></div><div><span>อัปเดตล่าสุด</span><strong data-mqtt-last-update>—</strong></div></div>
+      <div class="mqtt-live-meta"><div><span>ESP8266</span><strong data-mqtt-device-status>รอตรวจสอบ</strong><small data-device-live-detail>กำลังรอ heartbeat</small></div><div><span>อัปเดตล่าสุด</span><strong data-mqtt-last-update>—</strong><small data-device-last-seen>ยังไม่มี heartbeat</small></div></div>
       <div class="mqtt-live-actions"><button class="btn primary small" type="button" data-mqtt-connect>เชื่อมต่อ MQTT</button><button class="btn ghost small" type="button" data-mqtt-setup>ตั้งค่า</button><a class="btn ghost small" href="mqtt-status-demo.html">ดู MQTT Lab</a></div>
     </section>
 
@@ -185,7 +185,7 @@
   <nav class="bottom-nav" style="--nav-items:5" aria-label="เมนูมือถือ"><a class="active" href="index.html"><span>⌂</span><small>ภาพรวม</small></a><a href="schedule.html"><span>◷</span><small>ตั้งเวลา</small></a><a href="finance.html"><span>฿</span><small>การเงิน</small></a><a href="account.html"><span>◉</span><small>บัญชี</small></a><a href="settings.html"><span>⚙</span><small>ตั้งค่า</small></a></nav>
 
   <script src="firebase.js?v=9"></script><script src="mqtt.min.js?v=1"></script>
-  <script src="config.js?v=13"></script><script src="mqtt-handler.js?v=16"></script><script src="internet-time.js?v=1"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=9"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=11"></script><script src="access.js?v=10"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=3"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=3"></script><script src="ai-farm-advisor.js?v=1"></script><script src="farm-tools.js?v=2"></script><script src="farm-clock.js?v=2"></script><script src="weather.js?v=8"></script><script src="auto-weather-guard.js?v=7"></script>
+  <script src="config.js?v=14"></script><script src="mqtt-handler.js?v=17"></script><script src="internet-time.js?v=1"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=9"></script><script src="finance-dashboard.js?v=1"></script><script src="app.js?v=13"></script><script src="access.js?v=11"></script><script src="crop-cycle.js?v=2"></script><script src="crop-plots.js?v=1"></script><script src="crop-reminders.js?v=3"></script><script src="crop-dashboard.js?v=2"></script><script src="farm-analytics.js?v=3"></script><script src="ai-farm-advisor.js?v=1"></script><script src="farm-tools.js?v=2"></script><script src="farm-clock.js?v=2"></script><script src="weather.js?v=8"></script><script src="auto-weather-guard.js?v=7"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

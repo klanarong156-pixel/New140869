@@ -53,9 +53,9 @@
     <section class="card">
       <p class="hint">อัปเดตเฟิร์มแวร์ภายในเครือข่ายเดียวกับ ESP8266</p>
       <h1>อัปโหลด Firmware OTA</h1>
-      <p class="lead">หน้านี้เป็นไฟล์เดียว ใช้เปิดจาก <code>file://</code>, <code>http://localhost</code> หรือเปิดตรงจาก ESP8266 เพื่อหลีกเลี่ยง Mixed Content จาก GitHub Pages HTTPS</p>
+      <p class="lead">ช่องทาง HTTP OTA ถูกปิดใน firmware รุ่น hardened นี้ เพราะ Basic Authentication ผ่าน HTTP ไม่ปลอดภัย ให้ใช้ HTTPS gateway/VPN หรือแฟลชผ่าน USB แทน</p>
       <div id="originWarning" class="notice origin-warning" hidden><b>!</b><span><strong>กำลังเปิดหน้านี้ผ่าน HTTPS</strong> Browser จะบล็อกการส่งจาก GitHub Pages HTTPS ไปยัง ESP8266 HTTP ให้ดาวน์โหลดไฟล์นี้แล้วเปิดแบบ <code>file://</code> หรือเปิดผ่าน local HTTP server หรือเปิด <code>http://IP-ของ-ESP/</code> โดยตรง</span></div>
-      <div class="notice"><b>!</b><span>ต้องอยู่ Wi‑Fi เดียวกับบอร์ด และ URL ต้องเป็น HTTP เช่น <code>http://192.168.1.50</code> ห้ามใส่ <code>/update</code> ต่อท้าย URL</span></div>
+      <div class="notice"><b>!</b><span>หน้านี้เก็บไว้เป็นเอกสารอ้างอิงเท่านั้น จะไม่ส่ง URL, password หรือ firmware ใด ๆ จนกว่าจะติดตั้ง secure OTA gateway</span></div>
       <div class="grid">
         <label>URL ของ ESP8266
           <input id="deviceUrl" type="text" inputmode="url" autocomplete="url" placeholder="http://192.168.1.50" required>
@@ -97,6 +97,14 @@
       const progress = document.getElementById('progress');
       const fileHint = document.getElementById('fileHint');
       const originWarning = document.getElementById('originWarning');
+
+      testButton.disabled = true;
+      uploadButton.disabled = true;
+      status.dataset.kind = 'warning';
+      status.replaceChildren(document.createElement('strong'), document.createElement('span'));
+      status.firstElementChild.textContent = 'HTTP OTA ถูกปิดใช้งาน';
+      status.lastElementChild.textContent = 'ใช้ HTTPS gateway/VPN หรือแฟลช firmware ผ่าน USB แทน';
+      return;
 
       const setStatus = (title, detail, kind = 'info') => {
         status.dataset.kind = kind;

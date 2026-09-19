@@ -29,17 +29,6 @@ struct ScheduleSlot;
 #define MQTT_BASE "smartfarm"
 #define TZ_OFFSET_SECONDS (7L * 3600L)
 
-// Paste the CA certificate that signs the MQTT broker certificate here.
-// Leave empty only during development: MQTT will remain disabled until a CA
-// is installed. Never replace this with setInsecure() in a production build.
-static const char MQTT_ROOT_CA_PEM[] PROGMEM = R"EOF(
-PASTE_BROKER_ROOT_CA_PEM_HERE
-)EOF";
-
-// The current HTTP OTA endpoint sends Basic Authentication over plaintext.
-// Keep it disabled until OTA is placed behind HTTPS/VPN/a trusted gateway.
-#define ENABLE_INSECURE_HTTP_OTA 0
-
 #define RTC_SDA D3
 #define RTC_SCL D4
 #define DHT_PIN D2
@@ -70,21 +59,9 @@ const uint8_t MQTT_AUTH_FAIL_LIMIT = 3;
 const uint32_t MQTT_DIAGNOSTIC_INTERVAL_MS = 30000UL;
 const uint32_t WIFI_RECONNECT_INTERVAL_MS = 15000UL;
 const char MQTT_RECOMMENDED_USERNAME[] = "smartfarm";
-const char *const MQTT_COMMAND_TOPICS[] = {
-    MQTT_BASE "/relay/+/set",
-    MQTT_BASE "/schedule/+/set",
-    MQTT_BASE "/mode/set",
-    MQTT_BASE "/emergency/set",
-    MQTT_BASE "/config/telegram/set",
-    MQTT_BASE "/config/telegram/test",
-    MQTT_BASE "/reminder/set",
-    MQTT_BASE "/ai/alert/set"};
-const uint8_t MQTT_COMMAND_TOPIC_COUNT =
-    sizeof(MQTT_COMMAND_TOPICS) / sizeof(MQTT_COMMAND_TOPICS[0]);
 
 WiFiClientSecure tls;
 WiFiClientSecure telegramTls;
-BearSSL::X509List *mqttTrustAnchor = nullptr;
 PubSubClient mqtt(tls);
 ESP8266WebServer otaServer(80);
 WiFiUDP udp;
@@ -112,26 +89,6 @@ bool wifiStateKnown = false, lastWifiConnected = false;
 bool wifiResetPressed = false;
 bool otaUpdateInProgress = false;
 uint32_t wifiResetStartedAt = 0;
-bool mqttTlsReady = false;
-
-bool configureMqttTls() {
-  const size_t caLength = strlen_P(MQTT_ROOT_CA_PEM);
-  if (caLength < 64 || strstr_P(MQTT_ROOT_CA_PEM, PSTR("BEGIN CERTIFICATE")) == nullptr) {
-    Serial.println(F("MQTT TLS: disabled - install the broker CA certificate first"));
-    return false;
-  }
-  if (mqttTrustAnchor) delete mqttTrustAnchor;
-  mqttTrustAnchor = new BearSSL::X509List(MQTT_ROOT_CA_PEM);
-  if (!mqttTrustAnchor) {
-    Serial.println(F("MQTT TLS: invalid CA certificate; refusing connection"));
-    delete mqttTrustAnchor;
-    mqttTrustAnchor = nullptr;
-    return false;
-  }
-  tls.setTrustAnchors(mqttTrustAnchor);
-  tls.setBufferSizes(4096, 512);
-  return true;
-}
 
 char mqttUser[64] = "";
 char mqttPass[96] = "";
@@ -355,7 +312,7 @@ bool emergencyLock = false;
 uint32_t emergencyTimestamp = 0;
 char emergencySource[24] = "";
 
-bool relaySet(uint8_t i, bool on);
+void relaySet(uint8_t i, bool on);
 void publishRelayStatus(uint8_t i);
 void publishEmergencyStatus();
 void publishModeStatus();
@@ -505,28 +462,17 @@ void leaveOtaSafeState() {
   Serial.println(F("OTA: safe state released after failed/aborted update"));
 }
 
-bool relaySet(uint8_t i, bool on) {
+void relaySet(uint8_t i, bool on) {
   if (i >= RELAY_COUNT)
-    return false;
-  if (on && emergencyLock) {
-    publishSystemError("RELAY_BLOCKED", "Emergency Stop active");
-    Serial.printf("MQTT RELAY: rejected relay=%s reason=emergency-lock\n", relayNames[i]);
-    return false;
-  }
-  if (on && otaUpdateInProgress) {
-    publishSystemError("RELAY_BLOCKED", "OTA update in progress");
-    Serial.printf("MQTT RELAY: rejected relay=%s reason=ota-update\n", relayNames[i]);
-    return false;
-  }
+    return;
+  if (on && (emergencyLock || otaUpdateInProgress))
+    return;
   if (i != 0) {
     relaySetRaw(i, on);
-    return true;
+    return;
   }
-  if (on && pumpSafetyLatched) {
-    publishSystemError("RELAY_BLOCKED", "Pump safety lock active");
-    Serial.printf("MQTT RELAY: rejected relay=%s reason=pump-safety-lock\n", relayNames[i]);
-    return false;
-  }
+  if (on && pumpSafetyLatched)
+    return;
   if (on) {
     if (!relayOn(0))
       pumpStartedAt = millis();
@@ -534,7 +480,6 @@ bool relaySet(uint8_t i, bool on) {
     relaySetRaw(0, true);
   } else
     relaySetRaw(0, false);
-  return true;
 }
 
 void initFS() {
@@ -1124,10 +1069,6 @@ void reportClockStatus() {
 }
 
 bool verifyMqttEndpoint() {
-  if (!mqttTlsReady) {
-    Serial.println(F("MQTT VERIFY: skipped because CA trust anchor is not configured"));
-    return false;
-  }
   Serial.print(F("MQTT VERIFY: DNS "));
   Serial.print(MQTT_SERVER);
   Serial.print(F(" ... "));
@@ -1141,7 +1082,7 @@ bool verifyMqttEndpoint() {
   Serial.println(F(")"));
 
   // This is raw MQTT over TLS for ESP8266; the web dashboard uses WSS 8884.
-  // The trust anchor was installed during setup; never downgrade to insecure.
+  tls.setInsecure();
   tls.setBufferSizes(4096, 512);
   tls.setTimeout(10);
   uint32_t started = millis();
@@ -1511,11 +1452,10 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
     int i = relayIndex(n);
     if (i < 0)
       return;
-    bool accepted = false;
     if (msg.equalsIgnoreCase("ON"))
-      accepted = relaySet((uint8_t)i, true);
+      relaySet((uint8_t)i, true);
     else if (msg.equalsIgnoreCase("OFF"))
-      accepted = relaySet((uint8_t)i, false);
+      relaySet((uint8_t)i, false);
     else {
       Serial.printf("MQTT RELAY: invalid payload relay=%s payload=%s\n",
                     n.c_str(), msg.c_str());
@@ -1523,8 +1463,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int len) {
       return;
     }
     publishRelayStatus((uint8_t)i);
-    Serial.printf("MQTT RELAY: relay=%s state=%s accepted=%s\n", n.c_str(),
-                  relayOn((uint8_t)i) ? "ON" : "OFF", accepted ? "YES" : "NO");
+    Serial.printf("MQTT RELAY: relay=%s state=%s\n", n.c_str(),
+                  relayOn((uint8_t)i) ? "ON" : "OFF");
     return;
   }
   String sp = String(MQTT_BASE) + "/schedule/";
@@ -1628,22 +1568,15 @@ void printMqttAuthDiagnosis(int8_t state) {
                 strcmp(mqttUser, MQTT_RECOMMENDED_USERNAME) == 0 ? "YES" : "NO");
   Serial.printf("MQTT DIAG: broker=%s port=%u client_id=%s\n",
                 MQTT_SERVER, MQTT_PORT, deviceName);
-  Serial.println(F("MQTT DIAG: expected ACL allows command subscriptions and status publishes only"));
+  Serial.println(F("MQTT DIAG: expected ACL topic=smartfarm/# actions=publish,subscribe"));
   Serial.println(F("MQTT DIAG: verify Access Management credential belongs to this Cluster"));
   Serial.println(F("MQTT DIAG: verify username/password exactly; values are case-sensitive"));
-  Serial.println(F("MQTT DIAG: if credentials pass, verify role/permission matches explicit command topics"));
+  Serial.println(F("MQTT DIAG: if credentials pass, verify role/permission allows CONNECT and smartfarm/#"));
   Serial.println(F("MQTT DIAG: password value is never printed"));
 }
 
 void connectMqtt() {
   if (WiFi.status() != WL_CONNECTED) {
-    return;
-  }
-  if (!mqttTlsReady) {
-    if (!mqttConfigReported) {
-      Serial.println(F("MQTT TLS: refusing connection until broker CA is installed"));
-      mqttConfigReported = true;
-    }
     return;
   }
   if (mqtt.connected())
@@ -1680,17 +1613,16 @@ void connectMqtt() {
   if (connected) {
     mqttAuthFailures = 0;
     mqtt.publish(MQTT_BASE "/status/online", "true", true);
-    bool subscriptionsOk = true;
-    for (uint8_t i = 0; i < MQTT_COMMAND_TOPIC_COUNT; ++i)
-      subscriptionsOk = mqtt.subscribe(MQTT_COMMAND_TOPICS[i]) && subscriptionsOk;
+    // Keep the original simple ACL contract: one subscription filter.
+    // The callback still acts only on recognized command topics.
+    bool sAll = mqtt.subscribe(MQTT_BASE "/#");
     publishStatus();
     publishTelegramStatus();
     publishReminderStatus("online");
     publishAiAlertStatus("online");
     Serial.println(F("MQTT: Connected"));
     queueTelegram(F("เชื่อมต่อ MQTT สำเร็จ"));
-    Serial.printf("MQTT: Subscribe command topics=%s\n",
-                  subscriptionsOk ? "OK" : "FAIL");
+    Serial.printf("MQTT: Subscribe smartfarm/#=%s\n", sAll ? "OK" : "FAIL");
     Serial.println(F("MQTT: READY"));
   } else {
     mqttConnectFailures++;
@@ -2043,7 +1975,8 @@ void setup() {
   setupWifi();
   Serial.print(F("Heap after WiFi: "));
   Serial.println(ESP.getFreeHeap());
-  mqttTlsReady = configureMqttTls();
+  tls.setInsecure();
+  tls.setBufferSizes(4096, 512);
   mqtt.setServer(MQTT_SERVER, MQTT_PORT);
   mqtt.setCallback(mqttCallback);
   mqtt.setSocketTimeout(20);
@@ -2076,11 +2009,7 @@ void setup() {
   } else {
     Serial.println(F("OTA: DISABLED - configure ota_pass in SmartFarm_Setup"));
   }
-#if ENABLE_INSECURE_HTTP_OTA
   setupOtaHttpServer();
-#else
-  Serial.println(F("OTA HTTP: DISABLED - use ArduinoOTA on a trusted LAN or a secure gateway"));
-#endif
   Serial.print(F("MQTT server: "));
   Serial.print(MQTT_SERVER);
   Serial.print(F(":"));

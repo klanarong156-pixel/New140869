@@ -5,9 +5,14 @@
   const $$ = selector => Array.from(document.querySelectorAll(selector));
   const relayLabel = relay => window.RELAY_NAMES?.[relay] || relay;
   let deviceOnline = false;
+  let lastDeviceHeartbeatAt = 0;
+  let lastDeviceSnapshot = null;
+  let realtimeStatusTimer = 0;
   const relayFeedback = new Set();
   const relayPending = new Set();
   const relayPendingPrevious = new Map();
+  const relayPendingSince = new Map();
+  const RELAY_ACK_TIMEOUT_MS = 12000;
 
   function setText(target, value) {
     const element = typeof target === 'string' ? $(target) : target;
@@ -105,31 +110,82 @@
     });
   }
 
+  function formatLastSeen(timestamp) {
+    if (!timestamp) return 'ยังไม่มี heartbeat';
+    const age = Math.max(0, Date.now() - timestamp);
+    if (age < 2000) return 'เมื่อสักครู่นี้';
+    if (age < 60000) return `${Math.floor(age / 1000)} วินาทีที่แล้ว`;
+    return `${Math.floor(age / 60000)} นาทีที่แล้ว`;
+  }
+
+  function renderDeviceRealtime() {
+    const age = lastDeviceHeartbeatAt ? Date.now() - lastDeviceHeartbeatAt : Infinity;
+    const fresh = age <= Number(window.MQTT_CONFIG?.deviceHeartbeatTimeoutMs || 25000);
+    // Only the retained device heartbeat is authoritative. A retained online,
+    // relay, or mode packet must not keep the dashboard falsely green forever.
+    if (fresh !== deviceOnline) renderDevice(fresh);
+    $$('[data-device-last-seen]').forEach(element => {
+      element.textContent = fresh ? `Heartbeat ${formatLastSeen(lastDeviceHeartbeatAt)}` : `ไม่มี heartbeat ${formatLastSeen(lastDeviceHeartbeatAt)}`;
+      element.dataset.state = fresh ? 'online' : 'warning';
+    });
+    $$('[data-device-live-detail]').forEach(element => {
+      element.textContent = fresh
+        ? `อัปเดตทุกประมาณ 10 วินาที · ${formatLastSeen(lastDeviceHeartbeatAt)}`
+        : 'ข้อมูลอุปกรณ์เก่าเกินเกณฑ์ · รอ heartbeat ใหม่';
+    });
+    if (lastDeviceSnapshot) {
+      const snapshot = lastDeviceSnapshot;
+      if (Number.isFinite(Number(snapshot.rssi))) setText('deviceRssi', `${Number(snapshot.rssi)} dBm · ${formatLastSeen(lastDeviceHeartbeatAt)}`);
+      if (snapshot.firmware) setText('deviceFirmware', snapshot.firmware);
+    }
+  }
+
   function renderRelay(relay, on, hasFeedback = relayFeedback.has(relay)) {
     const emergencyLock = Boolean(window.APP_STATE?.emergencyLock);
     const pending = relayPending.has(relay);
-    const unknown = !emergencyLock && !deviceOnline && !hasFeedback && !pending;
+    const unknown = !emergencyLock && !deviceOnline;
     const forcedOff = emergencyLock;
     const visibleOn = forcedOff ? false : Boolean(on);
-    $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = visibleOn; input.disabled = unknown || forcedOff; });
-    const stateLabel = forcedOff ? 'หยุดฉุกเฉิน · ปิดอยู่' : unknown ? (window.APP_STATE?.mqttConnected ? 'รอข้อมูลจาก ESP8266' : 'ไม่ทราบสถานะ') : (visibleOn ? 'กำลังทำงาน' : 'ปิดอยู่');
-    const actionLabel = forcedOff ? 'ล็อกโดย Emergency Stop' : unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (visibleOn ? `ON · หยุด${relayLabel(relay)}` : `OFF · เปิด${relayLabel(relay)}`);
+    const disabled = unknown || forcedOff || pending;
+    $$(`[data-relay-toggle="${relay}"]`).forEach(input => { input.checked = visibleOn; input.disabled = disabled; });
+    const stateLabel = forcedOff ? 'หยุดฉุกเฉิน · ปิดอยู่' : pending ? `กำลังรอ ESP8266 ยืนยัน · ${visibleOn ? 'ON' : 'OFF'}` : unknown ? (window.APP_STATE?.mqttConnected ? 'รอข้อมูลจาก ESP8266' : 'ไม่ทราบสถานะ') : (visibleOn ? 'กำลังทำงาน' : 'ปิดอยู่');
+    const actionLabel = forcedOff ? 'ล็อกโดย Emergency Stop' : pending ? 'กำลังรอการยืนยัน' : unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (visibleOn ? `ON · หยุด${relayLabel(relay)}` : `OFF · เปิด${relayLabel(relay)}`);
     $$(`[data-relay-state="${relay}"]`).forEach(element => { element.textContent = stateLabel; });
     $$(`[data-relay-action-label="${relay}"]`).forEach(element => { element.textContent = actionLabel; });
     $$(`[data-relay-action="${relay}"]`).forEach(button => {
-      button.disabled = unknown || forcedOff;
-      button.classList.toggle('is-running', !unknown && !forcedOff && visibleOn);
+      button.disabled = disabled;
+      button.classList.toggle('is-running', !unknown && !forcedOff && !pending && visibleOn);
       button.dataset.feedback = hasFeedback ? 'confirmed' : pending ? 'pending' : 'unknown';
-      button.setAttribute('aria-label', forcedOff ? 'ถูกล็อกโดย Emergency Stop' : unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (visibleOn ? `สถานะ ON · กดเพื่อหยุด${relayLabel(relay)}` : `สถานะ OFF · กดเพื่อเปิด${relayLabel(relay)}`));
+      button.setAttribute('aria-label', forcedOff ? 'ถูกล็อกโดย Emergency Stop' : pending ? 'กำลังรอ ESP8266 ยืนยัน' : unknown ? 'ควบคุมไม่ได้ขณะออฟไลน์' : (visibleOn ? `สถานะ ON · กดเพื่อหยุด${relayLabel(relay)}` : `สถานะ OFF · กดเพื่อเปิด${relayLabel(relay)}`));
       const icon = button.querySelector('.context-action-icon');
       if (icon) icon.textContent = visibleOn ? '■' : '↗';
     });
     $$(`[data-relay-card="${relay}"]`).forEach(card => {
-      card.classList.toggle('active', !unknown && !forcedOff && visibleOn);
+      card.classList.toggle('active', !unknown && !forcedOff && !pending && visibleOn);
       card.classList.toggle('device-unknown', unknown);
       card.classList.toggle('emergency-locked', forcedOff);
       card.classList.toggle('status-confirmed', hasFeedback);
       card.classList.toggle('status-pending', pending);
+    });
+  }
+
+  function rollbackRelay(relay, message) {
+    relayPending.delete(relay);
+    relayPendingSince.delete(relay);
+    const previous = relayPendingPrevious.get(relay);
+    relayPendingPrevious.delete(relay);
+    if (typeof previous === 'boolean' && window.APP_STATE?.relays) window.APP_STATE.relays[relay] = previous;
+    renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]), relayFeedback.has(relay));
+    if (message) showToast(message, 'warning');
+  }
+
+  function expireRelayCommands() {
+    const now = Date.now();
+    relayPending.forEach(relay => {
+      const startedAt = relayPendingSince.get(relay) || now;
+      if (now - startedAt > RELAY_ACK_TIMEOUT_MS) {
+        rollbackRelay(relay, `${relayLabel(relay)} ไม่ได้รับการยืนยันจาก ESP8266 ภายใน ${RELAY_ACK_TIMEOUT_MS / 1000} วินาที`);
+      }
     });
   }
 
@@ -162,7 +218,11 @@
 
   function renderEmergency(active, source = '') {
     if (window.APP_STATE) window.APP_STATE.emergencyLock = Boolean(active);
-    if (active) relayPending.clear();
+    if (active) {
+      relayPending.clear();
+      relayPendingSince.clear();
+      relayPendingPrevious.clear();
+    }
     const label = active ? `EMERGENCY STOP ACTIVE${source ? ` · ${source}` : ''}` : 'Emergency Stop ปกติ';
     $$('[data-emergency-panel]').forEach(panel => panel.classList.toggle('active', Boolean(active)));
     $$('[data-emergency-stop]').forEach(button => {
@@ -193,7 +253,30 @@
     $$('[data-sensor-freshness]').forEach(element => { element.textContent = deviceOnline ? 'DHT11 · เรียลไทม์' : 'DHT11 · ค่าล่าสุดที่ได้รับ'; });
   }
 
+  function adminActionAllowed() {
+    if (document.body?.dataset.adminRequired !== 'true') return true;
+    const access = window.SMARTFARM_ACCESS;
+    if (!access?.ready) {
+      showToast('กำลังตรวจสอบสิทธิ์ผู้ดูแลระบบ กรุณารอสักครู่', 'warning');
+      return false;
+    }
+    if (access.role !== 'admin') {
+      showToast('การกระทำนี้สำหรับผู้ดูแลระบบเท่านั้น', 'error');
+      return false;
+    }
+    return true;
+  }
+
   function commandRelay(relay, on) {
+    if (!adminActionAllowed()) return false;
+    if (!deviceOnline) {
+      showToast('ESP8266 ออฟไลน์หรือยังไม่มี heartbeat ล่าสุด', 'warning');
+      return false;
+    }
+    if (relayPending.has(relay)) {
+      showToast(`${relayLabel(relay)} กำลังรอการยืนยันจาก ESP8266`, 'warning');
+      return false;
+    }
     if (window.APP_STATE?.emergencyLock) {
       showToast('Emergency Stop ทำงานอยู่ ต้อง RESET และรอ ESP8266 ยืนยันก่อน', 'warning');
       return false;
@@ -210,6 +293,7 @@
     relayPendingPrevious.set(relay, Boolean(window.APP_STATE?.relays?.[relay]));
     if (window.APP_STATE?.relays) window.APP_STATE.relays[relay] = on;
     relayPending.add(relay);
+    relayPendingSince.set(relay, Date.now());
     renderRelay(relay, on, false);
     showToast(`${relayLabel(relay)}: ส่งคำสั่ง ${state} แล้ว · รออุปกรณ์ยืนยัน`, 'success');
     return true;
@@ -246,7 +330,7 @@
     head.append(heading, closeButton);
     const helper = document.createElement('p');
     helper.className = 'helper';
-    helper.textContent = 'ข้อมูลจะเก็บไว้ในเบราว์เซอร์นี้เท่านั้น และไม่ถูกบันทึกในซอร์สโค้ด';
+    helper.textContent = 'ข้อมูลจะเก็บไว้เฉพาะ session ของแท็บนี้ และไม่ถูกบันทึกในซอร์สโค้ด';
     const form = document.createElement('form');
     form.id = 'mqttSetupForm';
     form.className = 'form-grid modal-form';
@@ -273,15 +357,6 @@
     validation.className = 'helper';
     validation.setAttribute('role', 'status');
     validation.setAttribute('aria-live', 'polite');
-    const rememberLabel = document.createElement('label');
-    rememberLabel.className = 'check-inline field full';
-    const remember = document.createElement('input');
-    remember.id = 'mqttRemember';
-    remember.type = 'checkbox';
-    remember.checked = Boolean(credentials.remember);
-    const rememberText = document.createElement('span');
-    rememberText.textContent = 'จดจำบนอุปกรณ์นี้';
-    rememberLabel.append(remember, rememberText);
     const buttons = document.createElement('div');
     buttons.className = 'btn-row field full';
     const submit = document.createElement('button');
@@ -294,7 +369,7 @@
     cancel.dataset.closeMqtt = '';
     cancel.textContent = 'ยกเลิก';
     buttons.append(submit, cancel);
-    form.append(username.wrapper, password.wrapper, validation, rememberLabel, buttons);
+    form.append(username.wrapper, password.wrapper, validation, buttons);
     card.append(head, helper, form);
     overlay.append(card);
     document.body.appendChild(overlay);
@@ -313,7 +388,7 @@
         validation.className = 'helper error-text';
         return false;
       }
-      validation.textContent = 'ข้อมูลครบถ้วน รหัสผ่านจะถูกเก็บไว้ใน Browser Storage เท่านั้น';
+      validation.textContent = 'ข้อมูลครบถ้วน รหัสผ่านจะเก็บไว้เฉพาะ session ของแท็บนี้';
       validation.className = 'helper';
       return true;
     };
@@ -326,7 +401,7 @@
         return;
       }
       try {
-        const started = window.mqttHandler.setCredentials(username.input.value, password.input.value, remember.checked);
+        const started = window.mqttHandler.setCredentials(username.input.value, password.input.value);
         if (!started) {
           submit.disabled = false;
           validation.className = 'helper error-text';
@@ -378,11 +453,15 @@
     }));
 
     $$('[data-mqtt-connect]').forEach(button => button.addEventListener('click', () => {
+      if (!adminActionAllowed()) return;
       if (window.mqttHandler?.hasCredentials?.()) window.mqttHandler.connect();
       else openMqttSetup();
     }));
-    $$('[data-mqtt-setup]').forEach(button => button.addEventListener('click', openMqttSetup));
+    $$('[data-mqtt-setup]').forEach(button => button.addEventListener('click', () => {
+      if (adminActionAllowed()) openMqttSetup();
+    }));
     $$('[data-mqtt-clear]').forEach(button => button.addEventListener('click', () => {
+      if (!adminActionAllowed()) return;
       window.mqttHandler?.clearCredentials?.();
       showToast('ล้างบัญชี MQTT ออกจากเบราว์เซอร์แล้ว', 'success');
     }));
@@ -393,6 +472,12 @@
       const connected = Boolean(event.detail);
       if (!connected) {
         relayFeedback.clear();
+        relayPendingPrevious.forEach((previous, relay) => {
+          if (window.APP_STATE?.relays && typeof previous === 'boolean') window.APP_STATE.relays[relay] = previous;
+        });
+        relayPending.clear();
+        relayPendingSince.clear();
+        relayPendingPrevious.clear();
         renderDevice(false);
       }
       renderMqtt(connected);
@@ -424,11 +509,7 @@
       const error = event.detail?.error?.message || String(event.detail?.error || 'MQTT publish failed');
       const match = String(event.detail?.topic || '').match(/^smartfarm\/relay\/([^/]+)\/set$/);
       if (match && relayPending.has(match[1])) {
-        const relay = match[1];
-        relayPending.delete(relay);
-        if (window.APP_STATE?.relays && relayPendingPrevious.has(relay)) window.APP_STATE.relays[relay] = relayPendingPrevious.get(relay);
-        relayPendingPrevious.delete(relay);
-        renderRelay(relay, Boolean(window.APP_STATE?.relays?.[relay]), relayFeedback.has(relay));
+        rollbackRelay(match[1]);
       }
       showToast(`ส่งข้อความ MQTT ไม่สำเร็จ${topic}: ${error}`, 'error');
     });
@@ -453,9 +534,16 @@
       const { relay, status } = event.detail || {};
       if (relay) {
         relayPending.delete(relay);
+        relayPendingSince.delete(relay);
         relayPendingPrevious.delete(relay);
         relayFeedback.add(relay);
         renderRelay(relay, Boolean(status), true);
+      }
+    });
+    window.addEventListener('system:error', event => {
+      const detail = event.detail || {};
+      if (detail.code === 'RELAY_BLOCKED') {
+        showToast(`ESP8266 ปฏิเสธคำสั่ง ${detail.message || 'รีเลย์ถูกล็อกด้วย safety state'}`, 'warning');
       }
     });
     window.addEventListener('schedule:status', event => {
@@ -469,9 +557,12 @@
     });
     window.addEventListener('device:data', event => {
       const device = event.detail || {};
+      lastDeviceHeartbeatAt = Date.now();
+      lastDeviceSnapshot = { ...device };
       if (device.firmware) setText('deviceFirmware', device.firmware);
       if (Number.isFinite(Number(device.rssi))) setText('deviceRssi', `${Number(device.rssi)} dBm`);
       if (typeof device.online === 'boolean') renderDevice(device.online);
+      renderDeviceRealtime();
       $$('[data-system-rtc]').forEach(element => {
         const ready = device.online !== false && (device.rtc === true || device.rtcValid === true);
         element.textContent = ready ? 'Ready' : (device.rtc === false || device.rtcValid === false ? 'Invalid' : 'Last seen');
@@ -493,6 +584,11 @@
       $$('[data-operator-email]').forEach(element => { element.textContent = state.user?.email || 'ผู้ใช้งาน'; });
       $$('[data-operator-role]').forEach(element => { element.textContent = state.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งานฟาร์ม'; });
       $$('[data-admin-only]').forEach(element => element.classList.toggle('hidden', state.role !== 'admin'));
+      $$('[data-admin-action]').forEach(element => {
+        const enabled = state.role === 'admin';
+        element.disabled = !enabled;
+        element.setAttribute('aria-disabled', String(!enabled));
+      });
     });
   }
 
@@ -507,7 +603,17 @@
     bindControls();
     bindEvents();
     renderInitialState();
-    window.mqttHandler?.bootstrap?.();
+    realtimeStatusTimer = window.setInterval(renderDeviceRealtime, 1000);
+    window.setInterval(expireRelayCommands, 1000);
+    renderDeviceRealtime();
+    const adminPage = document.body?.dataset.adminRequired === 'true';
+    if (adminPage && !window.SMARTFARM_ACCESS?.ready) {
+      window.addEventListener('access:ready', event => {
+        if (event.detail?.role === 'admin') window.mqttHandler?.bootstrap?.();
+      }, { once: true });
+    } else {
+      if (!adminPage || window.SMARTFARM_ACCESS?.role === 'admin') window.mqttHandler?.bootstrap?.();
+    }
   }
 
   window.showToast = showToast;
