@@ -1,0 +1,248 @@
+/* Smart Farm Dashboard — Green Visibility Theme v1
+   Presentation-only layer. Does not change MQTT, Firebase, relay or safety logic. */
+body.dashboard-page{
+  --green-950:#073b25;
+  --green-900:#0b4d2f;
+  --green-800:#0f6b3a;
+  --green-700:#138447;
+  --green-600:#18a35a;
+  --green-500:#27b968;
+  --green-100:#e7f7ed;
+  --green-050:#f3fbf6;
+  --ink:#12382a;
+  --muted:#64766d;
+  --line:#d6e9dc;
+  --shadow:0 10px 28px rgba(7,59,37,.09);
+  background:linear-gradient(180deg,#f6fcf8 0,#fff 260px);
+  color:var(--ink);
+}
+body.dashboard-page .topbar{
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  box-shadow:0 3px 18px rgba(7,59,37,.06);
+}
+body.dashboard-page .brand-copy strong{color:var(--green-900);font-size:18px}
+body.dashboard-page .brand-copy span{color:var(--muted)}
+body.dashboard-page .desktop-nav{background:var(--green-050);border-color:var(--line)}
+body.dashboard-page .desktop-nav a{color:#557066}
+body.dashboard-page .desktop-nav a.active,
+body.dashboard-page .desktop-nav a:hover{
+  color:#fff;background:var(--green-800);box-shadow:0 4px 12px rgba(15,107,58,.2)
+}
+body.dashboard-page .topbar-ready{
+  color:var(--green-800);background:var(--green-100);border:1px solid #bfe2ca;
+  border-radius:999px;padding:7px 11px
+}
+body.dashboard-page .topbar-rtc{
+  color:var(--green-900);background:#fff;border:1px solid var(--line);
+  border-radius:999px;padding:7px 11px
+}
+
+/* Main hero: strongest visual anchor */
+body.dashboard-page .hero.dashboard-header{
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--green-950) 0%,var(--green-800) 62%,var(--green-600) 100%);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 16px 38px rgba(7,59,37,.2);
+}
+body.dashboard-page .hero.dashboard-header:after{
+  content:"";position:absolute;width:260px;height:260px;right:-90px;top:-120px;
+  border-radius:50%;background:rgba(255,255,255,.09);pointer-events:none
+}
+body.dashboard-page .hero.dashboard-header h1{
+  font-size:clamp(32px,6vw,52px);letter-spacing:-.045em;color:#fff
+}
+body.dashboard-page .hero.dashboard-header .subtitle{font-size:clamp(15px,2.2vw,19px);color:#e8f8ee}
+body.dashboard-page .hero.dashboard-header .kicker{color:#b9f0ca;font-weight:800}
+body.dashboard-page .hero.dashboard-header .status-pill{
+  background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.24);color:#fff
+}
+body.dashboard-page .hero.dashboard-header .tag{
+  background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.22);color:#e7f8ed
+}
+body.dashboard-page .dashboard-header-status{z-index:2}
+body.dashboard-page .dashboard-header-status strong{font-size:16px}
+body.dashboard-page .rtc-chip{
+  border:1px solid rgba(255,255,255,.25)!important;
+  background:rgba(255,255,255,.12)!important;color:#fff!important
+}
+body.dashboard-page .notification-button{
+  border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);
+  color:#fff;border-radius:14px
+}
+
+/* Make every major block clearly separated */
+body.dashboard-page .section,
+body.dashboard-page .card,
+body.dashboard-page .mqtt-live-panel{
+  border-color:var(--line);
+  box-shadow:var(--shadow);
+}
+body.dashboard-page .section-head h2{
+  color:var(--green-900);
+  font-size:clamp(22px,3vw,30px);
+  letter-spacing:-.025em
+}
+body.dashboard-page .section-head .kicker{color:var(--green-700);font-weight:850}
+body.dashboard-page .helper{color:var(--muted)}
+body.dashboard-page .tag.success,
+body.dashboard-page .tag{
+  color:var(--green-800);background:var(--green-050);border-color:#c5e6d0
+}
+
+/* Control area */
+body.dashboard-page #control{
+  border:1px solid #c8e4d1;border-radius:24px;
+  background:linear-gradient(180deg,#f7fcf8,#fff)
+}
+body.dashboard-page #control .pump-hero-card{
+  border:2px solid #b9dec6;
+  background:linear-gradient(145deg,#eaf8ef,#fff 70%);
+  box-shadow:0 14px 34px rgba(15,107,58,.12)
+}
+body.dashboard-page #control .pump-hero-card.active{
+  border-color:#42bd75;
+  box-shadow:0 0 0 3px rgba(39,185,104,.1),0 16px 36px rgba(15,107,58,.16)
+}
+body.dashboard-page #control .pump-state-value{color:var(--green-800)}
+body.dashboard-page #control .pump-off-badge{
+  color:var(--green-900);background:var(--green-100);border:1px solid #c2e4ce
+}
+body.dashboard-page #control .control-card:not(.pump-hero-card){
+  border:1px solid var(--line);background:#fff
+}
+body.dashboard-page #control .control-card:not(.pump-hero-card).active{
+  border-color:#6aca8e;background:linear-gradient(145deg,#effbf3,#fff);
+  box-shadow:0 0 0 2px rgba(39,185,104,.08),var(--shadow)
+}
+body.dashboard-page #control .control-name strong{color:var(--green-900)!important}
+body.dashboard-page #control .vintage-status{
+  border-color:#cfe4d6;background:#f7fbf8;color:#557066
+}
+body.dashboard-page #control .control-card.active .vintage-status{
+  background:var(--green-100);border-color:#a9dbba;color:var(--green-800)
+}
+body.dashboard-page #control .relay-action-row .context-action{
+  background:linear-gradient(135deg,var(--green-700),var(--green-600));
+  border-color:var(--green-700);box-shadow:0 6px 15px rgba(19,132,71,.18)
+}
+body.dashboard-page #control .relay-action-row .context-action:hover:not(:disabled),
+body.dashboard-page #control .relay-action-row .context-action.is-running{
+  background:var(--green-900);border-color:var(--green-900)
+}
+body.dashboard-page #control .relay-action-row .quick-off{
+  background:#f1f7f3;border-color:#cfe4d6;color:var(--green-900)
+}
+body.dashboard-page #control .relay-action-row .quick-off:has(input:checked){
+  background:#dff5e7;border-color:#94d4a9;color:var(--green-800)
+}
+
+/* Realtime status = high visibility */
+body.dashboard-page .mqtt-live-panel{
+  border:1px solid #b9dec6;
+  background:linear-gradient(135deg,#edf9f1,#fff);
+}
+body.dashboard-page .mqtt-live-panel .mqtt-live-dot{
+  box-shadow:0 0 0 6px rgba(39,185,104,.12)
+}
+body.dashboard-page .mqtt-live-panel.online{
+  border-color:#70cb91;background:linear-gradient(135deg,#e7f8ed,#fff)
+}
+body.dashboard-page .mqtt-live-panel.warning{
+  border-color:#e5cf91;background:#fffaf0
+}
+body.dashboard-page .mqtt-live-panel.offline{
+  border-color:#e0c8cc;background:#fff7f7
+}
+body.dashboard-page .mqtt-live-copy h2{color:var(--green-900);font-size:clamp(20px,3vw,28px)}
+body.dashboard-page .mqtt-live-meta>div{
+  border:1px solid var(--line);background:#fff;border-radius:15px;padding:11px 13px
+}
+body.dashboard-page .mqtt-live-meta strong{color:var(--green-800);font-size:18px}
+body.dashboard-page .mqtt-live-actions .btn.primary{
+  background:var(--green-700);border-color:var(--green-700)
+}
+
+/* Live metrics */
+body.dashboard-page .sensor-overview{
+  border:1px solid #c8e4d1;background:#fff
+}
+body.dashboard-page .sensor-overview .metric-card{
+  min-height:138px;border:1px solid var(--line);background:linear-gradient(145deg,#fff,#f7fcf8)
+}
+body.dashboard-page .sensor-overview .metric-card:hover{
+  border-color:#9ed4af;transform:translateY(-2px)
+}
+body.dashboard-page .sensor-overview .metric-card strong{
+  color:var(--green-900);font-size:clamp(28px,4vw,40px)
+}
+body.dashboard-page .sensor-overview .metric-icon{
+  width:42px;height:42px;display:grid;place-items:center;border-radius:13px;
+  background:var(--green-100);border:1px solid #c4e5ce
+}
+
+/* Crop, tasks, AI, weather and finance */
+body.dashboard-page #cropCycleCard,
+body.dashboard-page #cropTasksCard,
+body.dashboard-page #aiAdvisorPanel,
+body.dashboard-page #weatherBox,
+body.dashboard-page #financeSummary{
+  background:#fff;border:1px solid var(--line)
+}
+body.dashboard-page #cropCycleCard .crop-cycle-age{
+  border-color:#a9dbba;background:linear-gradient(160deg,#e9f8ee,#fff)
+}
+body.dashboard-page #cropCycleCard .crop-cycle-age strong{color:var(--green-700)}
+body.dashboard-page #cropTasksCard .crop-task-highlight,
+body.dashboard-page #aiAdvisorPanel .ai-advisor-summary{
+  border-color:#c7e6d1;background:var(--green-050)
+}
+body.dashboard-page #weatherBox .metric-card{
+  border-color:var(--line);background:linear-gradient(145deg,#fff,#f7fcf8)
+}
+body.dashboard-page #weatherBox .metric-card strong{color:var(--green-800)}
+body.dashboard-page #rainProtectionBox{
+  border-color:#b9dec6;background:#edf9f1
+}
+body.dashboard-page .finance-summary-item.profit{
+  border-color:#a9dbba;background:linear-gradient(145deg,#e9f8ee,#fff)
+}
+body.dashboard-page .finance-summary-item.profit strong{color:var(--green-800)}
+
+/* Safety remains red by design for immediate recognition */
+body.dashboard-page .emergency-panel{
+  border-color:#efb7bd;background:linear-gradient(145deg,#fff4f5,#fff)
+}
+body.dashboard-page .emergency-panel h2{color:#9b3541}
+body.dashboard-page .quick-emergency-stop{background:#c94350;border-color:#c94350}
+body.dashboard-page .quick-emergency-reset{background:#fff;color:#9b3541;border-color:#efb7bd}
+
+/* Strong status semantics */
+body.dashboard-page .status-pill.online{
+  color:#0b6b3a!important;background:#e2f7e9!important;border-color:#9bd5ac!important
+}
+body.dashboard-page .status-pill.offline{
+  background:#fff2f3!important;border-color:#e6b8be!important;color:#9b3541!important
+}
+body.dashboard-page .status-pill.warning{
+  background:#fff8e8!important;border-color:#e8d39a!important;color:#87631c!important
+}
+body.dashboard-page .topbar .status-pill.online{
+  color:#fff!important;background:var(--green-700)!important;border-color:var(--green-700)!important
+}
+
+/* Mobile: keep hierarchy obvious and tap targets large */
+@media(max-width:760px){
+  body.dashboard-page{background:linear-gradient(180deg,#f3fbf6 0,#fff 220px)}
+  body.dashboard-page .hero.dashboard-header{border-radius:22px;padding:20px}
+  body.dashboard-page .hero.dashboard-header h1{font-size:36px}
+  body.dashboard-page #control{border-radius:20px;padding:14px}
+  body.dashboard-page .sensor-overview .metric-card{min-height:118px}
+  body.dashboard-page .mqtt-live-meta{grid-template-columns:1fr 1fr}
+}
+@media(max-width:430px){
+  body.dashboard-page .hero.dashboard-header h1{font-size:31px}
+  body.dashboard-page .section-head h2{font-size:22px}
+  body.dashboard-page .mqtt-live-meta{grid-template-columns:1fr}
+  body.dashboard-page .sensor-overview .metric-card strong{font-size:27px}
+}
