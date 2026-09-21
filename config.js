@@ -28,6 +28,8 @@ const MQTT_CONFIG = Object.freeze({
   topics: Object.freeze({
     relaySet: relay => `smartfarm/relay/${relay}/set`,
     relayStatus: relay => `smartfarm/relay/${relay}/status`,
+    timerSet: relay => `smartfarm/relay/${relay}/timer/set`,
+    timerStatus: relay => `smartfarm/relay/${relay}/timer/status`,
     sensor: sensor => `smartfarm/sensor/${sensor}`,
     scheduleSet: relay => `smartfarm/schedule/${relay}/set`,
     scheduleStatus: relay => `smartfarm/schedule/${relay}/status`,
@@ -51,6 +53,7 @@ const MQTT_CONFIG = Object.freeze({
   // the broker ACL; never grant the browser a broad smartfarm/# subscription.
   allowedSubscribeTopics: Object.freeze([
     'smartfarm/relay/+/status',
+    'smartfarm/relay/+/timer/status',
     'smartfarm/sensor/+',
     'smartfarm/schedule/+/status',
     'smartfarm/status/+',
