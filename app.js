@@ -358,7 +358,7 @@
     head.append(heading, closeButton);
     const helper = document.createElement('p');
     helper.className = 'helper';
-    helper.textContent = 'ข้อมูลจะเก็บไว้เฉพาะ session ของแท็บนี้ และไม่ถูกบันทึกในซอร์สโค้ด';
+    helper.textContent = 'ข้อมูลจะเก็บไว้ในเบราว์เซอร์เครื่องนี้เพื่อให้รีเฟรชหน้าแล้วเชื่อมต่อ MQTT ได้อัตโนมัติ และไม่ถูกบันทึกในซอร์สโค้ด';
     const form = document.createElement('form');
     form.id = 'mqttSetupForm';
     form.className = 'form-grid modal-form';
@@ -416,7 +416,7 @@
         validation.className = 'helper error-text';
         return false;
       }
-      validation.textContent = 'ข้อมูลครบถ้วน รหัสผ่านจะเก็บไว้เฉพาะ session ของแท็บนี้';
+      validation.textContent = 'ข้อมูลครบถ้วน บัญชีจะถูกจำไว้ในเบราว์เซอร์เครื่องนี้เพื่อเชื่อมต่ออัตโนมัติ';
       validation.className = 'helper';
       return true;
     };
@@ -625,7 +625,7 @@
       const status = event.detail?.status;
       if (status && !status.complete) {
         const missing = Array.isArray(status.missing) ? status.missing.join(' และ ') : 'username และ password';
-        const storage = status.storage === 'localStorage' ? 'พื้นที่จัดเก็บแบบจดจำ' : status.storage === 'sessionStorage' ? 'เซสชันของเบราว์เซอร์' : 'การตั้งค่าในเบราว์เซอร์';
+        const storage = status.storage === 'localStorage' ? 'พื้นที่จัดเก็บของเบราว์เซอร์' : status.storage === 'sessionStorage' ? 'เซสชันของเบราว์เซอร์' : 'การตั้งค่าในเบราว์เซอร์';
         setText('mqttStatusText', `ยังเชื่อมต่อไม่ได้: ขาด ${missing} ใน${storage}`);
       }
       if (event.detail?.forPublish || event.detail?.manual) openMqttSetup();
