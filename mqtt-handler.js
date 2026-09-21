@@ -555,7 +555,8 @@ class MqttHandler {
       const on = value.toUpperCase() === 'ON';
       if (RELAYS.includes(relay) && ['ON', 'OFF'].includes(value.toUpperCase())) {
         APP_STATE.relays[relay] = on;
-        this.markDeviceSeen('relay-status');
+        // Relay status is retained telemetry; it is NOT proof that the ESP8266 is online.
+        // Device presence is authoritative only from status/online and status/device.
         this.dispatch('relay:status', { relay, status: on });
       }
       return;
@@ -563,7 +564,8 @@ class MqttHandler {
     if (topic === this.config.topics.online) {
       if (['true', 'online', '1', 'yes'].includes(value.toLowerCase())) {
         this.markDeviceSeen('presence');
-      } else if (!APP_STATE.espLastSeen || Date.now() - APP_STATE.espLastSeen > this.config.deviceHeartbeatTimeoutMs) {
+      } else {
+        // LWT=false is the broker's explicit offline presence signal.
         this.setDeviceOnline(false, 'last-will');
       }
       return;
@@ -572,8 +574,10 @@ class MqttHandler {
       try {
         const device = JSON.parse(value);
         if (device.online === false) {
-          if (!APP_STATE.espLastSeen || Date.now() - APP_STATE.espLastSeen > this.config.deviceHeartbeatTimeoutMs) this.setDeviceOnline(false, 'device-status');
-        } else this.markDeviceSeen('device-status');
+          this.setDeviceOnline(false, 'device-status');
+        } else {
+          this.markDeviceSeen('device-status');
+        }
         this.dispatch('device:data', device);
       } catch (_) {
         this.markDeviceSeen('device-status');
@@ -583,7 +587,6 @@ class MqttHandler {
     if (topic === this.config.topics.modeStatus) {
       const mode = value.toUpperCase();
       if (mode === 'AUTO' || mode === 'MANUAL') {
-        this.markDeviceSeen('mode-status');
         this.dispatch('mode:status', mode);
       }
       return;
@@ -606,7 +609,6 @@ class MqttHandler {
       try {
         const emergency = JSON.parse(value);
         APP_STATE.emergencyLock = Boolean(emergency.active);
-        this.markDeviceSeen('emergency-status');
         this.dispatch('emergency:status', emergency);
       } catch (_) {
         // An invalid status must never be interpreted as a safe RESET.
@@ -627,7 +629,6 @@ class MqttHandler {
       if (!RELAYS.includes(relay)) return;
       try {
         const schedule = JSON.parse(value);
-        this.markDeviceSeen('schedule-status');
         this.dispatch('schedule:status', { relay, schedule });
       } catch (_) {
         this.dispatch('schedule:error', { relay, message: 'ข้อมูลตารางเวลาจากอุปกรณ์ไม่ถูกต้อง' });
@@ -653,7 +654,6 @@ class MqttHandler {
     if (topic === this.config.topics.sensor('dht11')) {
       try {
         const sensor = JSON.parse(value);
-        this.markDeviceSeen('dht11');
         const numeric = input => input !== null && input !== '' && Number.isFinite(Number(input));
         if (numeric(sensor.temperature)) this.dispatch('sensor:data', { type: 'temperature', value: Number(sensor.temperature) });
         if (numeric(sensor.humidity)) this.dispatch('sensor:data', { type: 'humidity', value: Number(sensor.humidity) });
