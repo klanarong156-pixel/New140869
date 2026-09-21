@@ -22,7 +22,7 @@ function buildMqttBrokerUrl(broker) {
 const MQTT_CONFIG = Object.freeze({
   broker: MQTT_BROKER,
   url: buildMqttBrokerUrl(MQTT_BROKER),
-  credentialSource: 'session-storage-only',
+  credentialSource: 'local-storage-persistent',
   defaultUsername: 'smartfarm',
   clientId: `SmartFarmWeb-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`,
   topics: Object.freeze({
