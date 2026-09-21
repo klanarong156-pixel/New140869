@@ -580,7 +580,7 @@
         element.dataset.state = detail.state || '';
       }
     });
-    window.addEventListener('esp:status', event => renderDevice(Boolean(event.detail?.online)));
+    window.addEventListener('esp:status', event => {\n      const detail = event.detail || {};\n      if (Number.isFinite(Number(detail.lastSeen)) && Number(detail.lastSeen) > 0) {\n        lastDeviceHeartbeatAt = Number(detail.lastSeen);\n      }\n      renderDevice(Boolean(detail.online));\n    });
     window.addEventListener('relay:status', event => {
       const { relay, status } = event.detail || {};
       if (relay) {
