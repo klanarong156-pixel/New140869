@@ -1,5 +1,5 @@
 /* Shared MQTT connection for Smart Farm pages. It keeps one WebSocket per browser origin. */
-importScripts('mqtt.min.js?v=2');
+importScripts('mqtt.min.js?v=3');
 
 const ports = new Set();
 let client = null;
