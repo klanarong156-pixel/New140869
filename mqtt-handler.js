@@ -137,11 +137,9 @@ class MqttHandler {
     const configuredPass = String(this.config?.password || '');
     if (configuredUser && configuredPass) return { username: configuredUser, password: configuredPass, remember: false };
     try {
-      localStorage.removeItem(this.storageUser);
-      localStorage.removeItem(this.storagePass);
-      localStorage.removeItem('smartfarm.mqtt.remember');
-      // MQTT passwords are session-only. Do not persist them across browser
-      // restarts because any script running on this origin can read storage.
+      // Credentials are intentionally persistent on this device so the
+      // dashboard can reconnect after page refresh/reopen. They are never
+      // written to the repository or firmware source.
       const store = localStorage;
       return {
         username: store.getItem(this.storageUser) || this.config?.defaultUsername || '',
@@ -170,10 +168,7 @@ class MqttHandler {
       };
     }
     try {
-      localStorage.removeItem(this.storageUser);
-      localStorage.removeItem(this.storagePass);
-      localStorage.removeItem('smartfarm.mqtt.remember');
-      const storage = sessionStorage;
+      const storage = localStorage;
       const usernamePresent = Boolean(String(storage.getItem(this.storageUser) || this.config?.defaultUsername || '').trim());
       const passwordPresent = Boolean(storage.getItem(this.storagePass));
       return {
