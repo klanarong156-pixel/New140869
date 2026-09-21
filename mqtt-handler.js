@@ -561,6 +561,16 @@ class MqttHandler {
       }
       return;
     }
+    if (topic.startsWith('smartfarm/relay/') && topic.endsWith('/timer/status')) {
+      const relay = topic.split('/')[2];
+      if (!RELAYS.includes(relay)) return;
+      try {
+        this.dispatch('relay:timer-status', { relay, timer: JSON.parse(value) });
+      } catch (_) {
+        this.dispatch('relay:timer-status', { relay, timer: { active: false, invalid: true } });
+      }
+      return;
+    }
     if (topic === this.config.topics.online) {
       if (['true', 'online', '1', 'yes'].includes(value.toLowerCase())) {
         this.markDeviceSeen('presence');
