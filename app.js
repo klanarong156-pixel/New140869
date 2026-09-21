@@ -147,7 +147,7 @@
   }
 
   function renderDeviceRealtime() {
-    const age = lastDeviceHeartbeatAt ? Date.now() - lastDeviceHeartbeatAt : Infinity;
+    const heartbeat = Number(window.APP_STATE?.espLastSeen || lastDeviceHeartbeatAt || 0);\n    if (heartbeat > lastDeviceHeartbeatAt) lastDeviceHeartbeatAt = heartbeat;\n    const age = lastDeviceHeartbeatAt ? Date.now() - lastDeviceHeartbeatAt : Infinity;
     const fresh = age <= Number(window.MQTT_CONFIG?.deviceHeartbeatTimeoutMs || 25000);
     // Only the retained device heartbeat is authoritative. A retained online,
     // relay, or mode packet must not keep the dashboard falsely green forever.
@@ -580,7 +580,15 @@
         element.dataset.state = detail.state || '';
       }
     });
-    window.addEventListener('esp:status', event => {\n      const detail = event.detail || {};\n      if (Number.isFinite(Number(detail.lastSeen)) && Number(detail.lastSeen) > 0) {\n        lastDeviceHeartbeatAt = Number(detail.lastSeen);\n      }\n      renderDevice(Boolean(detail.online));\n    });
+    window.addEventListener('esp:status', event => {
+      const detail = event.detail || {};
+      const lastSeen = Number(detail.lastSeen || window.APP_STATE?.espLastSeen || 0);
+      if (Number.isFinite(lastSeen) && lastSeen > 0) {
+        lastDeviceHeartbeatAt = lastSeen;
+      }
+      renderDevice(Boolean(detail.online));
+      renderDeviceRealtime();
+    });
     window.addEventListener('relay:status', event => {
       const { relay, status } = event.detail || {};
       if (relay) {
