@@ -147,7 +147,9 @@
   }
 
   function renderDeviceRealtime() {
-    const heartbeat = Number(window.APP_STATE?.espLastSeen || lastDeviceHeartbeatAt || 0);\n    if (heartbeat > lastDeviceHeartbeatAt) lastDeviceHeartbeatAt = heartbeat;\n    const age = lastDeviceHeartbeatAt ? Date.now() - lastDeviceHeartbeatAt : Infinity;
+    const heartbeat = Number(window.APP_STATE?.espLastSeen || lastDeviceHeartbeatAt || 0);
+    if (heartbeat > lastDeviceHeartbeatAt) lastDeviceHeartbeatAt = heartbeat;
+    const age = lastDeviceHeartbeatAt ? Date.now() - lastDeviceHeartbeatAt : Infinity;
     const fresh = age <= Number(window.MQTT_CONFIG?.deviceHeartbeatTimeoutMs || 25000);
     // Only the retained device heartbeat is authoritative. A retained online,
     // relay, or mode packet must not keep the dashboard falsely green forever.
