@@ -142,11 +142,11 @@ class MqttHandler {
       localStorage.removeItem('smartfarm.mqtt.remember');
       // MQTT passwords are session-only. Do not persist them across browser
       // restarts because any script running on this origin can read storage.
-      const store = sessionStorage;
+      const store = localStorage;
       return {
         username: store.getItem(this.storageUser) || this.config?.defaultUsername || '',
         password: store.getItem(this.storagePass) || '',
-        remember: false
+        remember: true
       };
     } catch (_) {
       return { username: '', password: '', remember: false };
@@ -180,8 +180,8 @@ class MqttHandler {
         complete: usernamePresent && passwordPresent,
         usernamePresent,
         passwordPresent,
-        storage: 'sessionStorage',
-        remember: false,
+        storage: 'localStorage',
+        remember: true,
         missing: [
           ...(usernamePresent ? [] : ['username']),
           ...(passwordPresent ? [] : ['password'])
@@ -209,8 +209,8 @@ class MqttHandler {
     const cleanPass = String(password || '');
     if (!cleanUser || !cleanPass) throw new Error('กรุณากรอก MQTT username และ password ให้ครบ');
     this.clearCredentials(false);
-    sessionStorage.setItem(this.storageUser, cleanUser);
-    sessionStorage.setItem(this.storagePass, cleanPass);
+    localStorage.setItem(this.storageUser, cleanUser);
+    localStorage.setItem(this.storagePass, cleanPass);
     this.dispatch('mqtt:credentials-saved', { username: cleanUser, remember: false, status: this.getCredentialStatus() });
     return this.connect(true);
   }
