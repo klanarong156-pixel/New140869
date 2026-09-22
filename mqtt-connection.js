@@ -284,6 +284,20 @@
       client.on('error', error => {
         if (this.client !== client) return;
         this.lastConnectError = this.errorMessage(error, 'MQTT socket error');
+        const authFailure = /not authorized|unauthori[sz]ed|bad user name or password|bad username|authentication|auth/i.test(this.lastConnectError);
+        if (authFailure) {
+          this.updateDiagnostic('disconnected', { reason: 'HiveMQ rejected MQTT credentials', error: this.lastConnectError, origin: 'broker-auth' });
+          this.dispatch('mqtt:error', { message: 'HiveMQ ปฏิเสธ username/password', detail: this.lastConnectError, connected: false, transient: false });
+          this.dispatch('mqtt:credentials-required', {
+            configured: false,
+            reason: 'HiveMQ ปฏิเสธ username/password กรุณาตรวจสอบ MQTT Username และ Password',
+            status: this.getCredentialStatus()
+          });
+          try { client.end(true); } catch (_) {}
+          this.connecting = false;
+          APP_STATE.mqttConnected = false;
+          return;
+        }
         this.updateDiagnostic('reconnecting', { reason: 'MQTT error', error: this.lastConnectError, origin: 'socket' });
         this.dispatch('mqtt:error', { message: this.lastConnectError, connected: Boolean(client.connected), transient: true });
       });
