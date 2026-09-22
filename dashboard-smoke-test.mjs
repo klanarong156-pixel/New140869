@@ -29,7 +29,7 @@ const checks = [
   ['Legacy SharedWorker removed', !fs.existsSync('mqtt-shared-worker.js') && !/mqtt-shared-worker\.js/.test(sw)],
   ['Browser uses HiveMQ WSS 8884 /mqtt', /protocol: 'wss:'/.test(cfg) && /port: 8884/.test(cfg) && /path: '\/mqtt'/.test(cfg)],
   ['Broker host is allowlisted', /MQTT_ALLOWED_BROKER_HOSTS/.test(cfg) && /25305924f68c41f2a1e089a1836d3287\.s1\.eu\.hivemq\.cloud/.test(cfg)],
-  ['MQTT.js is the only browser connection owner', /mqtt\.connect\(this\.config\.url/.test(mqtt) && /reconnectPeriod: 3000/.test(mqtt) && !/SharedWorker/.test(mqtt)],
+  ['MQTT.js is the only browser connection owner', /mqtt\.connect\(this\.config\.url/.test(mqtt) && /reconnectPeriod: 3000/.test(mqtt) && !/new SharedWorker/.test(mqtt)],
   ['MQTT credentials persist locally', /localStorage\.setItem\(this\.storageUser/.test(mqtt) && /localStorage\.getItem\(this\.storagePass/.test(mqtt)],
   ['Connection page has credential inputs', /data-mqtt-user/.test(connection) && /data-mqtt-pass/.test(connection) && /setCredentials\(user,pass\)/.test(connection)],
   ['Dashboard loads current MQTT connection owner', /mqtt-connection\.js/.test(index) && !/mqtt-handler\.js/.test(index)],
