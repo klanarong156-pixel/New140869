@@ -391,36 +391,57 @@ class MqttHandler {
       this.dispatch('mqtt:credentials-required', { configured: false, status: this.getCredentialStatus() });
       return false;
     }
-    if (!force && (this.client?.connected || this.connecting || this.reconnectTimer || (this.usingSharedWorker && APP_STATE.mqttConnected))) return true;
-    if (force && (this.client || this.worker)) this.disconnect();
-    // Keep the original browser MQTT path as the primary connection method.
-    // SharedWorker remains available as a fallback for browsers without mqtt.js.
+
+    // Use the same direct browser MQTT path proven in the Wy repository.
+    // Do not route the primary connection through SharedWorker: one page owns
+    // one MQTT.js client, which makes the connection state deterministic on iOS
+    // and prevents worker/page state from becoming out of sync.
+    if (!force && this.client?.connected) return true;
+
+    if (force && this.client) {
+      try { this.client.end(true); } catch (_) {}
+      this.client = null;
+    }
+
     if (typeof mqtt === 'undefined') {
-      if (this.connectSharedWorker(force)) return true;
-      this.dispatch('mqtt:error', new Error('ไม่พบ MQTT library'));
+      this.connecting = false;
+      this.lastConnectError = 'ไม่พบ MQTT library (mqtt.min.js)';
+      this.updateDiagnostic('disconnected', {
+        reason: 'MQTT.js library unavailable',
+        error: this.lastConnectError,
+        origin: 'browser'
+      });
+      this.dispatch('mqtt:error', { message: this.lastConnectError, connected: false, transient: false });
       return false;
     }
 
+    this.clearReconnectTimer(true);
     this.connecting = true;
     this.dispatch('mqtt:connecting', true);
+    this.updateDiagnostic('reconnecting', {
+      reason: 'connecting to HiveMQ Cloud',
+      origin: 'browser'
+    });
+
+    let nextClient;
     try {
-      this.client = mqtt.connect(this.config.url, {
+      nextClient = mqtt.connect(this.config.url, {
         clientId: this.config.clientId,
         username: credentials.username,
         password: credentials.password,
         clean: true,
-        // The handler owns reconnect timing so there is only one backoff loop.
-        reconnectPeriod: 0,
+        // Match the known-working Wy repository: let MQTT.js own the
+        // reconnect loop instead of maintaining a second manual backoff loop.
+        reconnectPeriod: 3000,
         connectTimeout: 30000,
         keepalive: 30
       });
+      this.client = nextClient;
     } catch (error) {
       this.connecting = false;
-      this.lastConnectError = String(error?.message || error || '');
-      // mqtt.connect() can fail before a client instance exists.
-      // Do not reference nextClient here; it is declared only after connect() succeeds.
-      this.updateDiagnostic('reconnecting', {
-        reason: 'MQTT connect() failed',
+      this.lastConnectError = this.errorMessage(error, 'MQTT connect failed');
+      this.updateDiagnostic('disconnected', {
+        reason: 'MQTT connect() exception',
         error: this.lastConnectError,
         origin: 'browser'
       });
@@ -429,66 +450,92 @@ class MqttHandler {
         connected: false,
         transient: false
       });
-      this.scheduleReconnect();
       return false;
     }
 
-    const nextClient = this.client;
-    this.client.on('connect', () => {
+    nextClient.on('connect', () => {
       if (this.client !== nextClient) return;
       this.connecting = false;
       this.lastConnectError = '';
-      this.clearReconnectTimer(true);
+      this.reconnectAttempt = 0;
       APP_STATE.mqttConnected = true;
-      this.updateDiagnostic('connected', { reason: 'MQTT connection established', origin: 'broker' });
+      this.updateDiagnostic('connected', {
+        reason: 'MQTT connection established',
+        origin: 'broker'
+      });
       this.dispatch('mqtt:connected', true);
+
       this.config.allowedSubscribeTopics.forEach(topic => {
         nextClient.subscribe(topic, { qos: 0 }, error => {
-          if (error) this.dispatch('mqtt:subscribe-error', { topic, error: new Error(this.errorMessage(error, 'MQTT subscribe failed')) });
+          if (error) {
+            this.dispatch('mqtt:subscribe-error', {
+              topic,
+              error: new Error(this.errorMessage(error, 'MQTT subscribe failed'))
+            });
+          }
         });
       });
+
       this.startDeviceWatchdog();
       this.flushPending();
     });
-    this.client.on('message', (topic, message) => {
+
+    nextClient.on('message', (topic, message) => {
       if (this.client === nextClient) this.handleMessage(topic, message.toString());
     });
-    this.client.on('close', () => {
+
+    nextClient.on('reconnect', () => {
       if (this.client !== nextClient) return;
-      this.client = null;
+      this.connecting = true;
+      this.updateDiagnostic('reconnecting', {
+        reason: 'MQTT.js automatic reconnect',
+        origin: 'browser'
+      });
+      this.dispatch('mqtt:reconnecting', { delay: 3000 });
+    });
+
+    nextClient.on('offline', () => {
+      if (this.client !== nextClient) return;
+      this.connecting = true;
+      this.updateDiagnostic('reconnecting', {
+        reason: 'MQTT.js offline',
+        origin: 'broker/socket'
+      });
+      this.dispatch('mqtt:reconnecting', { delay: 3000 });
+    });
+
+    nextClient.on('error', error => {
+      if (this.client !== nextClient) return;
+      this.lastConnectError = this.errorMessage(error, 'MQTT socket error');
+      this.updateDiagnostic('reconnecting', {
+        reason: `MQTT error: ${this.lastConnectError}`,
+        error: this.lastConnectError,
+        origin: 'broker/socket'
+      });
+      this.dispatch('mqtt:error', {
+        message: this.lastConnectError,
+        connected: Boolean(nextClient.connected),
+        transient: true
+      });
+    });
+
+    nextClient.on('close', () => {
+      if (this.client !== nextClient) return;
       APP_STATE.mqttConnected = false;
-      this.connecting = false;
-      // Schedule the single reconnect loop BEFORE notifying the UI. This
-      // guarantees the UI sees "reconnecting" rather than flashing Offline.
-      this.scheduleReconnect();
-      this.updateDiagnostic('disconnected', {
-        reason: this.lastConnectError ? `broker/socket closed: ${this.lastConnectError}` : 'broker/socket closed',
+      this.connecting = true;
+      this.updateDiagnostic('reconnecting', {
+        reason: this.lastConnectError
+          ? `broker/socket closed: ${this.lastConnectError}`
+          : 'broker/socket closed',
         error: this.lastConnectError,
         origin: 'broker/socket'
       });
       this.dispatch('mqtt:connected', false);
+      this.dispatch('mqtt:reconnecting', { delay: 3000 });
+      // Do not manually call connect() here. MQTT.js reconnectPeriod owns
+      // reconnection, exactly as in the known-working Wy implementation.
     });
-    this.client.on('reconnect', () => {
-      if (this.client !== nextClient) return;
-      this.connecting = true;
-      this.dispatch('mqtt:reconnecting', true);
-    });
-    this.client.on('error', error => {
-      if (this.client !== nextClient) return;
-      this.lastConnectError = String(error?.message || error || '');
-      // Error is informational. The close event owns the actual disconnected
-      // transition, preventing Connected -> Offline -> Reconnecting flicker.
-      this.dispatch('mqtt:error', {
-        message: this.lastConnectError,
-        connected: Boolean(nextClient.connected),
-        transient: Boolean(nextClient && !nextClient.destroyed)
-      });
-      this.updateDiagnostic(this.client?.connected ? 'connected' : 'reconnecting', {
-        reason: `MQTT socket error: ${this.lastConnectError || 'unknown error'}`,
-        error: this.lastConnectError,
-        origin: 'broker/socket'
-      });
-    });
+
     return true;
   }
 
