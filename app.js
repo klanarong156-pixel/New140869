@@ -7,6 +7,7 @@
   let deviceOnline = false;
   let lastDeviceHeartbeatAt = 0;
   let lastDeviceSnapshot = null;
+  let lastSensorDataAt = 0;
   let realtimeStatusTimer = 0;
   const relayFeedback = new Set();
   const relayPending = new Set();
@@ -69,8 +70,9 @@
     const mqtt = Boolean(window.APP_STATE?.mqttConnected);
     const esp = Boolean(deviceOnline);
     const rssi = lastDeviceSnapshot?.rssi;
-    const hasTemp = document.querySelector('[data-sensor="temperature"]')?.textContent?.includes('°C');
-    const hasHumidity = document.querySelector('[data-sensor="humidity"]')?.textContent?.includes('%');
+    const sensorFresh = lastSensorDataAt > 0 && (Date.now() - lastSensorDataAt) <= 90000;
+    const hasTemp = sensorFresh && Boolean(document.querySelector('[data-sensor="temperature"]'));
+    const hasHumidity = sensorFresh && Boolean(document.querySelector('[data-sensor="humidity"]'));
     const mqttEl=document.querySelector('[data-status-mqtt]');
     const espEl=document.querySelector('[data-status-esp]');
     const wifiEl=document.querySelector('[data-status-wifi]');
@@ -321,6 +323,7 @@
   function renderSensor(type, value) {
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return;
+    lastSensorDataAt = Date.now();
     const suffix = type === 'temperature' ? ' °C' : ' %';
     const precision = type === 'temperature' ? 1 : 0;
     $$(`[data-sensor="${type}"]`).forEach(element => { element.textContent = `${numeric.toFixed(precision)}${suffix}`; });
