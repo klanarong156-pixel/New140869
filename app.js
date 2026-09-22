@@ -88,13 +88,28 @@
     }
     const label = text || (connected ? 'MQTT เชื่อมต่อ' : 'MQTT ยังไม่เชื่อมต่อ');
     const detail = connected ? 'ช่องทางสั่งงานพร้อมใช้งาน' : (text || 'รอการเชื่อมต่อช่องทางสั่งงาน');
-    $$('[data-mqtt-status]').forEach(element => {
+    $('[data-mqtt-status]').forEach(element => {
       element.classList.toggle('online', Boolean(connected));
       element.classList.toggle('offline', !connected && !text);
       element.classList.toggle('warning', !connected && Boolean(text));
       const indicator = document.createElement('i');
       element.replaceChildren(indicator, document.createTextNode(label));
     });
+
+    // Connection controls must reflect the actual MQTT socket state.
+    // The old UI kept the "Connect MQTT" action visible even after a successful
+    // broker connection, which made it look as if the connection had failed.
+    $('[data-mqtt-connect]').forEach(button => {
+      button.hidden = Boolean(connected);
+      button.disabled = Boolean(connected);
+      button.setAttribute('aria-hidden', String(Boolean(connected)));
+    });
+    $('[data-mqtt-setup]').forEach(button => {
+      button.hidden = false;
+      button.disabled = false;
+      button.textContent = connected ? 'ตั้งค่า MQTT' : 'ตั้งค่า';
+    });
+
     const panel = document.querySelector('[data-mqtt-live-panel]');
     if (panel) {
       panel.classList.toggle('online', Boolean(connected));
