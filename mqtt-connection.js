@@ -222,8 +222,11 @@
 
       this.clearReconnectTimer();
       this.connecting = true;
+      this.lastHeartbeatUptime = null;
+      this.heartbeatSeenCount = 0;
+      APP_STATE.mqttConnected = false;
       this.updateDiagnostic('reconnecting', { reason: 'connecting to HiveMQ Cloud', origin: 'browser' });
-      this.dispatch('mqtt:connecting', true);
+      this.dispatch('mqtt:connecting', { url: this.config.url, username: credentials.username });
 
       let client;
       try {
@@ -251,7 +254,7 @@
         this.connecting = false;
         this.lastConnectError = '';
         APP_STATE.mqttConnected = true;
-        this.updateDiagnostic('connected', { reason: 'HiveMQ connection established', origin: 'browser' });
+        this.updateDiagnostic('connected', { reason: 'HiveMQ connection established', origin: 'browser', error: '' });
         this.dispatch('mqtt:connected', true);
         this.subscribeAll(client);
         this.startDeviceWatchdog();
