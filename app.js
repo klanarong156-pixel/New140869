@@ -65,7 +65,29 @@
   let mqttOfflineTimer = null;
   let mqttLastStableConnectedAt = 0;
 
-  function renderRealtimeStatus() {\n    const mqtt = Boolean(window.APP_STATE?.mqttConnected);\n    const esp = Boolean(deviceOnline);\n    const rssi = lastDeviceSnapshot?.rssi;\n    const hasTemp = document.querySelector('[data-sensor="temperature"]')?.textContent?.includes('°C');\n    const hasHumidity = document.querySelector('[data-sensor="humidity"]')?.textContent?.includes('%');\n    const mqttEl=document.querySelector('[data-status-mqtt]');\n    const espEl=document.querySelector('[data-status-esp]');\n    const wifiEl=document.querySelector('[data-status-wifi]');\n    const sensorEl=document.querySelector('[data-status-sensor]');\n    if(mqttEl) mqttEl.textContent=mqtt?'เชื่อมต่อแล้ว':'ยังไม่เชื่อมต่อ';\n    if(espEl) espEl.textContent=esp?'ออนไลน์':'ออฟไลน์';\n    if(wifiEl) wifiEl.textContent=esp?'เชื่อมต่อแล้ว':'ไม่มีข้อมูล';\n    if(sensorEl) sensorEl.textContent=(hasTemp||hasHumidity)?'ได้รับข้อมูล':'ไม่มีข้อมูล';\n    const rssiEl=document.querySelector('[data-status-rssi]'); if(rssiEl) rssiEl.textContent=Number.isFinite(Number(rssi))?`${Number(rssi)} dBm`:'ยังไม่มี RSSI';\n    const espDetail=document.querySelector('[data-status-esp-detail]'); if(espDetail) espDetail.textContent=lastDeviceHeartbeatAt?`Heartbeat ${formatLastSeen(lastDeviceHeartbeatAt)}`:'รอ heartbeat';\n    const sensorDetail=document.querySelector('[data-status-sensor-detail]'); if(sensorDetail) sensorDetail.textContent=(hasTemp||hasHumidity)?'DHT11 · เรียลไทม์':'ยังไม่ได้รับค่าจากเซนเซอร์';\n    document.querySelectorAll('[data-status-card]').forEach(card=>{const type=card.dataset.statusCard; const ok=type==='mqtt'?mqtt:type==='esp'||type==='wifi'?esp:type==='sensor'?(hasTemp||hasHumidity):false; card.dataset.state=ok?'online':(type==='sensor'?'empty':'offline');});\n    const note=document.querySelector('[data-status-note]'); if(note) note.textContent=mqtt&&esp?'ระบบเชื่อมต่อครบ · สถานะจาก ESP8266 และ MQTT':'ต้องรอ MQTT และ heartbeat ของ ESP8266 ก่อนจึงถือว่าอุปกรณ์พร้อมใช้งาน';\n    const updated=document.querySelector('[data-status-updated]'); if(updated) updated.textContent=new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date());\n  }\n\n  function renderMqtt(connected, text) {
+  function renderRealtimeStatus() {
+    const mqtt = Boolean(window.APP_STATE?.mqttConnected);
+    const esp = Boolean(deviceOnline);
+    const rssi = lastDeviceSnapshot?.rssi;
+    const hasTemp = document.querySelector('[data-sensor="temperature"]')?.textContent?.includes('°C');
+    const hasHumidity = document.querySelector('[data-sensor="humidity"]')?.textContent?.includes('%');
+    const mqttEl=document.querySelector('[data-status-mqtt]');
+    const espEl=document.querySelector('[data-status-esp]');
+    const wifiEl=document.querySelector('[data-status-wifi]');
+    const sensorEl=document.querySelector('[data-status-sensor]');
+    if(mqttEl) mqttEl.textContent=mqtt?'เชื่อมต่อแล้ว':'ยังไม่เชื่อมต่อ';
+    if(espEl) espEl.textContent=esp?'ออนไลน์':'ออฟไลน์';
+    if(wifiEl) wifiEl.textContent=esp?'เชื่อมต่อแล้ว':'ไม่มีข้อมูล';
+    if(sensorEl) sensorEl.textContent=(hasTemp||hasHumidity)?'ได้รับข้อมูล':'ไม่มีข้อมูล';
+    const rssiEl=document.querySelector('[data-status-rssi]'); if(rssiEl) rssiEl.textContent=Number.isFinite(Number(rssi))?`${Number(rssi)} dBm`:'ยังไม่มี RSSI';
+    const espDetail=document.querySelector('[data-status-esp-detail]'); if(espDetail) espDetail.textContent=lastDeviceHeartbeatAt?`Heartbeat ${formatLastSeen(lastDeviceHeartbeatAt)}`:'รอ heartbeat';
+    const sensorDetail=document.querySelector('[data-status-sensor-detail]'); if(sensorDetail) sensorDetail.textContent=(hasTemp||hasHumidity)?'DHT11 · เรียลไทม์':'ยังไม่ได้รับค่าจากเซนเซอร์';
+    document.querySelectorAll('[data-status-card]').forEach(card=>{const type=card.dataset.statusCard; const ok=type==='mqtt'?mqtt:type==='esp'||type==='wifi'?esp:type==='sensor'?(hasTemp||hasHumidity):false; card.dataset.state=ok?'online':(type==='sensor'?'empty':'offline');});
+    const note=document.querySelector('[data-status-note]'); if(note) note.textContent=mqtt&&esp?'ระบบเชื่อมต่อครบ · สถานะจาก ESP8266 และ MQTT':'ต้องรอ MQTT และ heartbeat ของ ESP8266 ก่อนจึงถือว่าอุปกรณ์พร้อมใช้งาน';
+    const updated=document.querySelector('[data-status-updated]'); if(updated) updated.textContent=new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date());
+  }
+
+  function renderMqtt(connected, text) {
     const handler = window.mqttHandler;
     const reconnecting = Boolean(handler?.connecting || handler?.reconnectTimer);
     if (connected) {
@@ -302,7 +324,8 @@
     const suffix = type === 'temperature' ? ' °C' : ' %';
     const precision = type === 'temperature' ? 1 : 0;
     $$(`[data-sensor="${type}"]`).forEach(element => { element.textContent = `${numeric.toFixed(precision)}${suffix}`; });
-    $('[data-sensor-freshness]').forEach(element => { element.textContent = deviceOnline ? 'DHT11 · เรียลไทม์' : 'DHT11 · ค่าล่าสุดที่ได้รับ'; });\n    renderRealtimeStatus();
+    $('[data-sensor-freshness]').forEach(element => { element.textContent = deviceOnline ? 'DHT11 · เรียลไทม์' : 'DHT11 · ค่าล่าสุดที่ได้รับ'; });
+    renderRealtimeStatus();
   }
 
   function adminActionAllowed() {
@@ -649,7 +672,8 @@
       lastDeviceHeartbeatAt = Date.now();
       lastDeviceSnapshot = { ...device };
       if (device.firmware) setText('deviceFirmware', device.firmware);
-      if (Number.isFinite(Number(device.rssi))) setText('deviceRssi', `${Number(device.rssi)} dBm`);\n      renderRealtimeStatus();
+      if (Number.isFinite(Number(device.rssi))) setText('deviceRssi', `${Number(device.rssi)} dBm`);
+      renderRealtimeStatus();
       if (typeof device.online === 'boolean') renderDevice(device.online);
       renderDeviceRealtime();
       $$('[data-system-rtc]').forEach(element => {
