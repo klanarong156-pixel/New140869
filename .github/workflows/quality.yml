@@ -1,4 +1,5 @@
 name: Smart Farm quality
+# Current architecture: mqtt-connection.js + SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino
 
 on:
   push:
