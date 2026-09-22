@@ -57,6 +57,7 @@ const server = http.createServer(async (request, response) => {
     let html = await fs.readFile(path.join(ROOT, 'settings.html'), 'utf8');
     html = html.replace('data-auth-required="true" data-admin-required="true"', '');
     html = html.replace(/<script src="access\.js[^>]*><\/script>/, '');
+    html = html.replace(/data-admin-action disabled/g, 'data-admin-action');
     response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     response.end(html);
     return;
