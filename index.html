@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="redesign-lambo.css?v=3">
   <link rel="stylesheet" href="pump-hero.css?v=1"><link rel="stylesheet" href="suanlungna-design-system.css?v=1">
   <link rel="stylesheet" href="dashboard-polish.css?v=9">
-  <link rel="stylesheet" href="dashboard-green.css?v=3">
+  <link rel="stylesheet" href="dashboard-green.css?v=3"><link rel="stylesheet" href="dashboard-realtime.css?v=1">
   <title>สวนลุงนะ · Smart Farm</title>
 </head>
 <body class="app-shell compact-ui dashboard-page" data-auth-required="true">
@@ -55,6 +55,21 @@
       <div id="dashboardNotificationPanel" class="dashboard-notification-panel" hidden role="status" aria-live="polite">
         <strong>สถานะล่าสุด</strong><span data-dashboard-notification-text>กำลังตรวจสอบการเชื่อมต่อและอุปกรณ์</span>
       </div>
+    </section>
+
+
+    <section class="realtime-status-first" aria-labelledby="realtime-status-title">
+      <div class="realtime-status-head">
+        <div><p class="kicker">SYSTEM · REALTIME</p><h2 id="realtime-status-title">สถานะการเชื่อมต่อ</h2></div>
+        <span class="realtime-updated" data-status-updated>กำลังตรวจสอบ…</span>
+      </div>
+      <div class="realtime-status-grid">
+        <article class="realtime-status-card" data-status-card="mqtt"><span class="status-card-icon">☁</span><div><span>MQTT</span><strong data-status-mqtt>กำลังตรวจสอบ</strong><small>HiveMQ Cloud · WSS 8884</small></div></article>
+        <article class="realtime-status-card" data-status-card="esp"><span class="status-card-icon">▣</span><div><span>ESP8266</span><strong data-status-esp>กำลังตรวจสอบ</strong><small data-status-esp-detail>รอ heartbeat</small></div></article>
+        <article class="realtime-status-card" data-status-card="wifi"><span class="status-card-icon">⌁</span><div><span>Wi‑Fi</span><strong data-status-wifi>รอข้อมูล</strong><small data-status-rssi>ยังไม่มี RSSI</small></div></article>
+        <article class="realtime-status-card" data-status-card="sensor"><span class="status-card-icon">♨</span><div><span>DHT11</span><strong data-status-sensor>ไม่มีข้อมูล</strong><small data-status-sensor-detail>ยังไม่ได้รับค่าจากเซนเซอร์</small></div></article>
+      </div>
+      <div class="realtime-status-note" data-status-note>ระบบจะแสดงสถานะจริงก่อนเปิดใช้งานปุ่มควบคุม</div>
     </section>
 
     <section class="section control-section pump-hero-section" id="control" aria-labelledby="control-title">
