@@ -35,8 +35,8 @@ const checks = [
   ['Dashboard loads current MQTT connection owner', /mqtt-connection\.js/.test(index) && !/mqtt-handler\.js/.test(index)],
   ['Firmware uses HiveMQ TLS 8883', /#define MQTT_SERVER "25305924f68c41f2a1e089a1836d3287\.s1\.eu\.hivemq\.cloud"/.test(firmware) && /#define MQTT_PORT 8883/.test(firmware)],
   ['Firmware uses smartfarm base topic', /#define MQTT_BASE "smartfarm"/.test(firmware)],
-  ['Firmware heartbeat contract exists', /MQTT_BASE \\"\\/status\\/device\\"/.test(firmware) && /MQTT_BASE \\"\\/status\\/online\\"/.test(firmware) && /uptimeSec/.test(firmware)],
-  ['Firmware DHT11 contract exists', /MQTT_BASE \\"\\/sensor\\/dht11\\"/.test(firmware) && /DHT11/.test(firmware)],
+  ['Firmware heartbeat contract exists', firmware.includes('MQTT_BASE "/status/device"') && firmware.includes('MQTT_BASE "/status/online"') && /uptimeSec/.test(firmware)],
+  ['Firmware DHT11 contract exists', firmware.includes('MQTT_BASE "/sensor/dht11"') && /DHT11/.test(firmware)],
   ['Firmware command topics are explicit', /MQTT_COMMAND_TOPICS/.test(firmware) && !/mqtt\.subscribe\(MQTT_BASE "\/#"\)/.test(firmware)],
   ['No fake soil sensor telemetry in dashboard connection page', !/soil.*(?:value|temperature|humidity)/i.test(connection)],
   ['Service worker caches connection page', /connection\.html/.test(sw) && /dashboard-connection\.css/.test(sw)]
