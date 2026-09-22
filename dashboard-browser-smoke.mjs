@@ -3,20 +3,23 @@ import { once } from 'node:events';
 import { chromium } from 'playwright-core';
 
 const port = Number(process.env.DASHBOARD_BROWSER_PORT || 4174);
-const base = `http://127.0.0.1:${port}/dashboard/`;
-const server = spawn('python3', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { stdio: 'ignore' });
+const base = process.env.DASHBOARD_BASE || `http://127.0.0.1:${port}/dashboard/`;
+const remote = Boolean(process.env.DASHBOARD_BASE);
+const server = remote ? null : spawn('python3', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { stdio: 'ignore' });
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 try {
-  let ready = false;
-  for (let attempt = 0; attempt < 50; attempt++) {
-    try {
-      const response = await fetch(base);
-      if (response.ok) { ready = true; break; }
-    } catch (_) {}
-    await wait(100);
+  if (!remote) {
+    let ready = false;
+    for (let attempt = 0; attempt < 50; attempt++) {
+      try {
+        const response = await fetch(base);
+        if (response.ok) { ready = true; break; }
+      } catch (_) {}
+      await wait(100);
+    }
+    if (!ready) throw new Error('local server did not become ready');
   }
-  if (!ready) throw new Error('local server did not become ready');
 
   const browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
@@ -65,6 +68,8 @@ try {
   await browser.close();
   console.log('\nClean dashboard browser smoke test passed.');
 } finally {
-  server.kill('SIGTERM');
-  await once(server, 'exit').catch(() => {});
+  if (server) {
+    server.kill('SIGTERM');
+    await once(server, 'exit').catch(() => {});
+  }
 }
