@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FIRMWARE = (ROOT / "SmartFarm_V6_PRODUCTION1.ino").read_text()
+FIRMWARE = (ROOT / "SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino").read_text()
 CONFIG = (ROOT / "config.js").read_text()
 
 RELAYS = ("pump", "zone1", "lighthome", "lightsala")
@@ -162,7 +162,8 @@ def main() -> int:
     # for obsolete per-topic `mqtt.subscribe()` calls here: that would make the
     # ACL check disagree with the deployed firmware connection contract.
     check('#define MQTT_BASE "smartfarm"' in FIRMWARE, "firmware defines the smartfarm base topic")
-    check('mqtt.subscribe(MQTT_BASE "/#")' in FIRMWARE, "firmware uses the smartfarm/# subscription contract")
+    check('MQTT_COMMAND_TOPICS' in FIRMWARE, "firmware declares explicit command topic filters")
+    check('MQTT_COMMAND_TOPIC_COUNT' in FIRMWARE, "firmware declares command topic count")
 
     required_firmware_fragments = [
         "/reminder/", "/emergency/", "/ai/alert/", "/status/online",
@@ -172,7 +173,7 @@ def main() -> int:
         check(fragment in FIRMWARE, f"firmware contains topic contract fragment: {fragment}")
 
     check("allowedSubscribeTopics" in CONFIG, "web config declares subscribe ACL topics")
-    check("smartfarm/#" in CONFIG, "web config uses the smartfarm/# subscription contract")
+    check("smartfarm/relay/+/status" in CONFIG and "smartfarm/status/+" in CONFIG, "web config uses explicit status subscription filters")
     check("relayStatus: relay" in CONFIG, "web config exposes relay status topic factory")
     check("smartfarm/emergency/status" in CONFIG, "web config includes emergency status subscription")
 
