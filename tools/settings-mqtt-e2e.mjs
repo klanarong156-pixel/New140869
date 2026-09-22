@@ -123,6 +123,7 @@ async function main() {
     const incompleteContext = await browser.newContext();
     const incompletePage = await incompleteContext.newPage();
     await incompletePage.goto(`http://${HOST}:${PORT}/settings.html`, { waitUntil: 'networkidle' });
+    await incompletePage.evaluate(() => document.querySelectorAll('[data-admin-action]').forEach(el => { el.disabled = false; el.removeAttribute('aria-disabled'); }));
     await incompletePage.locator('[data-mqtt-setup]').click();
     await incompletePage.locator('#mqttUsername').fill(TEST_USER);
     await incompletePage.locator('#mqttSetupForm').dispatchEvent('submit');
