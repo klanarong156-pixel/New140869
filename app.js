@@ -110,11 +110,18 @@
       element.dataset.state = connected ? 'online' : 'offline';
     });
     renderDashboardReadiness();
+    // If the connection event was missed during page restore, close the setup
+    // dialog as soon as the handler reports a real MQTT connection.
+    if (window.APP_STATE?.mqttConnected) {
+      document.getElementById('mqttSetupModal')?.remove();
+    }
     window.MqttDiagnostic?.render?.();
   }
 
   function renderDevice(online) {
     deviceOnline = Boolean(online);
+    // Keep one authoritative device state shared by every page/component.
+    if (window.APP_STATE) window.APP_STATE.espOnline = deviceOnline;
     document.body?.classList.toggle('device-offline', !deviceOnline);
     $$('[data-device-status]').forEach(element => {
       element.classList.toggle('online', Boolean(online));
@@ -153,7 +160,7 @@
     const fresh = age <= Number(window.MQTT_CONFIG?.deviceHeartbeatTimeoutMs || 25000);
     // Only the retained device heartbeat is authoritative. A retained online,
     // relay, or mode packet must not keep the dashboard falsely green forever.
-    if (fresh !== deviceOnline) renderDevice(fresh);
+    if (fresh !== deviceOnline || Boolean(window.APP_STATE?.espOnline) !== fresh) renderDevice(fresh);
     $$('[data-device-last-seen]').forEach(element => {
       element.textContent = fresh ? `Heartbeat ${formatLastSeen(lastDeviceHeartbeatAt)}` : `ไม่มี heartbeat ${formatLastSeen(lastDeviceHeartbeatAt)}`;
       element.dataset.state = fresh ? 'online' : 'warning';
