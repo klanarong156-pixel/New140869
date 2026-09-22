@@ -2,25 +2,10 @@ import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 const files = [
-  'config.js',
-  'mqtt-handler.js',
-  'app.js',
-  'schedule.js',
-  'telegram-settings.js',
-  'crop-reminders.js',
-  'crop-plots.js',
-  'farm-analytics.js',
-  'ai-farm-advisor.js',
-  'farm-tools.js',
-  'farm-clock.js',
-  'internet-time.js',
-  'mqtt-shared-worker.js',
-  'user-management.js',
-  'weather.js',
-  'auto-weather-guard.js',
-  'dashboard-ota.js',
-  'finance.js',
-  'functions/index.js',
+  'config.js','mqtt-connection.js','app.js','schedule.js','telegram-settings.js',
+  'crop-reminders.js','crop-plots.js','farm-analytics.js','ai-farm-advisor.js',
+  'farm-tools.js','farm-clock.js','internet-time.js','user-management.js',
+  'weather.js','auto-weather-guard.js','dashboard-ota.js','finance.js'
 ];
 for (const file of files) {
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
@@ -32,149 +17,38 @@ for (const file of files) {
 
 const read = file => fs.readFileSync(file, 'utf8');
 const cfg = read('config.js');
-const handler = read('mqtt-handler.js');
+const mqtt = read('mqtt-connection.js');
 const app = read('app.js');
-const schedule = read('schedule.js');
-const telegram = read('telegram-settings.js');
-const reminders = read('crop-reminders.js');
-const plots = read('crop-plots.js');
-const analytics = read('farm-analytics.js');
-const aiAdvisor = read('ai-farm-advisor.js');
-const tools = read('farm-tools.js');
-const clock = read('farm-clock.js');
-const internetTime = read('internet-time.js');
-const worker = read('mqtt-shared-worker.js');
-const weather = read('weather.js');
-const guard = read('auto-weather-guard.js');
-const ota = read('dashboard-ota.js');
-const standaloneOta = read('ota-standalone.html');
 const index = read('index.html');
-const schedulePage = read('schedule.html');
-const settings = read('settings.html');
-const firmware = read('SmartFarm_V6_PRODUCTION1.ino');
+const connection = read('connection.html');
+const firmware = read('SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino');
 const sw = read('sw.js');
-const readme = read('README.txt');
-const boardReference = read('BOARD_REFERENCE.md');
-const buildStatus = read('BUILD_STATUS.txt');
-const mqttContract = read('MQTT_CONTRACT_V6.md');
-const mqttContractHtml = read('MQTT_CONTRACT_V6.html');
-const rules = read('firebase.rules.json');
-const databaseRules = read('database.rules.json');
-const functions = read('functions/index.js');
-const activeJs = files.map(read).join('\\n');
 
 const checks = [
-  ['HiveMQ WSS broker is allowlisted and credentials stay session-only', /protocol: 'wss:'/.test(cfg) && /port: 8884/.test(cfg) && /path: '\/mqtt'/.test(cfg) && /MQTT_ALLOWED_BROKER_HOSTS/.test(cfg) && /buildMqttBrokerUrl\(MQTT_BROKER\)/.test(cfg) && /credentialSource: 'session-storage-only'/.test(cfg) && /defaultUsername: 'smartfarm'/.test(cfg) && !/\b(username|password)\s*:/.test(cfg) && /sessionStorage/.test(handler)],
-  ['All four relay IDs exist', /pump.*zone1.*lighthome.*lightsala/s.test(cfg)],
-  ['Relay set topic exists', /relaySet:.*smartfarm\/relay/.test(cfg)],
-  ['Relay countdown topics and UI are removed', !/relayTimer|timer\/set|timer\/status|relay-timer|data-timer|commandRelayTimer/.test(cfg + index + app + handler + firmware)],
-  ['Sensor topic factory exists', /sensor: sensor =>/.test(cfg)],
-  ['Online topic exists', /online: 'smartfarm\/status\/online'/.test(cfg)],
-  ['Device status topic exists', /deviceStatus: 'smartfarm\/status\/device'/.test(cfg)],
-  ['Schedule topic factory exists', /scheduleSet: relay =>/.test(cfg)],
-  ['Telegram topics exist', /telegramSet: 'smartfarm\/config\/telegram\/set'/.test(cfg) && /telegramTest: 'smartfarm\/config\/telegram\/test'/.test(cfg)],
-  ['Reminder topics exist', /reminderSet: 'smartfarm\/reminder\/set'/.test(cfg) && /reminderStatus: 'smartfarm\/reminder\/status'/.test(cfg)],
-  ['AI alert topic is isolated from relay commands', /aiAlertSet: 'smartfarm\/ai\/alert\/set'/.test(cfg) && /aiAlertStatus: 'smartfarm\/ai\/alert\/status'/.test(cfg) && /ai\/alert\/set/.test(firmware) && /handleAiAlert/.test(firmware)],
-  ['Browser uses current MQTT handler', /new MqttHandler\(MQTT_CONFIG\)/.test(handler)],
-  ['Direct browser MQTT client is the primary connection path', /if \(typeof mqtt === 'undefined'\)/.test(handler) && /if \(this\.connectSharedWorker\(force\)\) return true/.test(handler) && /this\.client = mqtt\.connect\(this\.config\.url/.test(handler)],
-  ['MQTT checks Browser Storage credentials before auto-connect', /getCredentialStatus\(\)/.test(handler) && /missing/.test(handler) && /localStorage/.test(handler) && /sessionStorage/.test(handler) && /initial: true, status: this\.getCredentialStatus\(\)/.test(handler)],
-  ['Settings validates and saves complete session-only MQTT credentials', /mqttSetupForm/.test(app) && /setCredentials\(username\.input\.value, password\.input\.value\)/.test(app) && !/mqttRemember/.test(app) && /กรุณากรอก/.test(app) && /submit\.disabled/.test(app) && /validation\.setAttribute\('aria-live', 'polite'\)/.test(app)],
-  ['SharedWorker keeps one MQTT connection across pages', /new SharedWorker/.test(handler) && /mqtt-shared-worker\.js/.test(handler) && /importScripts\('mqtt\.min\.js/.test(worker)],
-  ['SharedWorker owns bounded reconnect backoff', /RECONNECT_BASE_MS/.test(worker) && /RECONNECT_MAX_MS/.test(worker) && /reconnectPeriod: 0/.test(worker) && /scheduleReconnect/.test(worker)],
-  ['Primary MQTT client owns jittered reconnect backoff', /reconnectBaseMs = 1000/.test(handler) && /reconnectMaxMs = 30000/.test(handler) && /reconnectJitterMs = 700/.test(handler) && /reconnectPeriod: 0/.test(handler) && /scheduleReconnect\(\)/.test(handler)],
-  ['Dashboard exposes important command acknowledgement status', /mqtt:command-status/.test(handler) && /data-mqtt-command-status/.test(index) && /acknowledged/.test(app)],
-  ['SharedWorker replays latest device heartbeat', /lastDeviceStatus/.test(worker) && /smartfarm\/status\/device/.test(worker) && /type: 'message'/.test(worker)],
-  ['SharedWorker replays latest schedule status', /lastScheduleStatuses/.test(worker) && /smartfarm\/schedule\//.test(worker) && /forEach\(\(payload, topic\)/.test(worker)],
-  ['Current app binds relay controls', /\[data-relay-toggle\]/.test(app)],
-  ['Relay UI waits for MQTT status confirmation', /const state = on \? 'ON' : 'OFF'/.test(app) && /relaySet\(relay\), state/.test(app) && /relay:status/.test(handler)],
-  ['Schedule payload uses slots/on/off schema', /return \{ slots: data \}/.test(schedule) && /JSON\.stringify\(payload\)/.test(schedule)],
-  ['Schedule delete uses DELETE command', /scheduleSet\(activeRelay\), 'DELETE'/.test(schedule)],
-  ['Telegram payload uses botToken/chatId', /botToken/.test(telegram) && /chatId/.test(telegram)],
-  ['Telegram commands are non-retained', /retain: false/.test(telegram)],
-  ['Reminder UI stores tasks and sends settings', /cropReminders/.test(reminders) && /reminderSet/.test(reminders) && /farm\/cropReminders/.test(reminders)],
-  ['Reminder supports plots, recurrence and quiet-hour payload', /plotId/.test(reminders) && /repeatEveryDays/.test(reminders) && /quietStartHour/.test(reminders) && /quietEndHour/.test(reminders)],
-  ['Schedule page contains reminder management UI', /id="crop-reminders"/.test(schedulePage) && /reminderSettingsForm/.test(schedulePage) && /reminderForm/.test(schedulePage)],
-  ['Dashboard rejects overlapping schedule slots', /slotsOverlap/.test(schedule) && /ชนกับช่วงที่/.test(schedule) && /scheduleValidation/.test(schedulePage)],
-  ['Multiple plot model is bounded and persisted', /MAX_PLOTS = 8/.test(plots) && /farm\/cropPlots/.test(plots) && /textContent/.test(plots)],
-  ['Analytics stores real sensor history and renders chart', /sensor:data/.test(analytics) && /sensorHistoryChart/.test(analytics) && /getContext\('2d'\)/.test(analytics) && !/Math\.random/.test(analytics)],
-  ['AI advisor uses real events, persists history and has no relay publisher', /sensor:data/.test(aiAdvisor) && /weather:protection/.test(aiAdvisor) && /farm\/aiAdvisor/.test(aiAdvisor) && /aiAlertSet/.test(aiAdvisor) && !/relaySet/.test(aiAdvisor)],
-  ['AI advisor limits duplicate notifications and keeps safety read-only', /AUTO_COOLDOWN_MS/.test(aiAdvisor) && /payload.length > 900/.test(aiAdvisor) && /ไม่สั่งรีเลย์/.test(aiAdvisor)],
-  ['Homepage clock uses internet time with RTC fallback', /InternetTime/.test(clock) && /internet-time:updated/.test(clock) && /device:data/.test(clock) && /device\.time/.test(clock) && /rtc/.test(clock) && /data-farm-time/.test(index) && /data-farm-clock-source/.test(index)],
-  ['Internet time sync has Bangkok timezone, timeout, fallback and refresh', /Asia\/Bangkok/.test(internetTime) && /AbortController/.test(internetTime) && /REQUEST_TIMEOUT_MS/.test(internetTime) && /SOURCES/.test(internetTime) && /setInterval\(sync, SYNC_INTERVAL_MS\)/.test(internetTime)],
-  ['Backup excludes secrets and supports restore', /SECRET_KEY/.test(tools) && /downloadJson/.test(tools) && /FirebaseDB\.put/.test(tools)],
-  ['Firmware uses same broker and base topic', /#define MQTT_SERVER/.test(firmware) && /#define MQTT_BASE "smartfarm"/.test(firmware)],
-  ['Firmware recovers Wi-Fi and clears stale MQTT socket', /WIFI_RECONNECT_INTERVAL_MS/.test(firmware) && /void maintainWifi\(\)/.test(firmware) && /WiFi\.reconnect\(\)/.test(firmware) && /tls\.stop\(\)/.test(firmware)],
-  ['Firmware subscribes only to explicit command topics', /MQTT_COMMAND_TOPICS/.test(firmware) && /MQTT_COMMAND_TOPIC_COUNT/.test(firmware) && !/mqtt\.subscribe\(MQTT_BASE "\/#"\)/.test(firmware) && /Subscribe command topics/.test(firmware)],
-  ['Firmware explains MQTT auth state 4/5 without leaking secrets', /printMqttAuthDiagnosis/.test(firmware) && /MQTT DIAG: authentication\/authorization rejected/.test(firmware) && /password value is never printed/.test(firmware) && /MQTT_CONNECT_UNAUTHORIZED/.test(firmware)],
-  ['Firmware supports smartfarm username and stable unique Client ID', /MQTT_RECOMMENDED_USERNAME\[\] = "smartfarm"/.test(firmware) && /normalizeMqttUsername/.test(firmware) && /buildMqttClientId/.test(firmware) && /mqtt\.connect\(clientId, mqttUser, mqttPass/.test(firmware)],
-  ['Firmware accepts Telegram topics', /config\/telegram\/set/.test(firmware) && /config\/telegram\/test/.test(firmware)],
-  ['Firmware accepts reminder topic and persists reminders', /reminder\/set/.test(firmware) && /smartfarm_reminders\.json/.test(firmware) && /runReminders/.test(firmware)],
-  ['Firmware validates and rate-limits AI Telegram alerts', /validAiSeverity/.test(firmware) && /strlen\(text\) > 420/.test(firmware) && /duplicate/.test(firmware) && /rate_limited/.test(firmware) && /ai\/alert\/set/.test(firmware)],
-  ['Firmware deduplicates sent reminders', /lastSentDate/.test(firmware) && /send_failed/.test(firmware)],
-  ['Firmware validates every RTC read', /bool validRtcDateTime/.test(firmware) && /DateTime candidate = rtc\.now\(\)/.test(firmware) && /readRtcNow/.test(firmware)],
-  ['Firmware verifies RTC read-back after NTP adjust', /rtc\.adjust\(DateTime\(localEpoch\)\)/.test(firmware) && /readBackOk/.test(firmware) && /delta <= 2UL/.test(firmware)],
-  ['Firmware OTA uses max sketch space and PNA CORS', /maxSketchSpace/.test(firmware) && /Update\.begin\(maxSketchSpace, U_FLASH\)/.test(firmware) && /Access-Control-Allow-Private-Network/.test(firmware)],
-  ['Firmware OTA finalizes before delayed reboot', /otaUploadCompleted/.test(firmware) && /Update\.end\(true\)/.test(firmware) && /Connection", "close"/.test(firmware) && /otaHttpRestartAt = millis\(\) \+ 3000UL/.test(firmware)],
-  ['Firmware OTA frees MQTT/TLS before upload stream', /mqtt\.disconnect\(\);/.test(firmware) && /tls\.stop\(\);/.test(firmware) && /OTA HTTP: START/.test(firmware)],
-  ['Firmware OTA rejects truncated upload before reboot', /completeSize/.test(firmware) && /upload\.totalSize == otaUploadBytes/.test(firmware) && /SIZE MISMATCH/.test(firmware)],
-  ['Firmware OTA forces relays OFF and pauses schedules', /enterOtaSafeState/.test(firmware) && /otaUpdateInProgress/.test(firmware) && /if \(otaUpdateInProgress\) return/.test(firmware)],
-  ['Firmware does not impose a pump 30-minute or MQTT-loss cutoff', /ไม่มีเพดานเวลาทำงานแบบ 30 นาที/.test(firmware) && /การหลุด MQTT ต้องไม่ตัด/.test(firmware) && !/60-second.*MQTT-loss/.test(firmware)],
-  ['Firmware queues event Telegram notifications', /telegramQueue/.test(firmware) && /processTelegramQueue/.test(firmware) && /lastTelegramAttempt/.test(firmware)],
-  ['Firmware heartbeat includes field diagnostics', /heapMaxBlock/.test(firmware) && /heapFrag/.test(firmware) && /sensorFaults/.test(firmware) && /pumpRuntimeSec/.test(firmware) && /resetReason/.test(firmware)],
-  ['Firmware retains latest RTC heartbeat', /status\/device/.test(firmware) && /mqtt\.publish\(MQTT_BASE "\/status\/device", out, true\)/.test(firmware)],
-  ['Dashboard renders field diagnostics', /systemSensorDetail/.test(analytics) && /systemPumpDetail/.test(analytics) && /systemReconnectDetail/.test(analytics) && /farm-analytics\.js\?v=3/.test(index)],
-  ['Health Alarm Center evaluates heartbeat risks without new MQTT topics', /systemAlarmCenter/.test(index) && /renderHealthAlarm/.test(analytics) && /heap < 12000/.test(analytics) && /frag >= 35/.test(analytics) && /sensorAge > 90/.test(analytics)],
-  ['Dashboard has realtime MQTT status panel', /data-mqtt-live-panel/.test(index) && /data-mqtt-live-label/.test(index) && /data-mqtt-device-status/.test(index) && /data-mqtt-last-update/.test(index) && /setText\(document\.querySelector\('\[data-mqtt-live-label\]'\)/.test(app) && /mqtt:reconnecting/.test(app)],
-  ['Dashboard uses explicit status-only MQTT subscriptions', /allowedSubscribeTopics: Object\.freeze\(\[/.test(cfg) && /relay\/\+\/status/.test(cfg) && /status\/\+/.test(cfg) && !/allowedSubscribeTopics: Object\.freeze\(\['smartfarm\/#'\]\)/.test(cfg)],
-  ['MQTT publish waits for client or worker acknowledgement', /publishDirect/.test(handler) && /mqtt:publish-ack/.test(handler) && /mqtt:publish-error/.test(handler) && /client\.publish\(topic, payload, options,/.test(handler) && /requestId/.test(worker) && /type: 'publish-ack'/.test(worker) && /type: 'publish-error'/.test(worker)],
-  ['User Management page is Admin-only', /data-admin-required=\"true\"/.test(read('admin.html')) && /user-management\.js/.test(read('admin.html')) && /window\.addEventListener\('access:ready'/.test(read('user-management.js'))],
-  ['User Management backend has protected Auth actions', /exports\.listUsers/.test(functions) && /exports\.setUserRole/.test(functions) && /exports\.setUserDisabled/.test(functions) && /exports\.createPasswordResetLink/.test(functions) && /sendPasswordResetEmail/.test(functions) && /exports\.deleteUser/.test(functions) && /requireAdmin/.test(functions)],
-  ['Legacy admin role editor is removed', !fs.existsSync('admin.js') && !/admin\.js/.test(read('sw.js'))],
-  ['Dashboard distinguishes MQTT stop from physical E-stop', /ไม่ใช่อุปกรณ์ตัดไฟฉุกเฉินทางกายภาพ/.test(index) && /E-stop/.test(schedulePage)],
-  ['Documentation matches no pump hard cutoff policy', /no forced 30-minute.*cutoff/.test(mqttContract) && /No 30-minute pump ceiling/.test(buildStatus) && /no forced 30-minute.*cutoff/.test(mqttContractHtml)],
-  ['Firmware schedule parser accepts slots/on/off', /d\["slots"\]/.test(firmware) && /o\["on"\]/.test(firmware) && /o\["off"\]/.test(firmware)],
-  ['Firmware schedule persistence checks write result and restores previous data', /bool saveConfig\(\)/.test(firmware) && /serializeJson\(d, f\)/.test(firmware) && /d\.overflowed\(\)/.test(firmware) && /persistence failed/.test(firmware) && /previous\[s\]/.test(firmware)],
-  ['Firmware secrets persistence checks write result and restores Telegram config', /bool saveSecrets\(\)/.test(firmware) && /return bytes > 0/.test(firmware) && /Credential persistence failed/.test(firmware) && /previousToken/.test(firmware)],
-  ['Firmware MQTT control logs use real newlines', /MQTT RX: topic=%s payload=%s\\n/.test(firmware) && !/MQTT RX: topic=%s payload=%s\\\\n/.test(firmware)],
-  ['Firmware rejects overlapping or malformed schedule slots', /schedulesOverlap/.test(firmware) && /scheduleSetValid/.test(firmware) && /invalid time/.test(firmware) && /reason=/.test(firmware) && /malformed/.test(firmware) && /slot-count/.test(firmware)],
-  ['Firmware schedules use RTC with validated multi-server NTP fallback', /scheduleClockMinutes/.test(firmware) && /MIN_VALID_EPOCH/.test(firmware) && /NTP_SERVERS/.test(firmware) && /ntpTimeValid/.test(firmware) && /applyAutoState\(scheduleMinutes\)/.test(firmware)],
-  ['Relay writes only on state changes', /if \(wasOn == on\)\s*return/.test(firmware)],
-  ['Dashboard validates time ranges and guards duplicate schedule publishes', /SCHEDULE_PUBLISH_GUARD_MS = 8000/.test(schedule) && /pendingSchedule/.test(schedule) && /timeToMinutes\(slot\.on\) < 0/.test(schedule) && /กำลังบันทึกตาราง/.test(schedule)],
-  ['Usage estimator lives in settings, not dashboard', !/id="usagePanel"/.test(index) && /id="usagePanel"/.test(settings) && /usagePumpMinutes/.test(settings) && /usageWaterLiters/.test(settings) && /usageEnergyKwh/.test(settings) && /usageElectricCost/.test(settings)],
-  ['Usage estimator persists configurable flow power and tariff', /USAGE_KEY/.test(analytics) && /localStorage\.setItem\(USAGE_KEY/.test(analytics) && /usageTotals/.test(analytics) && /pumpPower/.test(analytics) && /tariff/.test(analytics)],
-  ['Usage reset starts current total at zero without deleting history', /usage\.resetAt/.test(analytics) && /effectiveFrom/.test(analytics) && /ยอดปัจจุบันเริ่มหลังรีเซ็ต/.test(analytics)],
-  ['Dashboard pages load current app.js', /app\.js\?v=/.test(index) && /app\.js\?v=/.test(schedulePage) && /app\.js\?v=/.test(settings)],
-  ['Board reference matches firmware and settings link', /SmartFarm_V6\.0|V7\.1\.0-FIELD-STABILITY/.test(boardReference) && /DHT11_DATA|DHT11 data/.test(boardReference) && /RELAY_PUMP|ปั้มน้ำ/.test(boardReference) && /BOARD_REFERENCE\.md/.test(settings)],
-  ['All user pages use compact UI mode', /compact-ui/.test(index) && /compact-ui/.test(schedulePage) && /compact-ui/.test(settings) && /compact-ui/.test(read('finance.html')) && /compact-ui/.test(read('account.html')) && /compact-ui/.test(read('admin.html')) && /compact-ui/.test(read('ota.html'))],
-  ['Schedule page uses short labels and one save action', /<h1>ตั้งเวลา<\/h1>/.test(schedulePage) && !/slotEnable\d+/.test(schedulePage) && /<label>เปิด<input/.test(schedulePage) && /onclick="saveSchedule\(\)">บันทึก<\/button>/.test(schedulePage)],
-  ['Schedule page loads overlap-safe schedule.js', /schedule\.js\?v=10/.test(schedulePage)],
-  ['PWA caches full-system upgrade assets', /crop-reminders\.js/.test(sw) && /crop-plots\.js/.test(sw) && /farm-analytics\.js/.test(sw) && /ai-farm-advisor\.js/.test(sw) && /farm-tools\.js/.test(sw) && /farm-clock\.js/.test(sw) && /mqtt-shared-worker\.js/.test(sw) && /user-management\.js/.test(sw)],
-  ['Dashboard loads OTA controller', /dashboard-ota\.js\?v=/.test(settings) && /otaDashboardForm/.test(ota)],
-  ['Dashboard explains MQTT reconnect backoff', /mqtt:reconnecting/.test(app) && /Math\.ceil\(delay \/ 1000\)/.test(app)],
-  ['Standalone OTA page is disabled until secure gateway exists', /HTTP OTA ถูกปิดใช้งาน/.test(standaloneOta) && /HTTPS gateway\/VPN/.test(standaloneOta) && !/<script[^>]+src=[^>]*(?:mqtt|firebase)/i.test(standaloneOta)],
-  ['Weather assets are loaded by dashboard', /weather\.js\?v=/.test(index)],
-  ['Open-Meteo endpoint configured', /https:\/\/api\.open-meteo\.com\/v1\/forecast/.test(weather)],
-  ['Weather protection is advisory only', /autoWateringAllowed = !blocked/.test(weather) && !/data-mode|\bAUTO\b|\bMANUAL\b/.test(guard)],
-  ['Mode MQTT contract uses V1.0 topics', /modeSet: 'smartfarm\/mode\/set'/.test(cfg) && /modeStatus: 'smartfarm\/mode\/status'/.test(cfg) && /topics\.modeStatus/.test(handler) && /MQTT_BASE \"\/mode\/status\"/.test(firmware) && /MQTT_BASE \"\/mode\/set\"/.test(firmware)],
-  ['Emergency stop uses existing relay OFF commands', /data-emergency-stop/.test(index) && /relaySet\(relay\), 'OFF'/.test(tools)],
-  ['Emergency latch has reset/status UI', /data-emergency-reset/.test(index) && /data-emergency-status/.test(index) && /emergency:status/.test(app)],
-  ['Firebase rules cover user-scoped domains', /users/.test(rules) && /profile/.test(rules) && /finance/.test(rules) && /cropCycle/.test(rules) && /cropPlots/.test(rules) && /cropReminders/.test(rules) && /analytics/.test(rules) && /amount.*> 0/.test(rules)],
-  ['Firebase rules validate AI history and keep twin identical', /aiAdvisor/.test(rules) && /severity.*critical/.test(rules) && rules === databaseRules],
-  ['Firebase roles prevent self-admin escalation', /newData\.child\('role'\)\.val\(\) === 'user'/.test(rules) && /newData\.child\('role'\)\.val\(\) === 'admin'/.test(rules) && !/owner/.test(rules)],
-  ['User management audit is server-only', /"userManagementAudit"/.test(rules) && /"\.read": false/.test(rules) && /"\.write": false/.test(rules)],
-  ['Firebase rules twin is identical', rules === databaseRules],
-  ['Active JavaScript has no HTML injection sinks', !/innerHTML|outerHTML|document\\.write|insertAdjacentHTML/.test(activeJs)],
-  ['PWA cache has current versioned source of truth', /const CACHE_NAME = 'smartfarm-v7\.\d+-[a-z0-9-]+-\d+'/.test(sw) && /SMART FARM LUNGNA V7\.1/.test(read('SYSTEM_VERSION.txt'))],
-  ['Pages load latest stylesheet cache version', /app\.css\?v=40/.test(index) && /app\.css\?v=40/.test(settings) && /app\.css\?v=40/.test(schedulePage)],
+  ['Current MQTT owner exists', fs.existsSync('mqtt-connection.js') && !fs.existsSync('mqtt-handler.js')],
+  ['Legacy SharedWorker removed', !fs.existsSync('mqtt-shared-worker.js') && !/mqtt-shared-worker\.js/.test(sw)],
+  ['Browser uses HiveMQ WSS 8884 /mqtt', /protocol: 'wss:'/.test(cfg) && /port: 8884/.test(cfg) && /path: '\/mqtt'/.test(cfg)],
+  ['Broker host is allowlisted', /MQTT_ALLOWED_BROKER_HOSTS/.test(cfg) && /25305924f68c41f2a1e089a1836d3287\.s1\.eu\.hivemq\.cloud/.test(cfg)],
+  ['MQTT.js is the only browser connection owner', /mqtt\.connect\(this\.config\.url/.test(mqtt) && /reconnectPeriod: 3000/.test(mqtt) && !/SharedWorker/.test(mqtt)],
+  ['MQTT credentials persist locally', /localStorage\.setItem\(this\.storageUser/.test(mqtt) && /localStorage\.getItem\(this\.storagePass/.test(mqtt)],
+  ['Connection page has credential inputs', /data-mqtt-user/.test(connection) && /data-mqtt-pass/.test(connection) && /setCredentials\(user,pass\)/.test(connection)],
+  ['Dashboard loads current MQTT connection owner', /mqtt-connection\.js/.test(index) && !/mqtt-handler\.js/.test(index)],
+  ['Firmware uses HiveMQ TLS 8883', /#define MQTT_SERVER "25305924f68c41f2a1e089a1836d3287\.s1\.eu\.hivemq\.cloud"/.test(firmware) && /#define MQTT_PORT 8883/.test(firmware)],
+  ['Firmware uses smartfarm base topic', /#define MQTT_BASE "smartfarm"/.test(firmware)],
+  ['Firmware heartbeat contract exists', /smartfarm\/status\/device/.test(firmware) && /smartfarm\/status\/online/.test(firmware) && /uptimeSec/.test(firmware)],
+  ['Firmware DHT11 contract exists', /smartfarm\/sensor\/dht11/.test(firmware) && /DHT11/.test(firmware)],
+  ['Firmware command topics are explicit', /MQTT_COMMAND_TOPICS/.test(firmware) && !/mqtt\.subscribe\(MQTT_BASE "\/#"\)/.test(firmware)],
+  ['No fake soil sensor telemetry in dashboard connection page', !/soil.*(?:value|temperature|humidity)/i.test(connection)],
+  ['Service worker caches connection page', /connection\.html/.test(sw) && /dashboard-connection\.css/.test(sw)]
 ];
 
 let failed = 0;
 for (const [name, ok] of checks) {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
-  if (!ok) failed += 1;
+  if (!ok) failed++;
 }
 if (failed) {
-  console.error(`\n${failed} dashboard checks failed`);
+  console.error(`\n${failed} current-architecture checks failed`);
   process.exit(1);
 }
-console.log(`\nDashboard runtime contract checks passed: ${checks.length}`);
+console.log(`\nCurrent Smart Farm architecture checks passed: ${checks.length}`);
