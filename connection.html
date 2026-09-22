@@ -19,7 +19,13 @@
 <main class="connection-main">
 <section class="connection-hero"><div><p class="kicker">SYSTEM CONNECTION · FIRMWARE FIRST</p><h1>เชื่อมต่อระบบ</h1><p>จุดเชื่อมต่อกลางระหว่าง Dashboard, HiveMQ Cloud และ ESP8266</p></div><div class="connection-state" data-connection-state>กำลังตรวจสอบ</div></section>
 <section class="connection-grid">
-<article class="connection-card primary" data-card="mqtt"><div class="card-head"><span class="connection-icon">☁</span><div><span class="eyebrow">MQTT BROKER</span><h2>HiveMQ Cloud</h2></div><b data-mqtt-state>ยังไม่เชื่อมต่อ</b></div><dl><div><dt>Host</dt><dd>25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud</dd></div><div><dt>WebSocket</dt><dd>WSS · 8884 · /mqtt</dd></div><div><dt>Topic Base</dt><dd>smartfarm</dd></div></dl><button class="connection-btn primary" data-connect>เชื่อมต่อ MQTT</button><button class="connection-btn ghost" data-disconnect>ตัดการเชื่อมต่อ</button></article>
+<article class="connection-card primary" data-card="mqtt"><div class="card-head"><span class="connection-icon">☁</span><div><span class="eyebrow">MQTT BROKER</span><h2>HiveMQ Cloud</h2></div><b data-mqtt-state>ยังไม่เชื่อมต่อ</b></div><dl><div><dt>Host</dt><dd>25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud</dd></div><div><dt>WebSocket</dt><dd>WSS · 8884 · /mqtt</dd></div><div><dt>Topic Base</dt><dd>smartfarm</dd></div></dl><button class="connection-btn primary" data-connect>เชื่อมต่อ MQTT</button><button class="connection-btn ghost" data-disconnect>ตัดการเชื่อมต่อ</button>
+<div class="mqtt-credentials" data-credentials>
+<label>MQTT Username<input data-mqtt-user type="text" autocomplete="username" value="smartfarm"></label>
+<label>MQTT Password<input data-mqtt-pass type="password" autocomplete="current-password" placeholder="รหัสผ่าน HiveMQ"></label>
+<button class="connection-btn primary" data-save-credentials>บันทึกและเชื่อมต่อ</button>
+<small data-credential-note>รหัสผ่านจะเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น</small>
+</div></article>
 <article class="connection-card" data-card="esp"><div class="card-head"><span class="connection-icon">▣</span><div><span class="eyebrow">DEVICE</span><h2>ESP8266</h2></div><b data-esp-state>ออฟไลน์</b></div><div class="big-state" data-esp-detail>รอ heartbeat</div><div class="connection-row"><span>Heartbeat</span><strong data-heartbeat>ยังไม่มี</strong></div><div class="connection-row"><span>RSSI</span><strong data-rssi>ยังไม่มี</strong></div><div class="connection-row"><span>Uptime</span><strong data-uptime>ยังไม่มี</strong></div></article>
 <article class="connection-card" data-card="sensor"><div class="card-head"><span class="connection-icon">♨</span><div><span class="eyebrow">SENSOR</span><h2>DHT11</h2></div><b data-sensor-state>ไม่มีข้อมูล</b></div><div class="sensor-values"><div><small>อุณหภูมิ</small><strong data-temp>-- °C</strong></div><div><small>ความชื้น</small><strong data-humidity>-- %</strong></div></div><p data-sensor-note>รอข้อมูลจาก smartfarm/sensor/dht11</p></article>
 </section>
@@ -54,6 +60,17 @@
  window.addEventListener('sensor:data',e=>{if(e.detail?.type==='temperature')window.__temp=e.detail.value;if(e.detail?.type==='humidity')window.__hum=e.detail.value;render()});
  q('[data-connect]').onclick=()=>window.mqttHandler?.connect(true);
  q('[data-disconnect]').onclick=()=>window.mqttHandler?.disconnect('connection-page');
+ q('[data-save-credentials]').onclick=()=>{
+   const user=q('[data-mqtt-user]').value.trim();
+   const pass=q('[data-mqtt-pass]').value;
+   try{ window.mqttHandler?.setCredentials(user,pass); q('[data-credential-note]').textContent='บันทึกแล้ว กำลังเชื่อมต่อ…'; }
+   catch(e){ q('[data-credential-note]').textContent=String(e?.message||e); }
+ };
+ window.addEventListener('mqtt:credentials-required',e=>{
+   const s=e.detail?.status||{};
+   q('[data-credential-note]').textContent='ยังไม่มี MQTT password ในเบราว์เซอร์ กรุณากรอกด้านบน';
+   q('[data-mqtt-user]').value=s.usernamePresent?'smartfarm':'smartfarm';
+ });
  setInterval(render,1000); render(); window.mqttHandler?.bootstrap();
 })();
 </script>
