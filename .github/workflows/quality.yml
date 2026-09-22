@@ -26,11 +26,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in *.js *.mjs; do node --check "$file"; done
+          for file in *.js *.mjs dashboard/*.js; do node --check "$file"; done
           for file in *.json; do node -e "JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'))" "$file"; done
       - name: Run Smart Farm contract checks
         run: |
           node dashboard-smoke-test.mjs
+          node dashboard-contract-test.mjs
           node schedule-regression-test.mjs
           node firmware-logic-regression-test.mjs
           node ai-advisor-regression-test.mjs
@@ -50,6 +51,17 @@ jobs:
               test -e "$local_ref" || { echo "$file -> $ref (MISSING)"; exit 1; }
             done < <(printf '%s\n' "$refs" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' || true)
           done < <(find . -maxdepth 1 -name '*.html' -print)
+          while IFS= read -r file; do
+            refs=$(grep -oE '(src|href)="[^"]+"' "$file" || true)
+            while IFS= read -r ref; do
+              [[ -z "$ref" ]] && continue
+              local_ref="${ref%%\?*}"
+              local_ref="${local_ref%%\#*}"
+              local_ref="dashboard/${local_ref#../}" # resolve dashboard-relative files below
+              [[ "$ref" == *"../"* ]] && local_ref="${ref%%\?*}"
+              test -e "dashboard/$local_ref" || test -e "$local_ref" || { echo "$file -> $ref (MISSING)"; exit 1; }
+            done < <(printf '%s\n' "$refs" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' || true)
+          done < <(find dashboard -maxdepth 1 -name '*.html' -print)
           test -f icon-512.png
           test "$(file icon-512.png | grep -c '512 x 512')" -eq 1
       - name: Check whitespace

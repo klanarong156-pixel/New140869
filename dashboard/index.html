@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d3d2a">
+  <meta name="description" content="สวนลุงนะ Smart Farm Dashboard สำหรับ ESP8266 ผ่าน MQTT">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" href="../icon-192.png">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <link rel="stylesheet" href="dashboard.css?v=1">
+  <title>สวนลุงนะ · Smart Farm Dashboard</title>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="กลับหน้าหลักสวนลุงนะ">
+        <img src="../assets/logo-suanlungna-transparent.png" alt="โลโก้สวนลุงนะ">
+        <span>
+          <strong>สวนลุงนะ</strong>
+          <small>SMART FARM</small>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="เมนูหลัก">
+        <a class="active" href="./">แดชบอร์ด</a>
+        <a href="../schedule.html">ตั้งเวลา</a>
+        <a href="../finance.html">การเงิน</a>
+        <a href="../account.html">บัญชี</a>
+        <a href="../settings.html">ตั้งค่า</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero-panel" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">SMART FARM · LIVE CONTROL</p>
+          <h1 id="page-title">สวนลุงนะ</h1>
+          <p class="hero-description">ติดตามอุปกรณ์จริงและควบคุมรีเลย์ผ่าน MQTT โดยตรง</p>
+        </div>
+        <div class="status-strip" aria-label="สถานะการเชื่อมต่อ">
+          <span class="status-chip" data-mqtt-status data-tone="warn">MQTT · ออฟไลน์</span>
+          <span class="status-chip" data-esp-status data-tone="bad">ESP8266 · ออฟไลน์</span>
+        </div>
+        <div class="credential-panel" data-credential-panel>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">MQTT LOGIN</p>
+              <h2>เชื่อมต่อ HiveMQ Cloud</h2>
+            </div>
+            <span class="small-note">Username เริ่มต้น: smartfarm</span>
+          </div>
+          <form class="credential-form" data-credential-form>
+            <label>MQTT Username<input data-mqtt-username type="text" autocomplete="username" value="smartfarm" required></label>
+            <label>MQTT Password<input data-mqtt-password type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน MQTT" required></label>
+            <button class="button button-light" type="submit">บันทึกและเชื่อมต่อ</button>
+          </form>
+          <p class="form-error" data-credential-error hidden></p>
+          <p class="small-note">Credential จะเก็บใน localStorage ของอุปกรณ์นี้เท่านั้น และไม่อยู่ใน source code</p>
+        </div>
+        <div class="hero-actions">
+          <button class="button button-light" type="button" data-connect>เชื่อมต่อใหม่</button>
+          <button class="button button-ghost" type="button" data-disconnect>ตัดการเชื่อมต่อ</button>
+          <button class="button button-ghost" type="button" data-clear-credentials>ล้าง credentials</button>
+        </div>
+      </section>
+
+      <section class="overview-grid" aria-label="ภาพรวมระบบ">
+        <article class="metric-card device-card">
+          <div class="card-topline"><span class="card-label">ESP8266</span><span class="mini-status" data-esp-badge data-tone="bad">ออฟไลน์</span></div>
+          <strong class="metric-value" data-esp-online>OFFLINE</strong>
+          <span class="metric-caption" data-device-id>ยังไม่มีข้อมูล</span>
+          <div class="metric-detail-row"><span>RSSI</span><strong data-rssi>—</strong></div>
+          <div class="metric-detail-row"><span>Firmware</span><strong data-firmware>—</strong></div>
+          <div class="metric-detail-row"><span>Uptime</span><strong data-uptime>—</strong></div>
+        </article>
+
+        <article class="metric-card sensor-card">
+          <div class="card-topline"><span class="card-label">DHT11 · SENSOR จริง</span><span class="mini-status" data-sensor-freshness>DHT11 · ยังไม่มีข้อมูล</span></div>
+          <div class="sensor-values">
+            <div><span class="metric-caption">อุณหภูมิ</span><strong class="metric-value" data-temperature>—</strong></div>
+            <div><span class="metric-caption">ความชื้น</span><strong class="metric-value" data-humidity>—</strong></div>
+          </div>
+          <p class="card-footnote">ถ้ายังไม่ได้รับข้อมูลจะแสดง — · ไม่มีค่าจำลอง</p>
+        </article>
+
+        <article class="metric-card soil-card">
+          <div class="card-topline"><span class="card-label">SOIL SENSOR</span><span class="mini-status" data-tone="neutral">ฮาร์ดแวร์</span></div>
+          <strong class="metric-value soil-value">ไม่ได้ติดตั้ง</strong>
+          <p class="card-footnote">Firmware ปัจจุบันไม่มี Soil Sensor จริง จึงไม่แสดงค่าความชื้นดิน</p>
+        </article>
+      </section>
+
+      <section class="content-card" aria-labelledby="relay-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">CONTROL</p><h2 id="relay-title">ควบคุมรีเลย์</h2></div>
+          <span class="section-note">คำสั่งจะรอ status จาก ESP8266 ก่อนเปลี่ยนสถานะจริง</span>
+        </div>
+        <div class="relay-grid">
+          <article class="relay-card" data-relay-card="pump">
+            <div class="relay-icon">💧</div><div class="relay-copy"><h3>ปั๊มน้ำ</h3><p>D5 / GPIO14 · Active LOW</p><strong data-relay-state>รอข้อมูลจาก ESP8266</strong></div>
+            <div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div>
+          </article>
+          <article class="relay-card" data-relay-card="zone1">
+            <div class="relay-icon">🌿</div><div class="relay-copy"><h3>โซน 1</h3><p>D6 / GPIO12 · Active LOW</p><strong data-relay-state>รอข้อมูลจาก ESP8266</strong></div>
+            <div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div>
+          </article>
+          <article class="relay-card" data-relay-card="lighthome">
+            <div class="relay-icon">⌂</div><div class="relay-copy"><h3>ไฟบ้าน</h3><p>D7 / GPIO13 · Active LOW</p><strong data-relay-state>รอข้อมูลจาก ESP8266</strong></div>
+            <div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div>
+          </article>
+          <article class="relay-card" data-relay-card="lightsala">
+            <div class="relay-icon">✦</div><div class="relay-copy"><h3>ไฟศาลา</h3><p>D8 / GPIO15 · Active LOW</p><strong data-relay-state>รอข้อมูลจาก ESP8266</strong></div>
+            <div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="two-column">
+        <article class="content-card" aria-labelledby="mode-title">
+          <div class="section-heading"><div><p class="eyebrow">AUTOMATION</p><h2 id="mode-title">โหมดการทำงาน</h2></div><span class="mode-value" data-current-mode>—</span></div>
+          <div class="mode-actions"><button class="button mode-button" data-mode="AUTO" type="button">AUTO</button><button class="button mode-button" data-mode="MANUAL" type="button">MANUAL</button></div>
+          <div class="info-row"><span>Schedule</span><strong data-schedule>—</strong></div>
+          <p class="card-footnote">การตั้งเวลาหลักอยู่ที่ Firmware · รายละเอียดอ่านจาก MQTT</p>
+        </article>
+        <article class="content-card" aria-labelledby="weather-title">
+          <div class="section-heading"><div><p class="eyebrow">FORECAST</p><h2 id="weather-title">อากาศภายนอก</h2></div><span class="section-note">7.798754, 99.990505</span></div>
+          <p class="weather-status" data-weather-status>กำลังโหลดพยากรณ์อากาศ…</p>
+          <div class="weather-summary"><div><span>อุณหภูมิภายนอก</span><strong data-weather-current>—</strong></div><div><span>ฝน</span><strong data-weather-rain>—</strong></div></div>
+          <ul class="forecast-list" data-forecast></ul>
+          <p class="card-footnote" data-weather-updated>ข้อมูลพยากรณ์จากอินเทอร์เน็ต · ไม่ใช่ Sensor ของ ESP</p>
+        </article>
+      </section>
+
+      <section class="content-card diagnostic-card" aria-labelledby="diagnostic-title">
+        <div class="section-heading"><div><p class="eyebrow">DEBUG</p><h2 id="diagnostic-title">SYSTEM DIAGNOSTIC</h2></div><span class="section-note">แยกสถานะ MQTT และ ESP8266</span></div>
+        <div class="diagnostic-grid">
+          <div class="info-row"><span>MQTT</span><strong data-diagnostic-mqtt>ออฟไลน์</strong></div>
+          <div class="info-row"><span>ESP</span><strong data-diagnostic-esp>OFFLINE</strong></div>
+          <div class="info-row"><span>Last ESP Heartbeat</span><strong data-last-heartbeat>ยังไม่มี heartbeat</strong></div>
+          <div class="info-row"><span>Reconnect Count</span><strong data-reconnect-count>0</strong></div>
+          <div class="info-row"><span>Connection Reason</span><strong data-diagnostic-reason>—</strong></div>
+          <div class="info-row"><span>Last Error</span><strong data-diagnostic-error>ไม่มี</strong></div>
+        </div>
+        <p class="diagnostic-note">ESP8266 จะเป็น ONLINE ได้จาก heartbeat ใหม่เท่านั้น และจะเป็น OFFLINE เมื่อ heartbeat หายเกิน 25 วินาที หรือได้รับ status/online=false</p>
+      </section>
+    </main>
+
+    <footer class="site-footer"><span>สวนลุงนะ SMART FARM</span><span>NodeMCU ESP8266 · DHT11 · MQTT WSS</span></footer>
+  </div>
+  <div class="toast" data-toast hidden role="status" aria-live="polite"></div>
+
+  <script src="../mqtt.min.js?v=5"></script>
+  <script src="dashboard-config.js?v=1"></script>
+  <script src="dashboard-state.js?v=1"></script>
+  <script src="dashboard-mqtt.js?v=1"></script>
+  <script src="dashboard.js?v=1"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});
+    }
+  </script>
+</body>
+</html>

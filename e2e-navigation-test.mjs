@@ -7,7 +7,8 @@ const externalBase = process.env.E2E_BASE;
 const base = externalBase || `http://127.0.0.1:${port}/`;
 const root = new URL(base);
 const pages = fs.readdirSync('.').filter(name => name.endsWith('.html') && !name.startsWith('archive')).sort();
-const corePages = ['index.html', 'schedule.html', 'finance.html', 'account.html', 'settings.html'];
+const corePages = ['schedule.html', 'finance.html', 'account.html', 'settings.html'];
+const appRoutes = ['index.html', ...corePages];
 const checks = [];
 const add = (name, ok, detail = '') => checks.push({ name, ok, detail });
 
@@ -30,17 +31,24 @@ async function waitForServer(url, timeoutMs = 10000) {
 }
 
 async function runChecks() {
+  const rootIndex = fs.readFileSync('index.html', 'utf8');
+  add('index.html: routes to clean dashboard', /href="dashboard\/"/.test(rootIndex));
+  const cleanDashboard = fs.readFileSync('dashboard/index.html', 'utf8');
+  add('dashboard/index.html: has viewport', /name="viewport"/.test(cleanDashboard));
+  add('dashboard/index.html: loads clean dashboard CSS', /href="dashboard\.css\?v=\d+"/.test(cleanDashboard));
+  add('dashboard/index.html: loads MQTT.js and single connection manager', /mqtt\.min\.js/.test(cleanDashboard) && /dashboard-mqtt\.js/.test(cleanDashboard));
+  add('dashboard/index.html: has settings link', /href="\.\.\/settings\.html"/.test(cleanDashboard));
   for (const page of pages) {
     const html = fs.readFileSync(page, 'utf8');
     add(`${page}: has viewport`, /name="viewport"/.test(html));
-    add(`${page}: has page styling`, /href="app\.css\?v=\d+"/.test(html) || /<style[\s>]/.test(html));
+    add(`${page}: has page styling`, page === 'index.html' ? /dashboard\//.test(html) : /href="app\.css\?v=\d+"/.test(html) || /<style[\s>]/.test(html));
     if (corePages.includes(page)) {
       add(`${page}: has bottom navigation`, /class="bottom-nav"/.test(html));
       add(`${page}: has settings link`, /href="settings\.html"/.test(html));
       const navBlock = html.match(/<nav[^>]*class="bottom-nav"[\s\S]*?<\/nav>/)?.[0] || '';
       const navLinks = [...navBlock.matchAll(/<a(?:\s+class="([^"]*)")?\s+href="([^"]+\.html)"/g)];
       const activeLinks = navLinks.filter(([, classes]) => classes?.split(/\s+/).includes('active'));
-      add(`${page}: bottom navigation has exactly five existing routes`, navLinks.length === 5 && navLinks.every(([, , href]) => corePages.includes(href)));
+      add(`${page}: bottom navigation has exactly five existing routes`, navLinks.length === 5 && navLinks.every(([, , href]) => appRoutes.includes(href)));
       add(`${page}: bottom navigation marks exactly one active route`, activeLinks.length === 1 && activeLinks[0][2] === page);
     }
     add(`${page}: uses no active inline color/background override`, !/style="[^\"]*(color|background|opacity|filter)/.test(html));

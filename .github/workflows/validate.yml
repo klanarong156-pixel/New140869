@@ -38,11 +38,13 @@ jobs:
           CHROMIUM_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: |
           node dashboard-smoke-test.mjs
+          node dashboard-contract-test.mjs
           node schedule-regression-test.mjs
           node usage-reset-calculation-test.mjs
           node ai-advisor-regression-test.mjs
           node firmware-logic-regression-test.mjs
           node e2e-navigation-test.mjs
+          node dashboard-browser-smoke.mjs
           node tools/settings-mqtt-e2e.mjs
           npm --prefix functions run lint
           python3 tools/mqtt_contract_audit.py

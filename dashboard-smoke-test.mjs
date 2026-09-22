@@ -20,6 +20,11 @@ const cfg = read('config.js');
 const mqtt = read('mqtt-connection.js');
 const app = read('app.js');
 const index = read('index.html');
+const cleanDashboard = read('dashboard/index.html');
+const cleanDashboardConfig = read('dashboard/dashboard-config.js');
+const cleanDashboardState = read('dashboard/dashboard-state.js');
+const cleanDashboardMqtt = read('dashboard/dashboard-mqtt.js');
+const cleanDashboardJs = read('dashboard/dashboard.js');
 const connection = read('connection.html');
 const firmware = read('SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino');
 const sw = read('sw.js');
@@ -32,7 +37,12 @@ const checks = [
   ['MQTT.js is the only browser connection owner', /mqtt\.connect\(this\.config\.url/.test(mqtt) && /reconnectPeriod: 3000/.test(mqtt) && !/new SharedWorker/.test(mqtt)],
   ['MQTT credentials persist locally', /localStorage\.setItem\(this\.storageUser/.test(mqtt) && /localStorage\.getItem\(this\.storagePass/.test(mqtt)],
   ['Connection page has credential inputs', /data-mqtt-user/.test(connection) && /data-mqtt-pass/.test(connection) && /setCredentials\(user,pass\)/.test(connection)],
-  ['Dashboard loads current MQTT connection owner', /mqtt-connection\.js/.test(index) && !/mqtt-handler\.js/.test(index)],
+  ['Root routes to isolated clean dashboard', /dashboard\//.test(index) && !/mqtt-handler\.js/.test(index)],
+  ['Clean dashboard has one MQTT owner', /mqtt\.connect\(mqttConfig\.url/.test(cleanDashboardMqtt) && /reconnectPeriod: 3000/.test(cleanDashboardMqtt) && !/mqtt-connection\.js|mqtt-handler\.js/.test(cleanDashboard)],
+  ['Clean dashboard has state layer', /SmartFarmDashboardState/.test(cleanDashboardState) && /acceptHeartbeat/.test(cleanDashboardState)],
+  ['Clean dashboard uses explicit firmware topics', /status\/device/.test(cleanDashboardConfig) && /sensor\/dht11/.test(cleanDashboardConfig) && /relaySet/.test(cleanDashboardConfig)],
+  ['Clean dashboard loads MQTT.js and state modules', /mqtt\.min\.js/.test(cleanDashboard) && /dashboard-state\.js/.test(cleanDashboard) && /dashboard-mqtt\.js/.test(cleanDashboard)],
+  ['Clean dashboard does not fake soil telemetry', /ไม่ได้ติดตั้ง/.test(cleanDashboard) && !/soil.*(?:value|temperature|humidity)/i.test(cleanDashboardJs)],
   ['Firmware uses HiveMQ TLS 8883', /#define MQTT_SERVER "25305924f68c41f2a1e089a1836d3287\.s1\.eu\.hivemq\.cloud"/.test(firmware) && /#define MQTT_PORT 8883/.test(firmware)],
   ['Firmware uses smartfarm base topic', /#define MQTT_BASE "smartfarm"/.test(firmware)],
   ['Firmware heartbeat contract exists', firmware.includes('MQTT_BASE "/status/device"') && firmware.includes('MQTT_BASE "/status/online"') && /uptimeSec/.test(firmware)],
