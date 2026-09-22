@@ -396,18 +396,15 @@
             return;
           }
           const uptime = Number(device.uptimeSec ?? device.uptime);
-          if (Number.isFinite(uptime)) {
-            if (this.lastHeartbeatUptime !== null && uptime !== this.lastHeartbeatUptime) {
-              this.heartbeatSeenCount++;
-              this.lastHeartbeatUptime = uptime;
-              this.markDeviceSeen('heartbeat');
-            } else if (this.lastHeartbeatUptime === null) {
-              this.lastHeartbeatUptime = uptime;
-              this.heartbeatSeenCount = 0;
-            }
-          } else {
+          if (device.online === true && device.mqtt === true) {
+            // The retained heartbeat is safe to use because the firmware also
+            // publishes retained status/online=false as the MQTT LWT.
+            // Treat a valid online heartbeat as a live device signal.
+            if (Number.isFinite(uptime)) this.lastHeartbeatUptime = uptime;
             this.heartbeatSeenCount++;
             this.markDeviceSeen('heartbeat');
+          } else if (Number.isFinite(uptime)) {
+            this.lastHeartbeatUptime = uptime;
           }
           this.dispatch('device:data', device);
         } catch (_) {}
