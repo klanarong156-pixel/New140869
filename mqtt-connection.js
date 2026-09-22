@@ -41,7 +41,7 @@
       if (state === 'reconnecting' && previous !== 'reconnecting') this.diagnosticState.reconnectCount += 1;
       this.diagnosticState.state = state;
       if (detail.reason) this.diagnosticState.lastReason = String(detail.reason);
-      if (detail.error) this.diagnosticState.lastError = String(detail.error);
+      if (detail.error !== undefined) this.diagnosticState.lastError = String(detail.error || '');
       if (detail.origin) this.diagnosticState.disconnectOrigin = String(detail.origin);
       this.dispatch('mqtt:diagnostic', { state, timestamp: now, previousState: previous, ...this.diagnosticState });
     },
@@ -209,8 +209,9 @@
       if (!force && (this.client?.connected || this.connecting)) return true;
 
       if (force && this.client) {
-        try { this.client.end(true); } catch (_) {}
+        const oldClient = this.client;
         this.client = null;
+        try { oldClient.end(true); } catch (_) {}
       }
 
       if (typeof mqtt === 'undefined') {
@@ -286,6 +287,9 @@
         this.lastConnectError = this.errorMessage(error, 'MQTT socket error');
         const authFailure = /not authorized|unauthori[sz]ed|bad user name or password|bad username|authentication|auth/i.test(this.lastConnectError);
         if (authFailure) {
+          this.client = null;
+          this.connecting = false;
+          APP_STATE.mqttConnected = false;
           this.updateDiagnostic('disconnected', { reason: 'HiveMQ rejected MQTT credentials', error: this.lastConnectError, origin: 'broker-auth' });
           this.dispatch('mqtt:error', { message: 'HiveMQ ปฏิเสธ username/password', detail: this.lastConnectError, connected: false, transient: false });
           this.dispatch('mqtt:credentials-required', {
@@ -294,8 +298,6 @@
             status: this.getCredentialStatus()
           });
           try { client.end(true); } catch (_) {}
-          this.connecting = false;
-          APP_STATE.mqttConnected = false;
           return;
         }
         this.updateDiagnostic('reconnecting', { reason: 'MQTT error', error: this.lastConnectError, origin: 'socket' });
@@ -382,7 +384,6 @@
       }
 
       if (topic === this.config.topics.online) {
-        // Firmware publishes this retained. It is only broker presence, not a fresh heartbeat.
         if (['false', 'offline', '0', 'no'].includes(value.toLowerCase())) this.setDeviceOnline(false, 'last-will');
         return;
       }
@@ -401,7 +402,6 @@
               this.lastHeartbeatUptime = uptime;
               this.markDeviceSeen('heartbeat');
             } else if (this.lastHeartbeatUptime === null) {
-              // First retained heartbeat is not trusted as fresh. The next 10s heartbeat must change uptime.
               this.lastHeartbeatUptime = uptime;
               this.heartbeatSeenCount = 0;
             }
