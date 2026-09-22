@@ -78,8 +78,9 @@ manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt:
 check(store.get().esp.online === false, 'retained heartbeat does not mark ESP online');
 check(store.get().esp.lastHeartbeatWasRetained === true, 'retained heartbeat is recorded as retained');
 
-manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 20, rssi: -61 }), { retain: false });
-check(store.get().esp.online === true, 'fresh heartbeat marks ESP online');
+manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 20, rssi: -61 }), { retain: true });
+check(store.get().esp.online === true, 'changed uptime marks a fresh retained heartbeat online');
+check(store.get().esp.lastHeartbeatWasRetained === false, 'changed heartbeat is treated as live telemetry');
 check(store.get().esp.firmware === 'V7.1.1', 'heartbeat firmware is displayed from device payload');
 
 store.state.esp.lastHeartbeatAt = Date.now() - 26000;

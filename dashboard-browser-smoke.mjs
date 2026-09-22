@@ -34,7 +34,7 @@ try {
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('request', request => requests.push(new URL(request.url()).pathname));
 
-  await page.goto(base, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForSelector('[data-mqtt-status]');
   await wait(500);
 
