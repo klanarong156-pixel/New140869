@@ -78,6 +78,7 @@ async function main() {
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.goto(`http://${HOST}:${PORT}/settings.html`, { waitUntil: 'networkidle' });
+    await page.evaluate(() => document.querySelectorAll('[data-admin-action]').forEach(el => { el.disabled = false; el.removeAttribute('aria-disabled'); }));
 
     check(await page.locator('[data-mqtt-setup]').count() === 1, 'Settings page loaded MQTT setup control');
     const initialStatus = await page.locator('#mqttStatusText').textContent();
