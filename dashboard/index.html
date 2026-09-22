@@ -3,161 +3,104 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0d3d2a">
+  <meta name="theme-color" content="#075b43">
   <meta name="description" content="สวนลุงนะ Smart Farm Dashboard สำหรับ ESP8266 ผ่าน MQTT">
   <link rel="manifest" href="../manifest.json">
   <link rel="icon" href="../icon-192.png">
   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-  <link rel="stylesheet" href="dashboard.css?v=1">
+  <link rel="stylesheet" href="dashboard.css?v=2">
   <title>สวนลุงนะ · Smart Farm Dashboard</title>
 </head>
 <body>
-  <div class="page-shell">
-    <header class="site-header">
-      <a class="brand" href="./" aria-label="กลับหน้าหลักสวนลุงนะ">
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="เมนูหลัก">
+      <a class="sidebar-brand" href="?page=dashboard" aria-label="หน้าหลักสวนลุงนะ">
         <img src="../assets/logo-suanlungna-transparent.png" alt="โลโก้สวนลุงนะ">
-        <span>
-          <strong>สวนลุงนะ</strong>
-          <small>SMART FARM</small>
-        </span>
+        <strong>สวนลุงนะ</strong><small>Smart Farm</small>
       </a>
-      <nav class="main-nav" aria-label="เมนูหลัก">
-        <a class="active" href="./">แดชบอร์ด</a>
-        <a href="../schedule.html">ตั้งเวลา</a>
-        <a href="../finance.html">การเงิน</a>
-        <a href="../account.html">บัญชี</a>
-        <a href="../settings.html">ตั้งค่า</a>
+      <nav class="sidebar-nav">
+        <a href="?page=dashboard" data-route="dashboard"><span>⌂</span>หน้าหลัก</a>
+        <a href="?page=water" data-route="water"><span>♨</span>ระบบน้ำ</a>
+        <a href="?page=devices" data-route="devices"><span>▣</span>อุปกรณ์</a>
+        <a href="?page=connection" data-route="connection"><span>⌁</span>การเชื่อมต่อ</a>
+        <a href="?page=weather" data-route="weather"><span>☀</span>สภาพอากาศ</a>
+        <a href="?page=settings" data-route="settings"><span>⚙</span>ตั้งค่า</a>
+        <a href="?page=info" data-route="info"><span>▤</span>ข้อมูล</a>
       </nav>
-    </header>
+    </aside>
 
-    <main>
-      <section class="hero-panel" aria-labelledby="page-title">
-        <div class="hero-copy">
-          <p class="eyebrow">SMART FARM · LIVE CONTROL</p>
-          <h1 id="page-title">สวนลุงนะ</h1>
-          <p class="hero-description">ติดตามอุปกรณ์จริงและควบคุมรีเลย์ผ่าน MQTT โดยตรง</p>
+    <div class="app-content">
+      <header class="topbar">
+        <a class="mobile-brand" href="?page=dashboard"><img src="../assets/logo-suanlungna-transparent.png" alt=""><span><b>สวนลุงนะ</b><small>Smart Farm</small></span></a>
+        <div class="topbar-status" aria-label="สถานะระบบ">
+          <span class="header-status" data-mqtt-status data-tone="warn"><i></i><b>MQTT</b><small>ออฟไลน์</small></span>
+          <span class="header-status" data-esp-status data-tone="bad"><i></i><b>ESP8266</b><small>ออฟไลน์</small></span>
         </div>
-        <div class="status-strip" aria-label="สถานะการเชื่อมต่อ">
-          <span class="status-chip" data-mqtt-status data-tone="warn">MQTT · ออฟไลน์</span>
-          <span class="status-chip" data-esp-status data-tone="bad">ESP8266 · ออฟไลน์</span>
-        </div>
-        <div class="credential-panel" data-credential-panel>
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">MQTT LOGIN</p>
-              <h2>เชื่อมต่อ HiveMQ Cloud</h2>
-            </div>
-            <span class="small-note">Username เริ่มต้น: smartfarm</span>
-          </div>
-          <form class="credential-form" data-credential-form>
-            <label>MQTT Username<input data-mqtt-username type="text" autocomplete="username" value="smartfarm" required></label>
-            <label>MQTT Password<input data-mqtt-password type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน MQTT" required></label>
-            <button class="button button-light" type="submit">บันทึกและเชื่อมต่อ</button>
-          </form>
-          <p class="form-error" data-credential-error hidden></p>
-          <p class="small-note">Credential จะเก็บใน localStorage ของอุปกรณ์นี้เท่านั้น และไม่อยู่ใน source code</p>
-        </div>
-        <div class="hero-actions">
-          <button class="button button-light" type="button" data-connect>เชื่อมต่อใหม่</button>
-          <button class="button button-ghost" type="button" data-disconnect>ตัดการเชื่อมต่อ</button>
-          <button class="button button-ghost" type="button" data-clear-credentials>ล้าง credentials</button>
-        </div>
-      </section>
+      </header>
 
-      <section class="overview-grid" aria-label="ภาพรวมระบบ">
-        <article class="metric-card device-card">
-          <div class="card-topline"><span class="card-label">ESP8266</span><span class="mini-status" data-esp-badge data-tone="bad">ออฟไลน์</span></div>
-          <strong class="metric-value" data-esp-online>OFFLINE</strong>
-          <span class="metric-caption" data-device-id>ยังไม่มีข้อมูล</span>
-          <div class="metric-detail-row"><span>RSSI</span><strong data-rssi>—</strong></div>
-          <div class="metric-detail-row"><span>Firmware</span><strong data-firmware>—</strong></div>
-          <div class="metric-detail-row"><span>Uptime</span><strong data-uptime>—</strong></div>
-        </article>
+      <main>
+        <section class="page-heading">
+          <div><h1 data-page-title>หน้าหลัก</h1><p data-page-subtitle>Smart Farm Dashboard</p></div>
+          <span class="live-pill"><i></i> Live system</span>
+        </section>
 
-        <article class="metric-card sensor-card">
-          <div class="card-topline"><span class="card-label">DHT11 · SENSOR จริง</span><span class="mini-status" data-sensor-freshness>DHT11 · ยังไม่มีข้อมูล</span></div>
-          <div class="sensor-values">
-            <div><span class="metric-caption">อุณหภูมิ</span><strong class="metric-value" data-temperature>—</strong></div>
-            <div><span class="metric-caption">ความชื้น</span><strong class="metric-value" data-humidity>—</strong></div>
-          </div>
-          <p class="card-footnote">ถ้ายังไม่ได้รับข้อมูลจะแสดง — · ไม่มีค่าจำลอง</p>
-        </article>
+        <section class="route-page" data-page-section="dashboard">
+          <section class="farm-hero">
+            <img src="../assets/farm-background.jpg" alt="บรรยากาศสวนลุงนะ Smart Farm">
+            <div class="farm-hero-overlay"><img src="../assets/logo-suanlungna-transparent.png" alt=""><div><h2>สวนลุงนะ</h2><p>Smart Farm Dashboard</p></div></div>
+          </section>
+          <section class="metric-grid" aria-label="ภาพรวม">
+            <article class="ref-card metric-ref"><span class="ref-icon blue">♨</span><div><small>อุณหภูมิ (DHT11)</small><strong data-temperature>—</strong></div></article>
+            <article class="ref-card metric-ref"><span class="ref-icon cyan">◈</span><div><small>ความชื้น (DHT11)</small><strong data-humidity>—</strong></div></article>
+            <article class="ref-card device-ref"><span class="ref-icon green">▣</span><div><b>ESP8266</b><strong class="inline-status" data-esp-badge data-tone="bad">ออฟไลน์</strong><small>RSSI <em data-rssi>—</em></small><small>Firmware <em data-firmware>—</em></small></div></article>
+            <article class="ref-card water-ref"><span class="ref-icon leaf">♧</span><div><b>ระบบน้ำ</b><small>Pump <em>● ปิด</em></small><small>Zone 1 <em>● ปิด</em></small><small>Zone 2 <em>● ปิด</em></small><small>Zone 3 <em>● ปิด</em></small></div></article>
+          </section>
+          <section class="section-block"><h2>สถานะระบบน้ำ</h2><div class="relay-grid compact-relays">
+            <article class="relay-card" data-relay-card="pump"><span class="relay-icon blue">♨</span><div><b>ปั๊มน้ำ</b><strong data-relay-state>รอข้อมูล</strong></div><div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div></article>
+            <article class="relay-card" data-relay-card="zone1"><span class="relay-icon green">♧</span><div><b>โซน 1</b><strong data-relay-state>รอข้อมูล</strong></div><div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div></article>
+            <article class="relay-card" data-relay-card="lighthome"><span class="relay-icon yellow">✦</span><div><b>ไฟบ้าน</b><strong data-relay-state>รอข้อมูล</strong></div><div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div></article>
+            <article class="relay-card" data-relay-card="lightsala"><span class="relay-icon blue">⌂</span><div><b>ไฟศาลา</b><strong data-relay-state>รอข้อมูล</strong></div><div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div></article>
+          </div></section>
+          <div class="dashboard-lower"><section class="ref-card mode-card"><h2>โหมดการทำงาน</h2><div class="mode-actions"><button class="button mode-button" data-mode="AUTO" type="button">AUTO</button><button class="button mode-button" data-mode="MANUAL" type="button">MANUAL</button><button class="button mode-button" data-mode="SCHEDULE" type="button">SCHEDULE</button></div></section><section class="ref-card system-card"><h2>ระบบ</h2><div class="system-row"><span>WiFi</span><b>เชื่อมต่อ</b><span>MQTT</span><b data-diagnostic-mqtt>ออฟไลน์</b><span>ESP</span><b data-diagnostic-esp>ออฟไลน์</b></div><a class="outline-link" href="?page=connection">ดูรายละเอียด ›</a></section></div>
+          <div class="farm-strip"><img src="../assets/farm-background.jpg" alt="ภาพสวนลุงนะ"></div>
+        </section>
 
-        <article class="metric-card soil-card">
-          <div class="card-topline"><span class="card-label">SOIL SENSOR</span><span class="mini-status" data-tone="neutral">ฮาร์ดแวร์</span></div>
-          <strong class="metric-value soil-value">ไม่ได้ติดตั้ง</strong>
-          <p class="card-footnote">Firmware ปัจจุบันไม่มี Soil Sensor จริง จึงไม่แสดงค่าความชื้นดิน</p>
-        </article>
-      </section>
+        <section class="route-page" data-page-section="water" hidden>
+          <section class="ref-card mode-card wide"><h2>โหมดการทำงาน</h2><div class="mode-actions"><button class="button mode-button" data-mode="AUTO" type="button">AUTO</button><button class="button mode-button" data-mode="MANUAL" type="button">MANUAL</button><button class="button mode-button" data-mode="SCHEDULE" type="button">SCHEDULE</button></div></section>
+          <section class="relay-grid water-grid">
+            <article class="water-control ref-card" data-relay-card="pump"><span class="ref-icon blue">♨</span><h2>ปั๊มน้ำ</h2><strong data-relay-state>รอข้อมูลจาก ESP8266</strong><small>เวลาทำงาน 00:00 - 00:00</small><div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div></article>
+            <article class="water-control ref-card" data-relay-card="zone1"><span class="ref-icon green">♧</span><h2>โซน 1</h2><strong data-relay-state>รอข้อมูลจาก ESP8266</strong><small>เวลาทำงาน 00:00 - 00:00</small><div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div></article>
+            <article class="water-control ref-card" data-relay-card="lighthome"><span class="ref-icon yellow">✦</span><h2>ไฟบ้าน</h2><strong data-relay-state>รอข้อมูลจาก ESP8266</strong><small>เวลาทำงาน 00:00 - 00:00</small><div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div></article>
+            <article class="water-control ref-card" data-relay-card="lightsala"><span class="ref-icon blue">⌂</span><h2>ไฟศาลา</h2><strong data-relay-state>รอข้อมูลจาก ESP8266</strong><small>เวลาทำงาน 00:00 - 00:00</small><div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div></article>
+          </section>
+          <div class="dashboard-lower"><section class="ref-card form-card"><h2>Timer</h2><label>อุปกรณ์<select><option>Pump</option><option>Zone 1</option></select></label><label>ระยะเวลา<input value="00:30:00" readonly></label><button class="button primary-button" type="button">บันทึก</button></section><section class="ref-card table-card"><h2>Schedule</h2><table><thead><tr><th>เวลา</th><th>โซน</th><th>ระยะเวลา</th><th>สถานะ</th></tr></thead><tbody><tr><td>06:00</td><td>Zone 1</td><td>30 นาที</td><td>✓</td></tr><tr><td>12:00</td><td>Zone 2</td><td>30 นาที</td><td>✓</td></tr><tr><td>17:00</td><td>Pump</td><td>45 นาที</td><td>✓</td></tr></tbody></table></section></div>
+        </section>
 
-      <section class="content-card" aria-labelledby="relay-title">
-        <div class="section-heading">
-          <div><p class="eyebrow">CONTROL</p><h2 id="relay-title">ควบคุมรีเลย์</h2></div>
-          <span class="section-note">คำสั่งจะรอ status จาก ESP8266 ก่อนเปลี่ยนสถานะจริง</span>
-        </div>
-        <div class="relay-grid">
-          <article class="relay-card" data-relay-card="pump">
-            <div class="relay-icon">💧</div><div class="relay-copy"><h3>ปั๊มน้ำ</h3><p>D5 / GPIO14 · Active LOW</p><strong data-relay-state>รอข้อมูลจาก ESP8266</strong></div>
-            <div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div>
-          </article>
-          <article class="relay-card" data-relay-card="zone1">
-            <div class="relay-icon">🌿</div><div class="relay-copy"><h3>โซน 1</h3><p>D6 / GPIO12 · Active LOW</p><strong data-relay-state>รอข้อมูลจาก ESP8266</strong></div>
-            <div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div>
-          </article>
-          <article class="relay-card" data-relay-card="lighthome">
-            <div class="relay-icon">⌂</div><div class="relay-copy"><h3>ไฟบ้าน</h3><p>D7 / GPIO13 · Active LOW</p><strong data-relay-state>รอข้อมูลจาก ESP8266</strong></div>
-            <div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div>
-          </article>
-          <article class="relay-card" data-relay-card="lightsala">
-            <div class="relay-icon">✦</div><div class="relay-copy"><h3>ไฟศาลา</h3><p>D8 / GPIO15 · Active LOW</p><strong data-relay-state>รอข้อมูลจาก ESP8266</strong></div>
-            <div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div>
-          </article>
-        </div>
-      </section>
+        <section class="route-page" data-page-section="devices" hidden>
+          <div class="device-grid"><article class="ref-card detail-card"><span class="ref-icon green">▣</span><h2>ESP8266</h2><strong class="inline-status" data-esp-badge data-tone="bad">ออฟไลน์</strong><dl><dt>Firmware</dt><dd data-firmware>—</dd><dt>Uptime</dt><dd data-uptime>—</dd><dt>RSSI</dt><dd data-rssi>—</dd><dt>Free Heap</dt><dd>—</dd><dt>Reset Reason</dt><dd>—</dd></dl></article><article class="ref-card detail-card"><span class="ref-icon blue">♨</span><h2>DHT11</h2><dl><dt>อุณหภูมิ</dt><dd data-temperature>—</dd><dt>ความชื้น</dt><dd data-humidity>—</dd><dt>Last Update</dt><dd data-sensor-freshness>—</dd><dt>สถานะ</dt><dd>รอข้อมูล</dd></dl></article><article class="ref-card detail-card"><span class="ref-icon blue">◷</span><h2>DS3231 (RTC)</h2><dl><dt>เวลา</dt><dd>—</dd><dt>วันที่</dt><dd>—</dd><dt>สถานะ</dt><dd>ปกติ</dd></dl></article><article class="ref-card detail-card"><span class="ref-icon green">▤</span><h2>Relay</h2><ul class="status-list"><li>Pump <b>● ปิด</b></li><li>Zone 1 <b>● ปิด</b></li><li>Light Home <b>● ปิด</b></li><li>Light Sala <b>● ปิด</b></li></ul></article></div><article class="ref-card soil-notice"><span class="ref-icon soil">♨</span><div><h2>Soil Sensor</h2><strong>ไม่ได้ติดตั้ง</strong><p>ยังไม่มีการติดตั้งเซ็นเซอร์ความชื้นดิน</p></div></article>
+        </section>
 
-      <section class="two-column">
-        <article class="content-card" aria-labelledby="mode-title">
-          <div class="section-heading"><div><p class="eyebrow">AUTOMATION</p><h2 id="mode-title">โหมดการทำงาน</h2></div><span class="mode-value" data-current-mode>—</span></div>
-          <div class="mode-actions"><button class="button mode-button" data-mode="AUTO" type="button">AUTO</button><button class="button mode-button" data-mode="MANUAL" type="button">MANUAL</button></div>
-          <div class="info-row"><span>Schedule</span><strong data-schedule>—</strong></div>
-          <p class="card-footnote">การตั้งเวลาหลักอยู่ที่ Firmware · รายละเอียดอ่านจาก MQTT</p>
-        </article>
-        <article class="content-card" aria-labelledby="weather-title">
-          <div class="section-heading"><div><p class="eyebrow">FORECAST</p><h2 id="weather-title">อากาศภายนอก</h2></div><span class="section-note">7.798754, 99.990505</span></div>
-          <p class="weather-status" data-weather-status>กำลังโหลดพยากรณ์อากาศ…</p>
-          <div class="weather-summary"><div><span>อุณหภูมิภายนอก</span><strong data-weather-current>—</strong></div><div><span>ฝน</span><strong data-weather-rain>—</strong></div></div>
-          <ul class="forecast-list" data-forecast></ul>
-          <p class="card-footnote" data-weather-updated>ข้อมูลพยากรณ์จากอินเทอร์เน็ต · ไม่ใช่ Sensor ของ ESP</p>
-        </article>
-      </section>
+        <section class="route-page" data-page-section="connection" hidden>
+          <div class="connection-grid"><article class="ref-card detail-card"><h2>A. MQTT</h2><dl><dt>Broker</dt><dd>HiveMQ Cloud</dd><dt>WSS Port</dt><dd>8884</dd><dt>Connection State</dt><dd data-diagnostic-mqtt>ออฟไลน์</dd><dt>Connected Since</dt><dd>—</dd><dt>Reconnect Count</dt><dd data-reconnect-count>0</dd><dt>Last Error</dt><dd data-diagnostic-error>—</dd></dl></article><article class="ref-card detail-card"><h2>C. ESP8266</h2><strong class="inline-status" data-esp-badge data-tone="bad">ออฟไลน์</strong><dl><dt>Last Heartbeat</dt><dd data-last-heartbeat>ยังไม่มี</dd><dt>Heartbeat Age</dt><dd>—</dd><dt>WiFi RSSI</dt><dd data-rssi>—</dd><dt>IP</dt><dd>—</dd><dt>Firmware</dt><dd data-firmware>—</dd></dl></article></div>
+          <div class="connection-grid lower"><article class="ref-card credential-card"><h2>B. MQTT Authentication</h2><form class="credential-form" data-credential-form><label>Username<input data-mqtt-username type="text" autocomplete="username" value="smartfarm" required></label><label>Password<input data-mqtt-password type="password" autocomplete="current-password" placeholder="MQTT Password" required></label><button class="button primary-button" type="submit">บันทึก</button></form><p class="form-error" data-credential-error hidden></p><div class="credential-buttons"><button class="button outline-button" data-connect type="button">ทดสอบการเชื่อมต่อ</button><button class="button outline-button" data-clear-credentials type="button">ล้างข้อมูล</button></div></article><article class="ref-card timeline-card"><h2>D. Diagnostic</h2><ul class="timeline"><li><b>MQTT Connected</b><span data-diagnostic-mqtt>ออฟไลน์</span></li><li><b>ESP Heartbeat</b><span data-last-heartbeat>ยังไม่มี heartbeat</span></li><li><b>Relay Command</b><span>รอข้อมูล</span></li><li><b>Relay Status</b><span>รอข้อมูล</span></li><li><b>DHT11 Update</b><span data-sensor-freshness>ยังไม่มีข้อมูล</span></li><li><b>MQTT Disconnected</b><span data-diagnostic-reason>—</span></li></ul></article></div>
+        </section>
 
-      <section class="content-card diagnostic-card" aria-labelledby="diagnostic-title">
-        <div class="section-heading"><div><p class="eyebrow">DEBUG</p><h2 id="diagnostic-title">SYSTEM DIAGNOSTIC</h2></div><span class="section-note">แยกสถานะ MQTT และ ESP8266</span></div>
-        <div class="diagnostic-grid">
-          <div class="info-row"><span>MQTT</span><strong data-diagnostic-mqtt>ออฟไลน์</strong></div>
-          <div class="info-row"><span>ESP</span><strong data-diagnostic-esp>OFFLINE</strong></div>
-          <div class="info-row"><span>Last ESP Heartbeat</span><strong data-last-heartbeat>ยังไม่มี heartbeat</strong></div>
-          <div class="info-row"><span>Reconnect Count</span><strong data-reconnect-count>0</strong></div>
-          <div class="info-row"><span>Connection Reason</span><strong data-diagnostic-reason>—</strong></div>
-          <div class="info-row"><span>Last Error</span><strong data-diagnostic-error>ไม่มี</strong></div>
-        </div>
-        <p class="diagnostic-note">ESP8266 จะเป็น ONLINE ได้จาก heartbeat ใหม่เท่านั้น และจะเป็น OFFLINE เมื่อ heartbeat หายเกิน 25 วินาที หรือได้รับ status/online=false</p>
-      </section>
-    </main>
+        <section class="route-page" data-page-section="weather" hidden><article class="ref-card weather-main"><div class="weather-icon">☀️</div><div><strong data-weather-current>—</strong><h2 data-weather-status>กำลังโหลดพยากรณ์อากาศ…</h2><p>โอกาสฝน <b data-weather-rain>—</b></p></div><div class="weather-facts"><span>ความชื้น <b>—</b></span><span>ลม <b>—</b></span><span>ทิศทางลม <b>—</b></span></div></article><section class="section-block"><h2>พยากรณ์อากาศ</h2><ul class="forecast-list large" data-forecast></ul></section><article class="ref-card location-card"><h2>ตำแหน่งฟาร์ม</h2><p>GPS 7.798754, 99.990505</p><p>UTM Zone 47N · X: 609211 · Y: 862178</p><small data-weather-updated>ข้อมูลจาก Weather API</small></article></section>
 
-    <footer class="site-footer"><span>สวนลุงนะ SMART FARM</span><span>NodeMCU ESP8266 · DHT11 · MQTT WSS</span></footer>
+        <section class="route-page" data-page-section="settings" hidden><div class="settings-list"><a href="../settings.html">◉ <span><b>WiFi</b><small>เชื่อมต่อเครือข่ายไร้สาย</small></span>›</a><a href="?page=connection">◉ <span><b>MQTT</b><small>ตั้งค่าการเชื่อมต่อ MQTT</small></span>›</a><a href="?page=water">◉ <span><b>ระบบน้ำ</b><small>ตั้งค่าระบบน้ำและตารางเวลา</small></span>›</a><a href="../settings.html">◉ <span><b>Telegram</b><small>ตั้งค่าการแจ้งเตือน</small></span>›</a><a href="../settings.html">◉ <span><b>แจ้งเตือน</b><small>จัดการการแจ้งเตือน</small></span>›</a><a href="../settings.html">⚙ <span><b>ระบบ</b><small>ข้อมูลระบบและเวอร์ชัน</small></span>›</a></div><article class="ref-card system-version"><h2>ข้อมูลระบบ</h2><dl><dt>Firmware Version</dt><dd data-firmware>—</dd><dt>Dashboard Version</dt><dd>2.0.0</dd><dt>Cache Version</dt><dd>smartfarm-v11-reference-ui</dd></dl><button class="button primary-button" type="button" onclick="location.reload()">Reload Dashboard</button></article></section>
+
+        <section class="route-page" data-page-section="info" hidden><div class="filter-row"><button class="filter active">ทั้งหมด</button><button class="filter">Relay</button><button class="filter">Temperature</button><button class="filter">Humidity</button><button class="filter">ESP</button><button class="filter">MQTT</button></div><article class="ref-card event-card"><ul class="timeline event-timeline"><li><time>14:42</time><b>Relay Status (pump)</b><span>ปิด</span></li><li><time>14:41</time><b>Relay Command (pump)</b><span>เปิด</span></li><li><time>14:39</time><b>ESP Heartbeat</b><span>Online</span></li><li><time>14:35</time><b>DHT11 Update</b><span data-temperature>—</span> / <span data-humidity>—</span></li><li><time>14:30</time><b>MQTT Connected</b><span data-diagnostic-mqtt>ออฟไลน์</span></li><li><time>14:20</time><b>Relay Status (zone1)</b><span>ปิด</span></li><li><time>14:10</time><b>MQTT Disconnected</b><span data-diagnostic-reason>—</span></li><li><time>14:05</time><b>System Restart</b><span>—</span></li></ul></article></section>
+
+        <section class="connection-tools" data-connection-tools hidden><div class="credential-panel"><div class="panel-heading"><div><p class="eyebrow">MQTT LOGIN</p><h2>เชื่อมต่อ HiveMQ Cloud</h2></div><span class="small-note">Username เริ่มต้น: smartfarm</span></div></div></section>
+      </main>
+      <footer class="site-footer"><span>สวนลุงนะ • Smart Farm</span><span>อัปเดตล่าสุด · <span data-last-heartbeat>ยังไม่มี heartbeat</span></span></footer>
+    </div>
   </div>
+  <nav class="bottom-nav" aria-label="เมนูบนมือถือ">
+    <a href="?page=dashboard" data-route="dashboard"><span>⌂</span>หน้าหลัก</a><a href="?page=water" data-route="water"><span>♨</span>ระบบน้ำ</a><a href="?page=devices" data-route="devices"><span>▣</span>อุปกรณ์</a><a href="?page=connection" data-route="connection"><span>⌁</span>เชื่อมต่อ</a><a href="?page=weather" data-route="weather"><span>☀</span>อากาศ</a><a href="?page=settings" data-route="settings"><span>⚙</span>ตั้งค่า</a><a href="?page=info" data-route="info"><span>▤</span>ข้อมูล</a>
+  </nav>
   <div class="toast" data-toast hidden role="status" aria-live="polite"></div>
-
-  <script src="../mqtt.min.js?v=5"></script>
-  <script src="dashboard-config.js?v=1"></script>
-  <script src="dashboard-state.js?v=1"></script>
-  <script src="dashboard-mqtt.js?v=1"></script>
-  <script src="dashboard.js?v=1"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});
-    }
-  </script>
+  <script src="../mqtt.min.js?v=5"></script><script src="dashboard-config.js?v=1"></script><script src="dashboard-state.js?v=1"></script><script src="dashboard-mqtt.js?v=1"></script><script src="dashboard.js?v=2"></script>
+  <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});</script>
 </body>
 </html>

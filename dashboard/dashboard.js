@@ -6,6 +6,26 @@
   const mqtt = window.SmartFarmDashboardMqtt;
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
+  const pageMeta = {
+    dashboard: ['หน้าหลัก', 'Smart Farm Dashboard'],
+    water: ['ระบบน้ำ', 'ควบคุมระบบน้ำและตั้งเวลา'],
+    devices: ['อุปกรณ์', 'ข้อมูลอุปกรณ์และสถานะการทำงาน'],
+    connection: ['การเชื่อมต่อ', 'สถานะระบบ MQTT และ ESP8266'],
+    weather: ['สภาพอากาศ', 'ข้อมูลสภาพอากาศจากอินเทอร์เน็ต (Weather API)'],
+    settings: ['ตั้งค่า', 'ปรับแต่งการทำงานของระบบ'],
+    info: ['ข้อมูล', 'ประวัติและเหตุการณ์ของระบบ']
+  };
+
+  const route = () => {
+    const requested = new URLSearchParams(window.location.search).get('page');
+    const page = Object.prototype.hasOwnProperty.call(pageMeta, requested) ? requested : 'dashboard';
+    const [title, subtitle] = pageMeta[page];
+    text(document.querySelector('[data-page-title]'), title);
+    text(document.querySelector('[data-page-subtitle]'), subtitle);
+    $$('[data-page-section]').forEach(section => { section.hidden = section.dataset.pageSection !== page; });
+    $$('[data-route]').forEach(link => { link.classList.toggle('active', link.dataset.route === page); });
+    document.title = `สวนลุงนะ · ${title}`;
+  };
 
   const elements = {
     mqttStatus: $('[data-mqtt-status]'),
@@ -72,6 +92,9 @@
     if (element) element.dataset.tone = tone;
   };
 
+  const textAll = (selector, value) => $$(selector).forEach(element => text(element, value));
+  const toneAll = (selector, tone) => $$(selector).forEach(element => setTone(element, tone));
+
   const showToast = (message, tone = 'info') => {
     if (!elements.toast) return;
     elements.toast.textContent = message;
@@ -96,12 +119,12 @@
 
     text(elements.mqttStatus, mqttText);
     text(elements.espStatus, espText);
-    text(elements.mqttBadge, mqttLabel(mqttStatus));
-    text(elements.espBadge, espOnline ? 'ออนไลน์' : 'ออฟไลน์');
+    textAll('[data-mqtt-badge]', mqttLabel(mqttStatus));
+    textAll('[data-esp-badge]', espOnline ? 'ออนไลน์' : 'ออฟไลน์');
     setTone(elements.mqttStatus, mqttStatus === 'connected' ? 'good' : mqttStatus === 'error' ? 'bad' : 'warn');
     setTone(elements.espStatus, espOnline ? 'good' : 'bad');
-    setTone(elements.mqttBadge, mqttStatus === 'connected' ? 'good' : mqttStatus === 'error' ? 'bad' : 'warn');
-    setTone(elements.espBadge, espOnline ? 'good' : 'bad');
+    toneAll('[data-mqtt-badge]', mqttStatus === 'connected' ? 'good' : mqttStatus === 'error' ? 'bad' : 'warn');
+    toneAll('[data-esp-badge]', espOnline ? 'good' : 'bad');
 
     if (elements.credentialPanel) elements.credentialPanel.hidden = mqttStatus === 'connected';
     if (elements.connectButton) elements.connectButton.disabled = mqttStatus === 'connecting';
@@ -110,14 +133,14 @@
     text(elements.espOnline, espOnline ? 'ONLINE' : 'OFFLINE');
     setTone(elements.espOnline, espOnline ? 'good' : 'bad');
     text(elements.deviceId, state.esp.deviceId || 'ยังไม่มีข้อมูล');
-    text(elements.rssi, state.esp.rssi === null ? '—' : `${state.esp.rssi} dBm`);
-    text(elements.firmware, state.esp.firmware || '—');
-    text(elements.uptime, formatDuration(state.esp.uptimeSec));
-    text(elements.lastHeartbeat, elapsed(state.esp.lastHeartbeatAt));
+    textAll('[data-rssi]', state.esp.rssi === null ? '—' : `${state.esp.rssi} dBm`);
+    textAll('[data-firmware]', state.esp.firmware || '—');
+    textAll('[data-uptime]', formatDuration(state.esp.uptimeSec));
+    textAll('[data-last-heartbeat]', elapsed(state.esp.lastHeartbeatAt));
 
-    text(elements.temperature, state.sensor.temperature === null ? '—' : `${formatNumber(state.sensor.temperature, 1)} °C`);
-    text(elements.humidity, state.sensor.humidity === null ? '—' : `${formatNumber(state.sensor.humidity, 0)} %`);
-    text(elements.sensorFreshness, state.sensor.receivedAt ? `DHT11 · ${elapsed(state.sensor.receivedAt)}` : 'DHT11 · ยังไม่มีข้อมูล');
+    textAll('[data-temperature]', state.sensor.temperature === null ? '—' : `${formatNumber(state.sensor.temperature, 1)} °C`);
+    textAll('[data-humidity]', state.sensor.humidity === null ? '—' : `${formatNumber(state.sensor.humidity, 0)} %`);
+    textAll('[data-sensor-freshness]', state.sensor.receivedAt ? `DHT11 · ${elapsed(state.sensor.receivedAt)}` : 'DHT11 · ยังไม่มีข้อมูล');
 
     text(elements.mode, state.mode || '—');
     setTone(elements.mode, state.mode ? 'good' : 'neutral');
@@ -127,11 +150,11 @@
       button.disabled = !mqtt.client?.connected;
     });
 
-    text(elements.diagnosticMqtt, mqttLabel(mqttStatus));
-    text(elements.diagnosticEsp, espOnline ? 'ONLINE' : 'OFFLINE');
-    text(elements.diagnosticReason, state.diagnostic.connectionReason || '—');
-    text(elements.diagnosticError, state.diagnostic.lastError || state.mqtt.error || 'ไม่มี');
-    text(elements.reconnectCount, String(state.mqtt.reconnectCount));
+    textAll('[data-diagnostic-mqtt]', mqttLabel(mqttStatus));
+    textAll('[data-diagnostic-esp]', espOnline ? 'ONLINE' : 'OFFLINE');
+    textAll('[data-diagnostic-reason]', state.diagnostic.connectionReason || '—');
+    textAll('[data-diagnostic-error]', state.diagnostic.lastError || state.mqtt.error || 'ไม่มี');
+    textAll('[data-reconnect-count]', String(state.mqtt.reconnectCount));
 
     config.relays.forEach(relay => {
       const card = document.querySelector(`[data-relay-card="${relay.id}"]`);
@@ -246,17 +269,19 @@
       event.preventDefault();
       try {
         mqtt.saveCredentials(elements.username.value, elements.password.value);
-        elements.credentialError.hidden = true;
+        if (elements.credentialError) elements.credentialError.hidden = true;
         elements.password.value = '';
         showToast('บันทึก credentials แล้ว · กำลังเชื่อมต่อ', 'info');
       } catch (error) {
-        elements.credentialError.hidden = false;
-        text(elements.credentialError, error.message);
+        if (elements.credentialError) {
+          elements.credentialError.hidden = false;
+          text(elements.credentialError, error.message);
+        }
       }
     });
     elements.connectButton?.addEventListener('click', () => {
       if (!mqtt.hasCredentials()) {
-        elements.credentialPanel.hidden = false;
+        if (elements.credentialPanel) elements.credentialPanel.hidden = false;
         elements.password?.focus();
         showToast('กรุณากรอก MQTT Password ก่อน', 'warn');
       } else mqtt.connect(true);
@@ -271,10 +296,12 @@
     $$('[data-relay-off]').forEach(button => button.addEventListener('click', () => submitRelay(button.closest('[data-relay-card]').dataset.relayCard, false)));
     $$('[data-mode]').forEach(button => button.addEventListener('click', () => submitMode(button.dataset.mode)));
     window.addEventListener('smartfarm:mqtt:credentials-required', event => {
-      elements.credentialPanel.hidden = false;
+      if (elements.credentialPanel) elements.credentialPanel.hidden = false;
       if (event.detail?.reason && event.detail.reason.includes('ไม่ถูกต้อง')) {
-        elements.credentialError.hidden = false;
-        text(elements.credentialError, event.detail.reason);
+        if (elements.credentialError) {
+          elements.credentialError.hidden = false;
+          text(elements.credentialError, event.detail.reason);
+        }
       }
     });
     window.addEventListener('smartfarm:mqtt:error', event => showToast(event.detail?.error || 'MQTT error', 'bad'));
@@ -285,6 +312,7 @@
     }, 1000);
   };
 
+  route();
   fillCredentials();
   bind();
   loadWeather();
