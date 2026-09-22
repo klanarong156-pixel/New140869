@@ -568,6 +568,12 @@
       } else {
         renderMqtt(false, `MQTT เชื่อมต่อไม่สำเร็จ${detail}`);
       }
+      // Keep the setup dialog actionable: show the exact broker/socket error
+      // and allow a new attempt instead of leaving the form permanently busy.
+      if (event.detail?.message && !event.detail?.connected) {
+        const statusText = document.getElementById('mqttStatusText');
+        if (statusText) statusText.textContent = `MQTT error: ${event.detail.message}`;
+      }
       const modal = document.getElementById('mqttSetupModal');
       if (modal) {
         const submit = modal.querySelector('#mqttSetupForm button[type="submit"]');
