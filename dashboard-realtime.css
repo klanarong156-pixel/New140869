@@ -1,7 +1,97 @@
-/* Dashboard realtime-first visual system */
-.realtime-status-first{margin:0 0 22px;padding:18px;border:1px solid #d6e7dc;border-radius:24px;background:linear-gradient(180deg,#f7fcf8 0%,#eef8f2 100%);box-shadow:0 14px 35px rgba(48,101,67,.10);color:#163c2a}
-.realtime-status-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.realtime-status-head h2{margin:0;font-size:25px;color:#164f35}.realtime-status-head .kicker{color:#278b59;text-shadow:none;margin-bottom:2px}.realtime-updated{font-size:11px;color:#789184;white-space:nowrap}
-.realtime-status-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.realtime-status-card{display:flex;align-items:center;gap:12px;min-height:112px;padding:15px;border:1px solid #dcebe2;border-radius:18px;background:#fff;box-shadow:0 7px 20px rgba(51,94,68,.06);transition:.2s}.status-card-icon{width:46px;height:46px;display:grid;place-items:center;flex:0 0 46px;border-radius:15px;background:#eef5f1;color:#6b8890;font-size:25px}.realtime-status-card>div{min-width:0}.realtime-status-card span:not(.status-card-icon){display:block;font-size:12px;color:#557064}.realtime-status-card strong{display:block;margin-top:2px;font-size:19px;line-height:1.2;color:#234a3a}.realtime-status-card small{display:block;margin-top:5px;font-size:11px;color:#82958b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.realtime-status-card[data-state="online"]{border-color:#bfe6cf}.realtime-status-card[data-state="online"] .status-card-icon{background:#e6f7ec;color:#119252}.realtime-status-card[data-state="online"] strong{color:#16804e}.realtime-status-card[data-state="offline"] .status-card-icon{background:#f3f5f4;color:#7b8b84}.realtime-status-card[data-state="empty"] .status-card-icon{background:#f1f4f5;color:#82919a}.realtime-status-note{margin-top:12px;padding:10px 13px;border-radius:13px;background:#e9f7ef;color:#27724e;font-size:12px}
-.dashboard-page{background:linear-gradient(180deg,#f5fbf7 0%,#edf7f8 55%,#f5faf7 100%);color:#193d30}.dashboard-page:before{opacity:.08}.dashboard-page .topbar{background:transparent}.dashboard-page .brand-copy strong{color:#185d3c}.dashboard-page .brand-copy span{color:#71857a}.dashboard-page .desktop-nav{background:#fff;border-color:#dce9df}.dashboard-page .desktop-nav a{color:#63796e}.dashboard-page .desktop-nav a:hover,.dashboard-page .desktop-nav a.active{color:#176341;background:#e9f7ef}.dashboard-page .hero.dashboard-header{background:linear-gradient(135deg,#e9f7ef,#ffffff);border:1px solid #d8e9de;border-radius:24px;box-shadow:0 14px 35px rgba(47,96,67,.08);padding:22px}.dashboard-page .hero.dashboard-header h1,.dashboard-page .hero.dashboard-header .subtitle{color:#173f31}.dashboard-page .hero.dashboard-header .kicker{color:#2a8b5a;text-shadow:none}.dashboard-page .control-section{margin-top:4px}.dashboard-page .control-section .card,.dashboard-page .sensor-overview .card,.dashboard-page .section.card{background:#fff;border-color:#dce9e1;color:#1c4133;box-shadow:0 10px 28px rgba(50,95,70,.07)}.dashboard-page .control-section h2,.dashboard-page .sensor-overview h2,.dashboard-page .section.card h2{color:#173f31}.dashboard-page .control-name strong,.dashboard-page .pump-title,.dashboard-page .pump-state-value,.dashboard-page .metric-card strong{color:#214a3a}.dashboard-page .metric-card small,.dashboard-page .helper{color:#71847a}.dashboard-page .pump-hero-card{background:#fff}.dashboard-page .quick-control-heading h2{color:#173f31}.dashboard-page .bottom-nav{background:rgba(255,255,255,.94);border-color:#d7e6dd;box-shadow:0 12px 32px rgba(39,83,60,.16)}.dashboard-page .bottom-nav a{color:#60766b}.dashboard-page .bottom-nav a.active{color:#08704a;background:#e5f6ee}.dashboard-page .status-pill.offline{background:#fff4f2;color:#9a544b;border-color:#f0d4cf}.dashboard-page .status-pill.online{background:#e8f7ee;color:#14784b;border-color:#bfe5ce}
-@media(max-width:760px){.app-main{width:calc(100% - 20px);padding-top:12px}.topbar{width:calc(100% - 20px);min-height:64px}.desktop-nav{display:none}.topbar-actions .topbar-rtc{display:none}.realtime-status-first{padding:15px;border-radius:20px}.realtime-status-head{align-items:flex-end}.realtime-status-head h2{font-size:22px}.realtime-status-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.realtime-status-card{min-height:98px;padding:12px;gap:9px;border-radius:16px}.status-card-icon{width:40px;height:40px;flex-basis:40px;border-radius:13px;font-size:21px}.realtime-status-card strong{font-size:16px}.realtime-status-card small{font-size:10px}.dashboard-page .hero.dashboard-header{padding:17px;border-radius:20px}.dashboard-page .hero.dashboard-header .dashboard-header-status{margin-top:12px}.dashboard-page .pump-hero-card{border-radius:22px}.dashboard-page .sensor-overview .grid.four{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-page .sensor-overview{padding-top:6px}.dashboard-page .bottom-nav{bottom:8px;width:calc(100% - 18px)} }
-@media(max-width:390px){.realtime-status-grid{grid-template-columns:1fr}.realtime-status-card{min-height:78px}.realtime-status-card small{white-space:normal}.dashboard-page .sensor-overview .grid.four{grid-template-columns:1fr 1fr}}
+/* FINAL DASHBOARD V2 — firmware-first, mobile-first, no legacy grid interference */
+body.dashboard-page{
+  --dash-bg:#eef7f4;--dash-card:#ffffff;--dash-green:#08734c;--dash-green-dark:#174b39;--dash-muted:#71857d;
+  background:linear-gradient(180deg,#f7fbfa 0%,#edf6f7 52%,#f7fbfa 100%) !important;color:var(--dash-green-dark);
+}
+body.dashboard-page .app-main{
+  display:block !important;width:min(1120px,calc(100% - 28px)) !important;margin:0 auto !important;
+  padding:16px 0 110px !important;
+}
+body.dashboard-page .app-main > *{width:100% !important;max-width:none !important;grid-column:auto !important;min-width:0 !important;}
+body.dashboard-page .app-main > .dashboard-header{display:flex !important;}
+body.dashboard-page .dashboard-header{
+  min-height:0 !important;padding:18px 20px !important;margin:0 0 14px !important;
+  display:flex !important;align-items:center;justify-content:space-between;gap:16px;
+  border:1px solid #d6e8df !important;border-radius:24px !important;
+  background:linear-gradient(135deg,#e8f6ef,#ffffff) !important;box-shadow:0 10px 30px rgba(39,88,66,.08) !important;
+}
+body.dashboard-page .dashboard-header h1{color:#145d3f !important;font-size:clamp(30px,5vw,44px) !important;line-height:1 !important;text-shadow:none !important;margin:3px 0 7px !important;}
+body.dashboard-page .dashboard-header .subtitle{color:#61766d !important;font-size:13px !important;}
+body.dashboard-page .dashboard-header .kicker{color:#25865b !important;text-shadow:none !important;}
+body.dashboard-page .dashboard-header .dashboard-header-status{color:#45675a !important;}
+body.dashboard-page .dashboard-header .rtc-chip{background:#fff !important;border-color:#d6e7df !important;color:#567068 !important;}
+body.dashboard-page .realtime-status-first{
+  display:block !important;width:100% !important;margin:0 0 14px !important;padding:16px !important;
+  border:1px solid #d5e8df !important;border-radius:22px !important;background:#fff !important;
+  box-shadow:0 10px 28px rgba(39,88,66,.08) !important;
+}
+body.dashboard-page .realtime-status-head{display:flex !important;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+body.dashboard-page .realtime-status-head h2{color:#164d3a !important;font-size:23px !important;text-shadow:none !important;}
+body.dashboard-page .realtime-status-head .kicker{color:#23855a !important;text-shadow:none !important;}
+body.dashboard-page .realtime-updated{color:#81938c !important;}
+body.dashboard-page .realtime-status-grid{display:grid !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:10px !important;}
+body.dashboard-page .realtime-status-card{
+  min-width:0 !important;min-height:104px !important;padding:13px !important;display:flex !important;align-items:center !important;gap:10px !important;
+  border:1px solid #dfece6 !important;border-radius:17px !important;background:#fbfdfc !important;box-shadow:none !important;
+}
+body.dashboard-page .realtime-status-card strong{color:#315446 !important;font-size:17px !important;}
+body.dashboard-page .realtime-status-card small{color:#82948d !important;font-size:10px !important;}
+body.dashboard-page .realtime-status-card[data-state="online"]{border-color:#b8dfca !important;background:#f8fdf9 !important;}
+body.dashboard-page .realtime-status-card[data-state="online"] strong{color:#13794b !important;}
+body.dashboard-page .realtime-status-card[data-state="offline"] strong{color:#8a6c66 !important;}
+body.dashboard-page .realtime-status-note{margin-top:10px !important;background:#eef8f2 !important;color:#39705a !important;border:1px solid #d9eee2;}
+body.dashboard-page .section{margin-top:14px !important;}
+body.dashboard-page .section-head{margin-bottom:10px !important;}
+body.dashboard-page .section-head h2{color:#174a38 !important;text-shadow:none !important;}
+body.dashboard-page .section-head .kicker{color:#27855c !important;text-shadow:none !important;}
+body.dashboard-page .card,
+body.dashboard-page .control-card,
+body.dashboard-page .metric-card,
+body.dashboard-page .section.card,
+body.dashboard-page .mqtt-live-panel{
+  border:1px solid #d9e9e1 !important;background:#fff !important;color:#234638 !important;
+  box-shadow:0 9px 26px rgba(40,84,65,.07) !important;border-radius:20px !important;
+}
+body.dashboard-page #control .control-grid{display:grid !important;grid-template-columns:1.35fr repeat(3,1fr) !important;gap:12px !important;}
+body.dashboard-page #control .pump-hero-card{grid-column:auto !important;padding:16px !important;}
+body.dashboard-page #control .quick-control-heading{grid-column:1 / -1 !important;display:block !important;padding:2px 2px 0 !important;}
+body.dashboard-page .control-name strong,
+body.dashboard-page .pump-title,
+body.dashboard-page .pump-state-value{color:#20503d !important;}
+body.dashboard-page .vintage-status{background:#edf7f1 !important;color:#327158 !important;border-color:#d2e9db !important;}
+body.dashboard-page .context-action{border-color:#cce3d7 !important;background:#eef8f2 !important;color:#216148 !important;}
+body.dashboard-page .metric-card strong{color:#214b3b !important;}
+body.dashboard-page .metric-card small,
+body.dashboard-page .helper{color:#74877f !important;}
+body.dashboard-page .mqtt-live-panel{padding:15px !important;}
+body.dashboard-page .bottom-nav{background:rgba(255,255,255,.96) !important;border-color:#d5e5de !important;}
+body.dashboard-page .bottom-nav a.active{background:#e5f5ee !important;color:#08734c !important;}
+body.dashboard-page .advanced-only{display:none !important;}
+body.dashboard-page #analyticsPanel{display:none !important;}
+body.dashboard-page #financeSummary{display:none !important;}
+body.dashboard-page #cropTasksCard{display:none !important;}
+body.dashboard-page #aiAdvisorPanel{display:none !important;}
+body.dashboard-page footer{margin-top:18px !important;color:#789088 !important;text-align:center;}
+@media(max-width:760px){
+  body.dashboard-page .app-main{width:calc(100% - 18px) !important;padding:9px 0 104px !important;}
+  body.dashboard-page .dashboard-header{padding:15px !important;border-radius:19px !important;}
+  body.dashboard-page .dashboard-header .dashboard-header-status{display:none !important;}
+  body.dashboard-page .dashboard-header h1{font-size:31px !important;}
+  body.dashboard-page .dashboard-header .subtitle{font-size:12px !important;}
+  body.dashboard-page .realtime-status-first{padding:13px !important;border-radius:19px !important;}
+  body.dashboard-page .realtime-status-head h2{font-size:21px !important;}
+  body.dashboard-page .realtime-status-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important;}
+  body.dashboard-page .realtime-status-card{min-height:88px !important;padding:11px !important;border-radius:15px !important;}
+  body.dashboard-page .realtime-status-card strong{font-size:15px !important;}
+  body.dashboard-page .realtime-status-card small{white-space:normal !important;line-height:1.3 !important;}
+  body.dashboard-page #control .control-grid{grid-template-columns:1fr 1fr !important;gap:9px !important;}
+  body.dashboard-page #control .pump-hero-card{grid-column:1 / -1 !important;}
+  body.dashboard-page #control .quick-control-heading{grid-column:1 / -1 !important;}
+  body.dashboard-page .sensor-overview .grid.four{grid-template-columns:1fr 1fr !important;gap:9px !important;}
+  body.dashboard-page .mqtt-live-panel{display:none !important;}
+}
+@media(max-width:390px){
+  body.dashboard-page .realtime-status-grid{grid-template-columns:1fr !important;}
+  body.dashboard-page #control .control-grid,
+  body.dashboard-page .sensor-overview .grid.four{grid-template-columns:1fr !important;}
+}
