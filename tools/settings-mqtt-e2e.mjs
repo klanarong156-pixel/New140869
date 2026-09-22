@@ -80,7 +80,7 @@ async function main() {
 
     check(await page.locator('[data-mqtt-setup]').count() === 1, 'Settings page loaded MQTT setup control');
     const initialStatus = await page.locator('#mqttStatusText').textContent();
-    check(initialStatus.includes('ขาด') && initialStatus.includes('password'), 'Missing MQTT password is reported before auto-connect');
+    check(initialStatus.includes('username') && initialStatus.includes('password'), 'MQTT credential requirement is reported before auto-connect');
 
     await page.locator('[data-mqtt-setup]').click();
     check(await page.locator('#mqttSetupForm').count() === 1, 'Credential modal opens');
@@ -100,8 +100,8 @@ async function main() {
       localPass: localStorage.getItem('smartfarm.mqtt.password'),
       connected: window.APP_STATE.mqttConnected
     }));
-    check(storage.sessionUser === TEST_USER && storage.sessionPass === TEST_PASS, 'Credentials are saved in sessionStorage when remember is off');
-    check(storage.localUser === null && storage.localPass === null, 'Credentials are not copied to localStorage by default');
+    check(storage.localUser === TEST_USER && storage.localPass === TEST_PASS, 'Credentials are saved in localStorage for browser persistence');
+    check(storage.sessionUser === null && storage.sessionPass === null, 'Credentials are not copied to sessionStorage');
     check(storage.connected === true, 'Direct MQTT client mock reports MQTT connected');
 
     const ack = await page.evaluate(async () => new Promise(resolve => {
