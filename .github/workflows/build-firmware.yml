@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'SmartFarm_V6_PRODUCTION1.ino'
+      - 'SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino'
       - 'platformio.ini'
       - '.github/workflows/build-firmware.yml'
 
@@ -17,34 +17,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-
       - name: Install PlatformIO
         run: pip install platformio
-
       - name: Prepare Arduino source
-        run: mkdir -p src && cp SmartFarm_V6_PRODUCTION1.ino src/main.ino
-
+        run: mkdir -p src && cp SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino src/main.ino
       - name: Build NodeMCU ESP8266 firmware
         run: pio run -e nodemcuv2
-
       - name: Copy firmware artifact
-        run: cp .pio/build/nodemcuv2/firmware.bin SmartFarm_V6_PRODUCTION1_${GITHUB_SHA}.bin
-
+        run: cp .pio/build/nodemcuv2/firmware.bin SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX_$GITHUB_SHA.bin
       - name: Verify broker hostname and firmware artifact
         run: |
-          grep -F '#define MQTT_SERVER "25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud"' SmartFarm_V6_PRODUCTION1.ino
-          grep -F '#define MQTT_PORT 8883' SmartFarm_V6_PRODUCTION1.ino
-          test -s SmartFarm_V6_PRODUCTION1_${GITHUB_SHA}.bin
-
+          grep -F '#define MQTT_SERVER "25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud"' SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino
+          grep -F '#define MQTT_PORT 8883' SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino
+          test -s SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX_$GITHUB_SHA.bin
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SmartFarm-firmware-${{ github.sha }}
-          path: SmartFarm_V6_PRODUCTION1_${{ github.sha }}.bin
+          name: SmartFarm-firmware-$GITHUB_SHA
+          path: SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX_$GITHUB_SHA.bin
           if-no-files-found: error
           retention-days: 30
