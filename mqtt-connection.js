@@ -50,6 +50,22 @@
       return String(error?.message || error?.reason || error || fallback);
     },
 
+    parseDevicePayload(payload) {
+      try { return JSON.parse(String(payload)); } catch (_) {}
+      // Compatibility with firmware builds whose 512-byte heartbeat buffer
+      // truncated the JSON tail. Identity and liveness are at the front.
+      const text = String(payload);
+      const id = text.match(/"device_id"\s*:\s*"([^"\\]*)/);
+      if (!id || !/"online"\s*:\s*true/.test(text) || !/"mqtt"\s*:\s*true/.test(text)) return null;
+      const firmware = text.match(/"firmware"\s*:\s*"([^"\\]*)/);
+      const uptime = text.match(/"uptimeSec"\s*:\s*(\d+)/) || text.match(/"uptime"\s*:\s*(\d+)/);
+      const rssi = text.match(/"rssi"\s*:\s*(-?\d+)/);
+      return { device_id: id[1], online: true, mqtt: true,
+        ...(firmware ? { firmware: firmware[1] } : {}),
+        ...(uptime ? { uptimeSec: Number(uptime[1]) } : {}),
+        ...(rssi ? { rssi: Number(rssi[1]) } : {}), payloadTruncated: true };
+    },
+
     nextPublishId() {
       this.publishSequence += 1;
       return `${Date.now()}-${this.publishSequence}`;
@@ -390,7 +406,8 @@
 
       if (topic === this.config.topics.deviceStatus) {
         try {
-          const device = JSON.parse(value);
+          const device = this.parseDevicePayload(value);
+          if (!device) return;
           if (device.online === false) {
             this.setDeviceOnline(false, 'device-status');
             return;

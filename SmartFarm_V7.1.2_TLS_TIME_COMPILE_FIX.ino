@@ -2294,7 +2294,10 @@ void runSchedules() {
 void publishHeartbeat() {
   if (!mqtt.connected())
     return;
-  StaticJsonDocument<512> d;
+  // The heartbeat includes diagnostics, sensor age, and an ISO timestamp.
+  // 512 bytes truncates the JSON before the closing brace, so browser clients
+  // cannot parse status/device and incorrectly keep ESP8266 offline.
+  StaticJsonDocument<1024> d;
   d["device_id"] = deviceName[0] ? deviceName : "esp8266-01";
   d["online"] = true;
   d["wifi"] = WiFi.status() == WL_CONNECTED;
@@ -2331,8 +2334,9 @@ void publishHeartbeat() {
                   (uint32_t)(millis() - lastSensorValidAt) <= 90000UL;
   if (iso.length())
     d["time"] = iso;
-  char out[512];
-  serializeJson(d, out, sizeof(out));
+  char out[1024];
+  const size_t written = serializeJson(d, out, sizeof(out));
+  if (written == 0 || written >= sizeof(out) - 1) return;
   // Retain the latest heartbeat so a freshly opened dashboard can restore RTC time immediately.
   mqtt.publish(MQTT_BASE "/status/device", out, true);
 }

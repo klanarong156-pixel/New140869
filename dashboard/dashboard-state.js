@@ -101,8 +101,9 @@
     current.esp.lastHeartbeatAt = now;
     current.esp.lastHeartbeatWasRetained = retained;
     current.esp.heartbeatCount += 1;
-    // A retained heartbeat is telemetry to display, not proof of current liveness.
-    current.esp.online = device.online === true && !retained;
+    // Firmware retains the latest heartbeat on every publish. It is valid initial
+    // state; the watchdog below is what removes liveness when no fresh heartbeat arrives.
+    current.esp.online = device.online === true && device.mqtt !== false;
     current.diagnostic.lastMessageAt = now;
   }, retained ? 'esp:retained-heartbeat' : 'esp:heartbeat');
 
@@ -119,7 +120,7 @@
     }
     if (!state.esp.lastHeartbeatAt) return false;
     if (Date.now() - state.esp.lastHeartbeatAt <= timeoutMs) {
-      if (!state.esp.online && !state.esp.lastHeartbeatWasRetained) {
+      if (!state.esp.online && state.esp.raw?.online === true && state.esp.raw?.mqtt !== false) {
         update(current => { current.esp.online = true; }, 'esp:online');
       }
       return state.esp.online;

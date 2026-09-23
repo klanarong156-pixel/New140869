@@ -75,13 +75,16 @@ const check = (condition, message) => {
 };
 
 manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 10, rssi: -60 }), { retain: true });
-check(store.get().esp.online === false, 'retained heartbeat does not mark ESP online');
+check(store.get().esp.online === true, 'retained heartbeat marks ESP online from real firmware state');
 check(store.get().esp.lastHeartbeatWasRetained === true, 'retained heartbeat is recorded as retained');
 
 manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 20, rssi: -61 }), { retain: true });
 check(store.get().esp.online === true, 'changed uptime marks a fresh retained heartbeat online');
 check(store.get().esp.lastHeartbeatWasRetained === false, 'changed heartbeat is treated as live telemetry');
 check(store.get().esp.firmware === 'V7.1.1', 'heartbeat firmware is displayed from device payload');
+
+manager.handleMessage(config.topics.device, '{"device_id":"SmartFarm-ESP8266","online":true,"wifi":true,"mqtt":true,"firmware":"V7.1.1","uptimeSec":30,"rssi":-62,"time":"2026-09-23T20:', { retain: false });
+check(store.get().esp.online === true && store.get().esp.deviceId === 'SmartFarm-ESP8266', 'truncated legacy heartbeat still exposes real ESP liveness');
 
 store.state.esp.lastHeartbeatAt = Date.now() - 26000;
 store.checkHeartbeat(config.mqtt.heartbeatTimeoutMs);

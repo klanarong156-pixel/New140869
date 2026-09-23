@@ -5,7 +5,12 @@
   const appState = window.SmartFarmDashboardState;
   const mqttConfig = config.mqtt;
   const topics = config.topics;
-  const credentialEvents = ['smartfarm.dashboard.username', 'smartfarm.dashboard.password'];
+  const credentialEvents = [
+    'smartfarm.dashboard.username', 'smartfarm.dashboard.password',
+    'smartfarm.mqtt.username', 'smartfarm.mqtt.password'
+  ];
+  const legacyStorageUsername = 'smartfarm.mqtt.username';
+  const legacyStoragePassword = 'smartfarm.mqtt.password';
 
   const manager = {
     client: null,
@@ -21,9 +26,15 @@
 
     readCredentials() {
       try {
+        const username = localStorage.getItem(mqttConfig.storageUsername)
+          || localStorage.getItem(legacyStorageUsername)
+          || mqttConfig.defaultUsername;
+        const password = localStorage.getItem(mqttConfig.storagePassword)
+          || localStorage.getItem(legacyStoragePassword)
+          || '';
         return {
-          username: localStorage.getItem(mqttConfig.storageUsername) || mqttConfig.defaultUsername,
-          password: localStorage.getItem(mqttConfig.storagePassword) || ''
+          username,
+          password
         };
       } catch (_) {
         return { username: mqttConfig.defaultUsername, password: '' };
@@ -41,6 +52,9 @@
       if (!user || !pass) throw new Error('กรุณากรอก MQTT Username และ Password ให้ครบ');
       localStorage.setItem(mqttConfig.storageUsername, user);
       localStorage.setItem(mqttConfig.storagePassword, pass);
+      // Keep the legacy dashboard and the unified dashboard on one credential source.
+      localStorage.setItem(legacyStorageUsername, user);
+      localStorage.setItem(legacyStoragePassword, pass);
       this.authFailed = false;
       this.dispatch('credentials-saved', { username: user });
       return this.connect(true);
@@ -212,6 +226,24 @@
       try { return JSON.parse(payload); } catch (_) { return null; }
     },
 
+    parseDevicePayload(payload) {
+      const parsed = this.parseJson(payload);
+      if (parsed) return parsed;
+      // Older firmware used a 512-byte output buffer and could truncate the
+      // tail of status/device. Recover only the identity/liveness fields that
+      // are emitted at the beginning; the watchdog still enforces freshness.
+      const text = String(payload);
+      const id = text.match(/"device_id"\s*:\s*"([^"\\]*)/);
+      if (!id || !/"online"\s*:\s*true/.test(text) || !/"mqtt"\s*:\s*true/.test(text)) return null;
+      const firmware = text.match(/"firmware"\s*:\s*"([^"\\]*)/);
+      const uptime = text.match(/"uptimeSec"\s*:\s*(\d+)/) || text.match(/"uptime"\s*:\s*(\d+)/);
+      const rssi = text.match(/"rssi"\s*:\s*(-?\d+)/);
+      return { device_id: id[1], online: true, mqtt: true,
+        ...(firmware ? { firmware: firmware[1] } : {}),
+        ...(uptime ? { uptimeSec: Number(uptime[1]) } : {}),
+        ...(rssi ? { rssi: Number(rssi[1]) } : {}), payloadTruncated: true };
+    },
+
     handleMessage(topic, payload, packet = {}) {
       const retained = Boolean(packet?.retain);
       const value = String(payload).trim();
@@ -223,7 +255,7 @@
       }
 
       if (topic === topics.device) {
-        const device = this.parseJson(value);
+        const device = this.parseDevicePayload(value);
         if (!device || typeof device !== 'object') return;
         if (device.online === false) appState.setEspOffline('status/device=false');
         else {
