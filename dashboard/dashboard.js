@@ -118,13 +118,16 @@
     const espText = `ESP8266 · ${espOnline ? 'ออนไลน์' : 'ออฟไลน์'}`;
 
     text(elements.mqttStatus, mqttText);
-    text(elements.espStatus, espText);
+    textAll('[data-esp-status]', espText);
     textAll('[data-mqtt-badge]', mqttLabel(mqttStatus));
     textAll('[data-esp-badge]', espOnline ? 'ออนไลน์' : 'ออฟไลน์');
     setTone(elements.mqttStatus, mqttStatus === 'connected' ? 'good' : mqttStatus === 'error' ? 'bad' : 'warn');
-    setTone(elements.espStatus, espOnline ? 'good' : 'bad');
+    toneAll('[data-esp-status]', espOnline ? 'good' : 'bad');
+    toneAll('[data-mqtt-shell]', mqttStatus === 'connected' ? 'good' : mqttStatus === 'error' ? 'bad' : 'warn');
+    toneAll('[data-esp-shell]', espOnline ? 'good' : 'bad');
     toneAll('[data-mqtt-badge]', mqttStatus === 'connected' ? 'good' : mqttStatus === 'error' ? 'bad' : 'warn');
     toneAll('[data-esp-badge]', espOnline ? 'good' : 'bad');
+    toneAll('[data-esp-orb]', espOnline ? 'good' : 'bad');
 
     if (elements.credentialPanel) elements.credentialPanel.hidden = mqttStatus === 'connected';
     if (elements.connectButton) elements.connectButton.disabled = mqttStatus === 'connecting';
@@ -137,6 +140,10 @@
     textAll('[data-firmware]', state.esp.firmware || '—');
     textAll('[data-uptime]', formatDuration(state.esp.uptimeSec));
     textAll('[data-last-heartbeat]', elapsed(state.esp.lastHeartbeatAt));
+    textAll('[data-esp-device-id]', state.esp.deviceId || 'ยังไม่มีข้อมูล');
+    textAll('[data-esp-firmware]', state.esp.firmware || '—');
+    textAll('[data-esp-last-seen]', elapsed(state.esp.lastHeartbeatAt));
+    textAll('[data-esp-status-detail]', espOnline ? `ออนไลน์ · heartbeat ${elapsed(state.esp.lastHeartbeatAt)}` : state.mqtt.status !== 'connected' ? 'รอการเชื่อมต่อ MQTT' : state.esp.lastHeartbeatAt ? `ไม่พบ heartbeat ใหม่ · ${elapsed(state.esp.lastHeartbeatAt)}` : 'ยังไม่ได้รับ heartbeat จากอุปกรณ์จริง');
 
     textAll('[data-temperature]', state.sensor.temperature === null ? '—' : `${formatNumber(state.sensor.temperature, 1)} °C`);
     textAll('[data-humidity]', state.sensor.humidity === null ? '—' : `${formatNumber(state.sensor.humidity, 0)} %`);

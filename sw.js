@@ -1,9 +1,9 @@
-const CACHE_NAME = 'smartfarm-v12-single-shell-1';
+const CACHE_NAME = 'smartfarm-v13-reference-polish-1';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
-  './dashboard/dashboard.css?v=2', './dashboard/dashboard-config.js?v=1',
+  './dashboard/dashboard.css?v=3', './dashboard/dashboard-config.js?v=1',
   './dashboard/dashboard-state.js?v=1', './dashboard/dashboard-mqtt.js?v=1',
-  './dashboard/dashboard.js?v=2', './mqtt.min.js?v=5', './404.html',
+  './dashboard/dashboard.js?v=3', './mqtt.min.js?v=5', './404.html',
   './connection.html', './schedule.html', './settings.html', './dashboard-connection.css',
   './auth.html', './schedule.html', './finance.html', './account.html', './settings.html', './admin.html', './ota.html',
   './manifest.json', './app.css', './redesign-lambo.css', './pump-hero.css', './suanlungna-design-system.css', './dashboard-polish.css', './dashboard-realtime.css', './app.js', './dashboard-ota.js', './config.js', './mqtt-connection.js', './internet-time.js', './weather.js', './auto-weather-guard.js', './schedule.js', './firebase.js', './access.js', './auth-page.js', './finance-core.js', './finance-firebase.js', './finance.js', './account.js', './crop-reminders.js', './crop-plots.js', './farm-analytics.js', './ai-farm-advisor.js', './farm-tools.js', './farm-clock.js', './user-management.js', './MQTT_CONTRACT_V6.html', './HARDWARE_V6.html',
