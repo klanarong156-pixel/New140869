@@ -16,6 +16,7 @@ checks = {
     'relay identifiers': all(x in firmware and x in config for x in ('pump', 'zone1', 'lighthome', 'lightsala')),
     'sensor topic': 'sensor: sensor =>' in config and "sensor('dht11')" in handler and '"/sensor/dht11"' in firmware,
     'active status topics': all(x in config for x in ('smartfarm/status/online', 'smartfarm/status/device', 'smartfarm/emergency/status', 'smartfarm/mode/status')) and all(x in firmware for x in ('/status/online', '/status/device', '/emergency/status')),
+    'ESP LWT contract': 'MQTT_BASE "/status/online", 0, true, "false"' in firmware and 'mqtt.publish(MQTT_BASE "/status/online", "true", true)' in firmware,
     'mode contract': 'mode/set' in firmware and 'mode/status' in firmware and 'modeSet' in config and 'modeStatus' in handler,
     'no fake soil sensor': 'soil' not in connection.lower() or 'not installed' in connection.lower() or 'ไม่ได้ติดตั้ง' in connection,
     'no legacy mqtt files': not (root / 'mqtt-handler.js').exists() and not (root / 'mqtt-shared-worker.js').exists(),

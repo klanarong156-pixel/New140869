@@ -104,6 +104,11 @@ check(manager.publish(config.topics.relaySet('pump'), 'ON') === true, 'relay com
 check(store.get().relays.pump === null, 'relay command does not optimistically change UI state');
 manager.handleMessage(config.topics.relayStatus('pump'), 'ON', { retain: true });
 check(store.get().relays.pump === true, 'relay status from ESP changes UI state');
+manager.handleMessage(config.topics.online, 'false', { retain: true });
+check(store.get().esp.online === false, 'LWT status/online=false marks ESP offline');
+check(store.get().diagnostic.connectionReason === 'status/online=false', 'LWT offline reason is recorded');
+manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 25, rssi: -61 }), { retain: false });
+check(store.get().esp.online === true, 'live heartbeat restores ESP online after LWT');
 check(fakeClient.published[0].payload === 'ON' && fakeClient.published[0].options.retain === false, 'relay command uses ON payload and non-retained publish');
 check(fakeClient.subscriptions.some(item => item.topic === 'smartfarm/status/device'), 'dashboard subscribes to device heartbeat');
 check(fakeClient.subscriptions.some(item => item.topic === 'smartfarm/relay/+/status'), 'dashboard subscribes to relay status wildcard');
