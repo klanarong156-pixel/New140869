@@ -9,6 +9,7 @@
   <link rel="icon" href="../icon-192.png">
   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
   <link rel="stylesheet" href="dashboard.css?v=7">
+  <style>.bottom-nav{--nav-items:8}@media(max-width:650px){.bottom-nav{grid-template-columns:repeat(8,minmax(0,1fr))}.bottom-nav a{min-width:0}.bottom-nav a span,.bottom-nav a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}</style>
   <title>สวนลุงนะ · Smart Farm Dashboard</title>
 </head>
 <body>
@@ -21,6 +22,7 @@
       <nav class="sidebar-nav">
         <a href="?page=dashboard" data-route="dashboard"><span>⌂</span>หน้าหลัก</a>
         <a href="?page=water" data-route="water"><span>♨</span>ระบบน้ำ</a>
+        <a href="../finance.html" data-route="finance"><span>฿</span>การเงิน</a>
         <a href="?page=devices" data-route="devices"><span>▣</span>อุปกรณ์</a>
         <a href="?page=connection" data-route="connection"><span>⌁</span>การเชื่อมต่อ</a>
         <a href="?page=weather" data-route="weather"><span>☀</span>สภาพอากาศ</a>
@@ -102,7 +104,7 @@
     </div>
   </div>
   <nav class="bottom-nav" aria-label="เมนูบนมือถือ">
-    <a href="?page=dashboard" data-route="dashboard"><span>⌂</span>หน้าหลัก</a><a href="?page=water" data-route="water"><span>♨</span>ระบบน้ำ</a><a href="?page=devices" data-route="devices"><span>▣</span>อุปกรณ์</a><a href="?page=connection" data-route="connection"><span>⌁</span>เชื่อมต่อ</a><a href="?page=weather" data-route="weather"><span>☀</span>อากาศ</a><a href="?page=settings" data-route="settings"><span>⚙</span>ตั้งค่า</a><a href="?page=info" data-route="info"><span>▤</span>ข้อมูล</a>
+    <a href="?page=dashboard" data-route="dashboard"><span>⌂</span>หน้าหลัก</a><a href="?page=water" data-route="water"><span>♨</span>ระบบน้ำ</a><a href="../finance.html" data-route="finance"><span>฿</span>การเงิน</a><a href="?page=devices" data-route="devices"><span>▣</span>อุปกรณ์</a><a href="?page=connection" data-route="connection"><span>⌁</span>เชื่อมต่อ</a><a href="?page=weather" data-route="weather"><span>☀</span>อากาศ</a><a href="?page=settings" data-route="settings"><span>⚙</span>ตั้งค่า</a><a href="?page=info" data-route="info"><span>▤</span>ข้อมูล</a>
   </nav>
   <div class="toast" data-toast hidden role="status" aria-live="polite"></div>
   <script src="../mqtt.min.js?v=5"></script><script src="dashboard-config.js?v=1"></script><script src="dashboard-state.js?v=2"></script><script src="dashboard-mqtt.js?v=3"></script><script src="dashboard.js?v=4"></script>

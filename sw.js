@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartfarm-v19-heartbeat-payload-fix-1';
+const CACHE_NAME = 'smartfarm-v20-finance-navigation-1';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
   './dashboard/dashboard.css?v=7', './dashboard/dashboard-config.js?v=1',
