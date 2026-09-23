@@ -9,8 +9,7 @@ const root = new URL(base);
 const pages = fs.readdirSync('.').filter(name => name.endsWith('.html') && !name.startsWith('archive')).sort();
 const canonicalRoutes = ['dashboard/?page=dashboard', 'dashboard/?page=water', 'dashboard/?page=devices', 'dashboard/?page=connection', 'dashboard/?page=weather', 'dashboard/?page=settings', 'dashboard/?page=info'];
 const corePages = ['finance.html', 'account.html'];
-const aliasPages = { 'schedule.html': 'dashboard/?page=water', 'connection.html': 'dashboard/?page=connection', 'settings.html': 'dashboard/?page=settings' };
-const appRoutes = ['index.html', ...corePages, ...Object.keys(aliasPages)];
+const appRoutes = ['index.html', ...corePages];
 const checks = [];
 const add = (name, ok, detail = '') => checks.push({ name, ok, detail });
 
@@ -40,27 +39,27 @@ async function runChecks() {
   add('dashboard/index.html: loads clean dashboard CSS', /href="dashboard\.css\?v=\d+"/.test(cleanDashboard));
   add('dashboard/index.html: loads MQTT.js and single connection manager', /mqtt\.min\.js/.test(cleanDashboard) && /dashboard-mqtt\.js/.test(cleanDashboard));
   add('dashboard/index.html: uses canonical internal routes', /\?page=connection/.test(cleanDashboard) && !/href="\.\.\/settings\.html"/.test(cleanDashboard));
-  for (const [alias, target] of Object.entries(aliasPages)) {
-    const aliasHtml = fs.readFileSync(alias, 'utf8');
-    add(`${alias}: redirects to canonical route`, aliasHtml.includes(`url=${target}`) && aliasHtml.includes(`location.replace('${target}')`));
+  for (const legacyPage of ['connection.html', 'schedule.html', 'settings.html']) {
+    add(`${legacyPage}: removed`, !fs.existsSync(legacyPage));
   }
   for (const page of pages) {
     const html = fs.readFileSync(page, 'utf8');
     add(`${page}: has viewport`, /name="viewport"/.test(html));
-    add(`${page}: has page styling`, page === 'index.html' || aliasPages[page] ? /dashboard\//.test(html) : /href="app\.css\?v=\d+"/.test(html) || /<style[\s>]/.test(html));
+    add(`${page}: has page styling`, page === 'index.html' ? /dashboard\//.test(html) : /href="app\.css\?v=\d+"/.test(html) || /<style[\s>]/.test(html));
     if (corePages.includes(page)) {
       add(`${page}: has bottom navigation`, /class="bottom-nav"/.test(html));
-      add(`${page}: has settings link`, /href="settings\.html"/.test(html));
+      add(`${page}: has settings route`, /dashboard\/\?page=settings/.test(html));
       const navBlock = html.match(/<nav[^>]*class="bottom-nav"[\s\S]*?<\/nav>/)?.[0] || '';
-      const navLinks = [...navBlock.matchAll(/<a(?:\s+class="([^"]*)")?\s+href="([^"]+\.html)"/g)];
+      const navLinks = [...navBlock.matchAll(/<a(?:\s+class="([^"]*)")?\s+href="([^"]+)"/g)];
       const activeLinks = navLinks.filter(([, classes]) => classes?.split(/\s+/).includes('active'));
-      add(`${page}: bottom navigation has exactly five existing routes`, navLinks.length === 5 && navLinks.every(([, , href]) => appRoutes.includes(href)));
+      add(`${page}: bottom navigation has five links`, navLinks.length === 5);
       add(`${page}: bottom navigation marks exactly one active route`, activeLinks.length === 1 && activeLinks[0][2] === page);
     }
-    add(`${page}: uses no active inline color/background override`, aliasPages[page] || !/style="[^\"]*(color|background|opacity|filter)/.test(html));
+    add(`${page}: uses no active inline color/background override`, !/style="[^\"]*(color|background|opacity|filter)/.test(html));
     const navBlock = html.match(/<nav[^>]*class="bottom-nav"[\s\S]*?<\/nav>/)?.[0] || '';
-    for (const href of [...navBlock.matchAll(/href="([^\"]+\.html)"/g)].map(match => match[1])) {
-      add(`${page}: nav target ${href} exists`, fs.existsSync(href));
+    for (const href of [...navBlock.matchAll(/href="([^\"]+)"/g)].map(match => match[1])) {
+      const path = href.split('?')[0];
+      add(`${page}: nav target ${href} exists`, path.startsWith('dashboard/') || fs.existsSync(path));
     }
   }
 

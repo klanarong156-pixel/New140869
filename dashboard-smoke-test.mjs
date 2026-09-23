@@ -25,7 +25,6 @@ const cleanDashboardConfig = read('dashboard/dashboard-config.js');
 const cleanDashboardState = read('dashboard/dashboard-state.js');
 const cleanDashboardMqtt = read('dashboard/dashboard-mqtt.js');
 const cleanDashboardJs = read('dashboard/dashboard.js');
-const connection = read('connection.html');
 const firmware = read('SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino');
 const sw = read('sw.js');
 
@@ -48,8 +47,8 @@ const checks = [
   ['Firmware heartbeat contract exists', firmware.includes('MQTT_BASE "/status/device"') && firmware.includes('MQTT_BASE "/status/online"') && /uptimeSec/.test(firmware)],
   ['Firmware DHT11 contract exists', firmware.includes('MQTT_BASE "/sensor/dht11"') && /DHT11/.test(firmware)],
   ['Firmware command topics are explicit', /MQTT_COMMAND_TOPICS/.test(firmware) && !/mqtt\.subscribe\(MQTT_BASE "\/#"\)/.test(firmware)],
-  ['No fake soil sensor telemetry in dashboard connection page', !/soil.*(?:value|temperature|humidity)/i.test(connection)],
-  ['Service worker caches connection page', /connection\.html/.test(sw) && /dashboard-connection\.css/.test(sw)]
+  ['No fake soil sensor telemetry in unified dashboard', !/soil.*(?:value|temperature|humidity)/i.test(cleanDashboard)],
+  ['Legacy duplicate pages are removed from service worker', !/connection\.html|schedule\.html|settings\.html/.test(sw)]
 ];
 
 let failed = 0;
