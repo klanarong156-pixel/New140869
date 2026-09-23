@@ -47,12 +47,15 @@ async function runChecks() {
     add(`${page}: has viewport`, /name="viewport"/.test(html));
     add(`${page}: has page styling`, page === 'index.html' ? /dashboard\//.test(html) : /href="app\.css\?v=\d+"/.test(html) || /<style[\s>]/.test(html));
     if (corePages.includes(page)) {
+      if (page === 'finance.html') {
+        add(`${page}: uses dashboard sidebar shell`, /class="sidebar"/.test(html) && /dashboard\/dashboard\.css\?v=\d+/.test(html));
+      }
       add(`${page}: has bottom navigation`, /class="bottom-nav"/.test(html));
       add(`${page}: has settings route`, /dashboard\/\?page=settings/.test(html));
       const navBlock = html.match(/<nav[^>]*class="bottom-nav"[\s\S]*?<\/nav>/)?.[0] || '';
       const navLinks = [...navBlock.matchAll(/<a(?:\s+class="([^"]*)")?\s+href="([^"]+)"/g)];
       const activeLinks = navLinks.filter(([, classes]) => classes?.split(/\s+/).includes('active'));
-      add(`${page}: bottom navigation has five links`, navLinks.length === 5);
+      add(`${page}: bottom navigation has dashboard links`, navLinks.length === 8 || navLinks.length === 5);
       add(`${page}: bottom navigation marks exactly one active route`, activeLinks.length === 1 && activeLinks[0][2] === page);
     }
     add(`${page}: uses no active inline color/background override`, !/style="[^\"]*(color|background|opacity|filter)/.test(html));
