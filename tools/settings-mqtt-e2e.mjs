@@ -10,25 +10,24 @@ const PORT = 4187;
 const HOST = '127.0.0.1';
 const TEST_USER = 'e2e-test-user';
 const TEST_PASS = 'e2e-test-password';
-// Local Debian images expose Chromium here, while GitHub Actions supplies the
-// browser location through CHROMIUM_PATH. Keeping this configurable makes the
-// same integration test runnable in both environments.
 const CHROMIUM_PATH = process.env.CHROMIUM_PATH || '/usr/bin/chromium';
 
 const MOCK_MQTT = `
 (() => {
   class MockClient {
-    constructor() { this.connected = false; this.handlers = new Map(); }
+    constructor() { this.connected = false; this.handlers = new Map(); this.published = []; }
     on(name, fn) { this.handlers.set(name, fn); return this; }
     emit(name, ...args) { this.handlers.get(name)?.(...args); }
     subscribe(_topic, _options, callback) { setTimeout(() => callback?.(null), 0); }
     publish(topic, payload, options, callback) {
-      setTimeout(() => callback?.(null, { topic, qos: options?.qos ?? 0, retain: options?.retain ?? false }), 5);
+      this.published.push({ topic, payload, options });
+      setTimeout(() => callback?.(null), 5);
     }
     end() { this.connected = false; this.emit('close'); }
   }
   self.mqtt = { connect() {
     const client = new MockClient();
+    self.__mockMqttClient = client;
     setTimeout(() => { client.connected = true; client.emit('connect'); }, 10);
     return client;
   }};
@@ -38,7 +37,9 @@ const MOCK_MQTT = `
 async function serveFile(filePath, response) {
   try {
     const data = await fs.readFile(filePath);
-    response.writeHead(200, { 'Content-Type': filePath.endsWith('.html') ? 'text/html; charset=utf-8' : 'application/javascript; charset=utf-8' });
+    const type = filePath.endsWith('.html') ? 'text/html; charset=utf-8'
+      : filePath.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/javascript; charset=utf-8';
+    response.writeHead(200, { 'Content-Type': type });
     response.end(data);
   } catch (_) {
     response.writeHead(404);
@@ -53,16 +54,8 @@ const server = http.createServer(async (request, response) => {
     response.end(MOCK_MQTT);
     return;
   }
-  if (url.pathname === '/settings.html') {
-    let html = await fs.readFile(path.join(ROOT, 'settings.html'), 'utf8');
-    html = html.replace('data-auth-required="true" data-admin-required="true"', '');
-    html = html.replace(/<script src="access\.js[^>]*><\/script>/, '');
-    html = html.replace(/data-admin-action disabled/g, 'data-admin-action');
-    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    response.end(html);
-    return;
-  }
-  const safePath = path.normalize(url.pathname).replace(/^\.\.(\/|\\)/, '');
+  const requestPath = url.pathname === '/dashboard/' ? '/dashboard/index.html' : url.pathname;
+  const safePath = path.normalize(requestPath).replace(/^\.\.(\/|\\)/, '');
   await serveFile(path.join(ROOT, safePath), response);
 });
 
@@ -71,67 +64,54 @@ function check(condition, message) {
   console.log(`PASS: ${message}`);
 }
 
+async function openConnectionPage(browser) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(`http://${HOST}:${PORT}/dashboard/?page=connection`, { waitUntil: 'networkidle' });
+  return { context, page };
+}
+
 async function main() {
   await new Promise(resolve => server.listen(PORT, HOST, resolve));
   const browser = await chromium.launch({ headless: true, executablePath: CHROMIUM_PATH, args: ['--no-sandbox'] });
   try {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    await page.goto(`http://${HOST}:${PORT}/settings.html`, { waitUntil: 'networkidle' });
-    await page.evaluate(() => document.querySelectorAll('[data-admin-action]').forEach(el => { el.disabled = false; el.removeAttribute('aria-disabled'); }));
+    const { context, page } = await openConnectionPage(browser);
+    check(await page.locator('[data-credential-form]').count() === 1, 'Canonical connection page loaded MQTT credential form');
+    await page.locator('[data-mqtt-username]').fill(TEST_USER);
+    await page.locator('[data-mqtt-password]').fill(TEST_PASS);
+    await page.locator('[data-credential-form] button[type="submit"]').click();
+    await page.waitForFunction(() => window.SmartFarmDashboardState?.get()?.mqtt?.status === 'connected');
 
-    check(await page.locator('[data-mqtt-setup]').count() === 1, 'Settings page loaded MQTT setup control');
-    const initialStatus = await page.locator('#mqttStatusText').textContent();
-    check(initialStatus.includes('username') && initialStatus.includes('password'), 'MQTT credential requirement is reported before auto-connect');
-
-    await page.locator('[data-mqtt-setup]').click();
-    check(await page.locator('#mqttSetupForm').count() === 1, 'Credential modal opens');
-    check(await page.locator('#mqttSetupForm button[type="submit"]').isDisabled(), 'Save is disabled while credentials are incomplete');
-
-    await page.locator('#mqttUsername').fill(TEST_USER);
-    check(await page.locator('#mqttSetupForm button[type="submit"]').isDisabled(), 'Save remains disabled when password is missing');
-    await page.locator('#mqttPassword').fill(TEST_PASS);
-    check(!(await page.locator('#mqttSetupForm button[type="submit"]').isDisabled()), 'Save becomes enabled when both credentials are present');
-    await page.locator('#mqttSetupForm button[type="submit"]').click();
-
-    await page.waitForFunction(() => window.APP_STATE?.mqttConnected === true);
     const storage = await page.evaluate(() => ({
-      sessionUser: sessionStorage.getItem('smartfarm.mqtt.username'),
-      sessionPass: sessionStorage.getItem('smartfarm.mqtt.password'),
-      localUser: localStorage.getItem('smartfarm.mqtt.username'),
-      localPass: localStorage.getItem('smartfarm.mqtt.password'),
-      connected: window.APP_STATE.mqttConnected
+      unifiedUser: localStorage.getItem('smartfarm.dashboard.username'),
+      unifiedPass: localStorage.getItem('smartfarm.dashboard.password'),
+      legacyUser: localStorage.getItem('smartfarm.mqtt.username'),
+      legacyPass: localStorage.getItem('smartfarm.mqtt.password'),
+      connected: window.SmartFarmDashboardMqtt.client?.connected === true
     }));
-    check(storage.localUser === TEST_USER && storage.localPass === TEST_PASS, 'Credentials are saved in localStorage for browser persistence');
-    check(storage.sessionUser === null && storage.sessionPass === null, 'Credentials are not copied to sessionStorage');
-    check(storage.connected === true, 'Direct MQTT client mock reports MQTT connected');
+    check(storage.unifiedUser === TEST_USER && storage.unifiedPass === TEST_PASS, 'Unified dashboard credentials are saved in localStorage');
+    check(storage.legacyUser === TEST_USER && storage.legacyPass === TEST_PASS, 'Legacy dashboard credentials stay synchronized');
+    check(storage.connected === true, 'Primary MQTT client reports connected');
 
-    const ack = await page.evaluate(async () => new Promise(resolve => {
-      const listener = event => { window.removeEventListener('mqtt:publish-ack', listener); resolve({ requestId: event.detail?.requestId, topic: event.detail?.topic }); };
-      window.addEventListener('mqtt:publish-ack', listener);
-      window.mqttHandler.publish('smartfarm/test/settings-e2e', 'ack-check', { qos: 0, retain: false });
-    }));
-    check(ack.topic === 'smartfarm/test/settings-e2e' && Boolean(ack.requestId), 'Publish acknowledgement arrives through the primary MQTT client path');
-    const criticalAck = await page.evaluate(async () => new Promise(resolve => {
-      const listener = event => { window.removeEventListener('mqtt:publish-ack', listener); resolve({ topic: event.detail?.topic, qos: event.detail?.packet?.qos, retain: event.detail?.packet?.retain }); };
-      window.addEventListener('mqtt:publish-ack', listener);
-      window.mqttHandler.publish('smartfarm/relay/pump/set', 'ON');
-    }));
-    check(criticalAck.topic === 'smartfarm/relay/pump/set' && criticalAck.qos === 1 && criticalAck.retain === false, 'Critical relay command uses QoS 1 without retain');
+    const publish = await page.evaluate(() => {
+      const ok = window.SmartFarmDashboardMqtt.publish('smartfarm/relay/pump/set', 'ON');
+      return { ok, published: window.__mockMqttClient?.published || [] };
+    });
+    check(publish.ok === true, 'Relay command publishes through the unified MQTT manager');
+    check(publish.published[0]?.topic === 'smartfarm/relay/pump/set'
+      && publish.published[0]?.payload === 'ON'
+      && publish.published[0]?.options?.qos === 1
+      && publish.published[0]?.options?.retain === false, 'Critical relay command uses QoS 1 without retain');
     await context.close();
 
-    const incompleteContext = await browser.newContext();
-    const incompletePage = await incompleteContext.newPage();
-    await incompletePage.goto(`http://${HOST}:${PORT}/settings.html`, { waitUntil: 'networkidle' });
-    await incompletePage.evaluate(() => document.querySelectorAll('[data-admin-action]').forEach(el => { el.disabled = false; el.removeAttribute('aria-disabled'); }));
-    await incompletePage.locator('[data-mqtt-setup]').click();
-    await incompletePage.locator('#mqttUsername').fill(TEST_USER);
-    await incompletePage.locator('#mqttSetupForm').dispatchEvent('submit');
-    check(await incompletePage.locator('#mqttSetupForm').count() === 1, 'Incomplete submission does not close the credential modal');
-    check((await incompletePage.locator('[role="status"]').last().textContent()).includes('password'), 'Incomplete submission identifies the missing password');
-    await incompleteContext.close();
+    const incomplete = await openConnectionPage(browser);
+    await incomplete.page.locator('[data-mqtt-username]').fill(TEST_USER);
+    await incomplete.page.locator('[data-credential-form]').evaluate(form => form.requestSubmit());
+    await new Promise(resolve => setTimeout(resolve, 50));
+    check(await incomplete.page.evaluate(() => !localStorage.getItem('smartfarm.dashboard.password')), 'Incomplete credentials are not saved');
+    await incomplete.context.close();
 
-    console.log('E2E RESULT: Settings + MQTT simulated integration passed');
+    console.log('E2E RESULT: Canonical Settings + MQTT integration passed');
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
