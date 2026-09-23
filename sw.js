@@ -1,7 +1,7 @@
-const CACHE_NAME = 'smartfarm-v14-lwt-status-1';
+const CACHE_NAME = 'smartfarm-v15-mobile-reference-1';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
-  './dashboard/dashboard.css?v=4', './dashboard/dashboard-config.js?v=1',
+  './dashboard/dashboard.css?v=5', './dashboard/dashboard-config.js?v=1',
   './dashboard/dashboard-state.js?v=1', './dashboard/dashboard-mqtt.js?v=1',
   './dashboard/dashboard.js?v=4', './mqtt.min.js?v=5', './404.html',
   './connection.html', './schedule.html', './settings.html', './dashboard-connection.css',
