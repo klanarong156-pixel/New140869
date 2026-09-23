@@ -16,6 +16,55 @@
     return window.FinanceCore?.summary(items, 0) || { income: 0, expense: 0, pending: 0, profit: 0 };
   }
 
+  function monthKey(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const parts = new Intl.DateTimeFormat('en', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit' }).formatToParts(date);
+    return `${parts.find(part => part.type === 'year')?.value}-${parts.find(part => part.type === 'month')?.value}`;
+  }
+
+  function currentMonthKey() {
+    return monthKey(new Date().toISOString());
+  }
+
+  function monthlyItems() {
+    const selected = $('financeReportMonth')?.value || currentMonthKey();
+    return items.filter(item => monthKey(item.createdAt) === selected);
+  }
+
+  function renderMonthlyReport() {
+    const picker = $('financeReportMonth');
+    if (!picker) return;
+    if (!picker.value) picker.value = currentMonthKey();
+    const selected = picker.value;
+    const selectedItems = monthlyItems();
+    const totals = window.FinanceCore?.summary(selectedItems, 0) || { income: 0, expense: 0, pending: 0, profit: 0 };
+    setText('monthlyIncome', formatter.format(totals.income));
+    setText('monthlyExpense', formatter.format(totals.expense));
+    setText('monthlyPending', formatter.format(totals.pending));
+    setText('monthlyProfit', formatter.format(totals.profit));
+    setText('monthlyTransactionCount', `${selectedItems.length} รายการ`);
+    const status = $('monthlyReportStatus');
+    if (status) status.textContent = `สรุปอัตโนมัติสำหรับ ${new Intl.DateTimeFormat('th-TH', { month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(new Date(`${selected}-01T00:00:00+07:00`))}`;
+    const categories = new Map();
+    selectedItems.filter(item => item.type === 'expense' || item.type === 'pending').forEach(item => {
+      const category = item.category || 'ไม่ระบุหมวด';
+      categories.set(category, (categories.get(category) || 0) + Number(item.amount || 0));
+    });
+    const categoryRows = $('monthlyCategoryRows');
+    if (!categoryRows) return;
+    categoryRows.replaceChildren();
+    [...categories.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).forEach(([category, amount]) => {
+      const row = document.createElement('li');
+      const label = document.createElement('span'); label.textContent = category;
+      const value = document.createElement('strong'); value.textContent = formatter.format(amount);
+      row.append(label, value); categoryRows.appendChild(row);
+    });
+    if (!categories.size) {
+      const row = document.createElement('li'); row.textContent = 'ยังไม่มีรายจ่ายในเดือนนี้'; categoryRows.appendChild(row);
+    }
+  }
+
   function formatDate(value) {
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? 'ไม่ระบุวัน' : date.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' });
@@ -65,6 +114,7 @@
       row.append(dateCell, typeCell, categoryCell, itemCell, amountCell, actionCell);
       body.appendChild(row);
     });
+    renderMonthlyReport();
   }
 
   async function refresh() {
@@ -223,9 +273,26 @@
     }
   }
 
+  function printMonthlyReport() {
+    const selected = $('financeReportMonth')?.value || currentMonthKey();
+    const selectedItems = monthlyItems();
+    const totals = window.FinanceCore?.summary(selectedItems, 0) || { income: 0, expense: 0, pending: 0, profit: 0 };
+    const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    const label = new Intl.DateTimeFormat('th-TH', { month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(new Date(`${selected}-01T00:00:00+07:00`));
+    const rows = selectedItems.map(item => `<tr><td>${escape(formatDate(item.createdAt))}</td><td>${escape(typeMeta[item.type]?.label || item.type)}</td><td>${escape(item.category || '—')}</td><td>${escape(item.item)}</td><td>${escape(formatter.format(item.amount))}</td></tr>`).join('') || '<tr><td colspan="5">ยังไม่มีรายการในเดือนนี้</td></tr>';
+    const printable = window.open('', '_blank', 'noopener,noreferrer');
+    if (!printable) { window.showToast?.('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต pop-up แล้วลองใหม่', 'warning'); return; }
+    printable.document.write(`<!doctype html><html lang="th"><head><meta charset="utf-8"><title>รายงานการเงิน ${escape(label)}</title><style>body{font-family:Tahoma,sans-serif;color:#17352c;padding:28px}h1{margin:0 0 4px;color:#07523d}p{color:#647b70}.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}.box{padding:12px;background:#eff9f2;border-radius:8px}.box b{display:block;margin-top:5px;font-size:18px}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{padding:9px;border-bottom:1px solid #dbe8e1;text-align:left}th{background:#eff9f2}@media print{body{padding:0}}</style></head><body><h1>รายงานการเงินฟาร์ม</h1><p>สวนลุงนะ Smart Farm · ${escape(label)} · สร้างอัตโนมัติ ${escape(new Date().toLocaleString('th-TH'))}</p><div class="totals"><div class="box">รายรับ<b>${escape(formatter.format(totals.income))}</b></div><div class="box">รายจ่าย<b>${escape(formatter.format(totals.expense))}</b></div><div class="box">ค้างซื้อ<b>${escape(formatter.format(totals.pending))}</b></div><div class="box">กำไรสุทธิ<b>${escape(formatter.format(totals.profit))}</b></div></div><table><thead><tr><th>วันที่</th><th>ประเภท</th><th>หมวดต้นทุน</th><th>รายการ</th><th>จำนวนเงิน</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+    printable.document.close();
+    printable.setTimeout(() => printable.print(), 150);
+  }
+
   function boot() {
     $('financeForm')?.addEventListener('submit', add);
     $('financePrint')?.addEventListener('click', printReport);
+    $('financeReportMonth')?.addEventListener('input', renderMonthlyReport);
+    $('financeMonthlyPrint')?.addEventListener('click', printMonthlyReport);
+    renderMonthlyReport();
     refresh();
   }
 

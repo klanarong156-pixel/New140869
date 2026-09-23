@@ -25,6 +25,9 @@ const cleanDashboardConfig = read('dashboard/dashboard-config.js');
 const cleanDashboardState = read('dashboard/dashboard-state.js');
 const cleanDashboardMqtt = read('dashboard/dashboard-mqtt.js');
 const cleanDashboardJs = read('dashboard/dashboard.js');
+const finance = read('finance.html');
+const financeJs = read('finance.js');
+const dashboardCss = read('dashboard/dashboard.css');
 const firmware = read('SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino');
 const sw = read('sw.js');
 
@@ -48,7 +51,10 @@ const checks = [
   ['Firmware DHT11 contract exists', firmware.includes('MQTT_BASE "/sensor/dht11"') && /DHT11/.test(firmware)],
   ['Firmware command topics are explicit', /MQTT_COMMAND_TOPICS/.test(firmware) && !/mqtt\.subscribe\(MQTT_BASE "\/#"\)/.test(firmware)],
   ['No fake soil sensor telemetry in unified dashboard', !/soil.*(?:value|temperature|humidity)/i.test(cleanDashboard)],
-  ['Legacy duplicate pages are removed from service worker', !/connection\.html|schedule\.html|settings\.html/.test(sw)]
+  ['Legacy duplicate pages are removed from service worker', !/connection\.html|schedule\.html|settings\.html/.test(sw)],
+  ['Finance monthly report UI exists', /financeReportMonth/.test(finance) && /monthlyIncome/.test(finance) && /monthlyCategoryRows/.test(finance)],
+  ['Finance monthly report calculates from loaded items', /monthlyItems/.test(financeJs) && /renderMonthlyReport/.test(financeJs) && /monthKey/.test(financeJs)],
+  ['Dashboard routes share the renovated theme', /data-page-section="water"/.test(cleanDashboard) && /data-page-section="devices"/.test(cleanDashboard) && /data-page-section="connection"/.test(cleanDashboard) && /data-page-section="weather"/.test(cleanDashboard) && /data-page-section="settings"/.test(cleanDashboard) && /\.route-page\[hidden\]/.test(dashboardCss)]
 ];
 
 let failed = 0;
