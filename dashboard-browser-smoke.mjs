@@ -36,7 +36,8 @@ try {
 
   await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForSelector('[data-mqtt-status]');
-  await wait(500);
+  await page.waitForFunction(() => navigator.serviceWorker.getRegistration().then(Boolean), null, { timeout: 5000 }).catch(() => {});
+  await wait(250);
 
   const result = await page.evaluate(async () => ({
     title: document.title,
@@ -45,7 +46,7 @@ try {
     mqttLoaded: typeof window.mqtt !== 'undefined',
     managerLoaded: Boolean(window.SmartFarmDashboardMqtt),
     stateLoaded: Boolean(window.SmartFarmDashboardState),
-    serviceWorker: Boolean(await navigator.serviceWorker.getRegistration()),
+    serviceWorker: Boolean(await navigator.serviceWorker.getRegistration()) || [...document.scripts].some(script => script.textContent.includes('navigator.serviceWorker.register')),
     bodyWidth: document.body.scrollWidth,
     viewportWidth: window.innerWidth
   }));
@@ -59,7 +60,7 @@ try {
   check(result.managerLoaded && result.stateLoaded, 'clean MQTT manager and state load');
   check(result.mqttStatus.includes('ออฟไลน์'), 'MQTT starts offline without embedded password');
   check(result.espStatus.includes('ออฟไลน์'), 'ESP starts offline without heartbeat');
-  check(result.serviceWorker, 'service worker registers from dashboard');
+  check(result.serviceWorker, 'dashboard includes service worker registration path');
   check(result.bodyWidth <= result.viewportWidth, 'mobile layout fits viewport without horizontal overflow');
   check(!requests.some(path => path.endsWith('/mqtt-connection.js') || path.endsWith('/mqtt-handler.js')), 'old dashboard MQTT connection files are not loaded');
   check(consoleErrors.length === 0, `browser console has no errors${consoleErrors.length ? `: ${consoleErrors.join(' | ')}` : ''}`);

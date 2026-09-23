@@ -7,8 +7,10 @@ const externalBase = process.env.E2E_BASE;
 const base = externalBase || `http://127.0.0.1:${port}/`;
 const root = new URL(base);
 const pages = fs.readdirSync('.').filter(name => name.endsWith('.html') && !name.startsWith('archive')).sort();
-const corePages = ['schedule.html', 'finance.html', 'account.html', 'settings.html'];
-const appRoutes = ['index.html', ...corePages];
+const canonicalRoutes = ['dashboard/?page=dashboard', 'dashboard/?page=water', 'dashboard/?page=devices', 'dashboard/?page=connection', 'dashboard/?page=weather', 'dashboard/?page=settings', 'dashboard/?page=info'];
+const corePages = ['finance.html', 'account.html'];
+const aliasPages = { 'schedule.html': 'dashboard/?page=water', 'connection.html': 'dashboard/?page=connection', 'settings.html': 'dashboard/?page=settings' };
+const appRoutes = ['index.html', ...corePages, ...Object.keys(aliasPages)];
 const checks = [];
 const add = (name, ok, detail = '') => checks.push({ name, ok, detail });
 
@@ -32,16 +34,20 @@ async function waitForServer(url, timeoutMs = 10000) {
 
 async function runChecks() {
   const rootIndex = fs.readFileSync('index.html', 'utf8');
-  add('index.html: routes to clean dashboard', /href="dashboard\/"/.test(rootIndex));
+  add('index.html: routes to clean dashboard', /href="dashboard\//.test(rootIndex));
   const cleanDashboard = fs.readFileSync('dashboard/index.html', 'utf8');
   add('dashboard/index.html: has viewport', /name="viewport"/.test(cleanDashboard));
   add('dashboard/index.html: loads clean dashboard CSS', /href="dashboard\.css\?v=\d+"/.test(cleanDashboard));
   add('dashboard/index.html: loads MQTT.js and single connection manager', /mqtt\.min\.js/.test(cleanDashboard) && /dashboard-mqtt\.js/.test(cleanDashboard));
-  add('dashboard/index.html: has settings link', /href="\.\.\/settings\.html"/.test(cleanDashboard));
+  add('dashboard/index.html: uses canonical internal routes', /\?page=connection/.test(cleanDashboard) && !/href="\.\.\/settings\.html"/.test(cleanDashboard));
+  for (const [alias, target] of Object.entries(aliasPages)) {
+    const aliasHtml = fs.readFileSync(alias, 'utf8');
+    add(`${alias}: redirects to canonical route`, aliasHtml.includes(`url=${target}`) && aliasHtml.includes(`location.replace('${target}')`));
+  }
   for (const page of pages) {
     const html = fs.readFileSync(page, 'utf8');
     add(`${page}: has viewport`, /name="viewport"/.test(html));
-    add(`${page}: has page styling`, page === 'index.html' ? /dashboard\//.test(html) : /href="app\.css\?v=\d+"/.test(html) || /<style[\s>]/.test(html));
+    add(`${page}: has page styling`, page === 'index.html' || aliasPages[page] ? /dashboard\//.test(html) : /href="app\.css\?v=\d+"/.test(html) || /<style[\s>]/.test(html));
     if (corePages.includes(page)) {
       add(`${page}: has bottom navigation`, /class="bottom-nav"/.test(html));
       add(`${page}: has settings link`, /href="settings\.html"/.test(html));
@@ -51,7 +57,7 @@ async function runChecks() {
       add(`${page}: bottom navigation has exactly five existing routes`, navLinks.length === 5 && navLinks.every(([, , href]) => appRoutes.includes(href)));
       add(`${page}: bottom navigation marks exactly one active route`, activeLinks.length === 1 && activeLinks[0][2] === page);
     }
-    add(`${page}: uses no active inline color/background override`, !/style="[^\"]*(color|background|opacity|filter)/.test(html));
+    add(`${page}: uses no active inline color/background override`, aliasPages[page] || !/style="[^\"]*(color|background|opacity|filter)/.test(html));
     const navBlock = html.match(/<nav[^>]*class="bottom-nav"[\s\S]*?<\/nav>/)?.[0] || '';
     for (const href of [...navBlock.matchAll(/href="([^\"]+\.html)"/g)].map(match => match[1])) {
       add(`${page}: nav target ${href} exists`, fs.existsSync(href));

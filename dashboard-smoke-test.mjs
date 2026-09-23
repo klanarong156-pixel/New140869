@@ -36,7 +36,7 @@ const checks = [
   ['Broker host is allowlisted', /MQTT_ALLOWED_BROKER_HOSTS/.test(cfg) && /25305924f68c41f2a1e089a1836d3287\.s1\.eu\.hivemq\.cloud/.test(cfg)],
   ['MQTT.js is the only browser connection owner', /mqtt\.connect\(this\.config\.url/.test(mqtt) && /reconnectPeriod: 3000/.test(mqtt) && !/new SharedWorker/.test(mqtt)],
   ['MQTT credentials persist locally', /localStorage\.setItem\(this\.storageUser/.test(mqtt) && /localStorage\.getItem\(this\.storagePass/.test(mqtt)],
-  ['Connection page has credential inputs', /data-mqtt-user/.test(connection) && /data-mqtt-pass/.test(connection) && /setCredentials\(user,pass\)/.test(connection)],
+  ['Canonical dashboard connection route has credential inputs', /data-mqtt-username/.test(cleanDashboard) && /data-mqtt-password/.test(cleanDashboard) && /data-credential-form/.test(cleanDashboard)],
   ['Root routes to isolated clean dashboard', /dashboard\//.test(index) && !/mqtt-handler\.js/.test(index)],
   ['Clean dashboard has one MQTT owner', /mqtt\.connect\(mqttConfig\.url/.test(cleanDashboardMqtt) && /reconnectPeriod: 3000/.test(cleanDashboardMqtt) && !/mqtt-connection\.js|mqtt-handler\.js/.test(cleanDashboard)],
   ['Clean dashboard has state layer', /SmartFarmDashboardState/.test(cleanDashboardState) && /acceptHeartbeat/.test(cleanDashboardState)],

@@ -1,81 +1,14 @@
 <!doctype html>
 <html lang="th">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f6b3a">
-<title>สวนลุงนะ · เชื่อมต่อระบบ</title>
-<link rel="stylesheet" href="app.css?v=40">
-<link rel="stylesheet" href="redesign-lambo.css?v=3">
-<link rel="stylesheet" href="suanlungna-design-system.css?v=1">
-<link rel="stylesheet" href="dashboard-connection.css?v=1">
-<link rel="icon" href="icon-192.png" sizes="192x192">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta http-equiv="refresh" content="0; url=dashboard/?page=connection">
+  <meta name="theme-color" content="#07523d">
+  <title>กำลังเปิดการเชื่อมต่อ · สวนลุงนะ</title>
 </head>
-<body class="app-shell connection-page">
-<header class="topbar">
-<a class="brand" href="index.html"><span class="brand-symbol"><img class="brand-logo" src="assets/logo-suanlungna-transparent.png?v=1" alt="สวนลุงนะ"></span><span class="brand-copy"><strong>สวนลุงนะ</strong><span>ระบบเชื่อมต่อฟาร์ม</span></span></a>
-<nav class="desktop-nav"><a href="index.html">แดชบอร์ด</a><a class="active" href="connection.html">เชื่อมต่อระบบ</a><a href="schedule.html">ตั้งเวลา</a><a href="finance.html">การเงิน</a><a href="account.html">บัญชี</a></nav>
-</header>
-<main class="connection-main">
-<section class="connection-hero"><div><p class="kicker">SYSTEM CONNECTION · FIRMWARE FIRST</p><h1>เชื่อมต่อระบบ</h1><p>จุดเชื่อมต่อกลางระหว่าง Dashboard, HiveMQ Cloud และ ESP8266</p></div><div class="connection-state" data-connection-state>กำลังตรวจสอบ</div></section>
-<section class="connection-grid">
-<article class="connection-card primary" data-card="mqtt"><div class="card-head"><span class="connection-icon">☁</span><div><span class="eyebrow">MQTT BROKER</span><h2>HiveMQ Cloud</h2></div><b data-mqtt-state>ยังไม่เชื่อมต่อ</b></div><dl><div><dt>Host</dt><dd>25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud</dd></div><div><dt>WebSocket</dt><dd>WSS · 8884 · /mqtt</dd></div><div><dt>Topic Base</dt><dd>smartfarm</dd></div></dl><button class="connection-btn primary" data-connect>เชื่อมต่อ MQTT</button><button class="connection-btn ghost" data-disconnect>ตัดการเชื่อมต่อ</button>
-<div class="mqtt-credentials" data-credentials hidden>
-<label>MQTT Username<input data-mqtt-user type="text" autocomplete="username" value="smartfarm"></label>
-<label>MQTT Password<input data-mqtt-pass type="password" autocomplete="current-password" placeholder="รหัสผ่าน HiveMQ"></label>
-<button class="connection-btn primary" data-save-credentials>บันทึกและเชื่อมต่อ</button>
-<small data-credential-note>รหัสผ่านจะเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น</small>
-</div></article>
-<article class="connection-card" data-card="esp"><div class="card-head"><span class="connection-icon">▣</span><div><span class="eyebrow">DEVICE</span><h2>ESP8266</h2></div><b data-esp-state>ออฟไลน์</b></div><div class="big-state" data-esp-detail>รอ heartbeat</div><div class="connection-row"><span>Heartbeat</span><strong data-heartbeat>ยังไม่มี</strong></div><div class="connection-row"><span>RSSI</span><strong data-rssi>ยังไม่มี</strong></div><div class="connection-row"><span>Uptime</span><strong data-uptime>ยังไม่มี</strong></div></article>
-<article class="connection-card" data-card="sensor"><div class="card-head"><span class="connection-icon">♨</span><div><span class="eyebrow">SENSOR</span><h2>DHT11</h2></div><b data-sensor-state>ไม่มีข้อมูล</b></div><div class="sensor-values"><div><small>อุณหภูมิ</small><strong data-temp>-- °C</strong></div><div><small>ความชื้น</small><strong data-humidity>-- %</strong></div></div><p data-sensor-note>รอข้อมูลจาก smartfarm/sensor/dht11</p></article>
-</section>
-<section class="connection-card topics-card"><div class="card-head"><div><span class="eyebrow">FIRMWARE CONTRACT</span><h2>ช่องทางที่ระบบใช้จริง</h2></div></div><div class="topic-grid"><span>smartfarm/status/device</span><span>smartfarm/status/online</span><span>smartfarm/sensor/dht11</span><span>smartfarm/relay/+/status</span><span>smartfarm/mode/status</span><span>smartfarm/emergency/status</span></div></section>
-<section class="connection-card diagnostic-card"><div class="card-head"><div><span class="eyebrow">DIAGNOSTIC</span><h2>รายละเอียดการเชื่อมต่อ</h2></div></div><pre data-diagnostic>กำลังตรวจสอบ…</pre></section>
-</main>
-<nav class="bottom-nav"><a href="index.html">⌂<span>แดชบอร์ด</span></a><a class="active" href="connection.html">⌁<span>เชื่อมต่อ</span></a><a href="schedule.html">◫<span>ตั้งเวลา</span></a><a href="settings.html">⚙<span>ตั้งค่า</span></a></nav>
-<script src="mqtt.min.js?v=3"></script>
-<script src="config.js?v=19"></script>
-<script src="mqtt-connection.js?v=1"></script>
-<script>
-(() => {
- const q=s=>document.querySelector(s), qa=s=>document.querySelectorAll(s);
- const fmt=v=>v==null?'ยังไม่มี':String(v);
- function render(){
-   const h=window.mqttHandler, st=h?.diagnosticState||{}, mqtt=!!window.APP_STATE?.mqttConnected, esp=!!window.APP_STATE?.espOnline;
-   q('[data-mqtt-state]').textContent=mqtt?'เชื่อมต่อแล้ว':h?.connecting?'กำลังเชื่อมต่อ':'ยังไม่เชื่อมต่อ';
-   q('[data-credentials]').hidden=mqtt;
-   q('[data-credentials]').classList.toggle('is-error',Boolean(st.lastError&&!mqtt));
-   q('[data-esp-state]').textContent=esp?'ออนไลน์':'ออฟไลน์';
-   q('[data-connection-state]').textContent=mqtt&&esp?'ระบบพร้อมใช้งาน':mqtt?'MQTT เชื่อมแล้ว · รอ ESP':'ยังไม่เชื่อมต่อ';
-   q('[data-esp-detail]').textContent=esp?'รับ heartbeat แล้ว':'รอ heartbeat จาก ESP8266';
-   const d=window.__device||{}; q('[data-rssi]').textContent=Number.isFinite(Number(d.rssi))?d.rssi+' dBm':'ยังไม่มี';
-   q('[data-uptime]').textContent=Number.isFinite(Number(d.uptimeSec))?Math.floor(Number(d.uptimeSec))+' s':'ยังไม่มี';
-   q('[data-heartbeat]').textContent=window.APP_STATE?.espLastSeen?new Date(window.APP_STATE.espLastSeen).toLocaleTimeString('th-TH'):'ยังไม่มี';
-   q('[data-temp]').textContent=window.__temp==null?'-- °C':window.__temp+' °C';
-   q('[data-humidity]').textContent=window.__hum==null?'-- %':window.__hum+' %';
-   q('[data-sensor-state]').textContent=window.__temp!=null||window.__hum!=null?'ได้รับข้อมูล':'ไม่มีข้อมูล';
-   q('[data-diagnostic]').textContent=JSON.stringify({state:st.state||'disconnected',reason:st.lastReason||'',error:st.lastError||'',reconnectCount:st.reconnectCount||0,lastConnectedAt:st.lastConnectedAt||0,broker:window.MQTT_CONFIG?.url||''},null,2);
-   qa('[data-card]').forEach(c=>c.dataset.state=c.dataset.card==='mqtt'?mqtt:c.dataset.card==='esp'?esp:(window.__temp!=null||window.__hum!=null)?'online':'empty');
- }
- window.addEventListener('mqtt:connected',render); window.addEventListener('mqtt:diagnostic',render); window.addEventListener('esp:status',render);
- window.addEventListener('device:data',e=>{window.__device=e.detail||{};render()});
- window.addEventListener('sensor:data',e=>{if(e.detail?.type==='temperature')window.__temp=e.detail.value;if(e.detail?.type==='humidity')window.__hum=e.detail.value;render()});
- q('[data-connect]').onclick=()=>window.mqttHandler?.connect(true);
- q('[data-disconnect]').onclick=()=>window.mqttHandler?.disconnect('connection-page');
- q('[data-save-credentials]').onclick=()=>{
-   const user=q('[data-mqtt-user]').value.trim();
-   const pass=q('[data-mqtt-pass]').value;
-   try{ window.mqttHandler?.setCredentials(user,pass); q('[data-credential-note]').textContent='บันทึกแล้ว กำลังตรวจสอบการเชื่อมต่อ…'; }
-   catch(e){ q('[data-credential-note]').textContent=String(e?.message||e); }
- };
- window.addEventListener('mqtt:credentials-required',e=>{
-   const s=e.detail?.status||{};
-   q('[data-credentials]').hidden=false;
-   q('[data-credential-note]').textContent=e.detail?.reason||'ยังไม่มี MQTT password ในเบราว์เซอร์ กรุณากรอกด้านบน';
-   q('[data-mqtt-user]').value=s.usernamePresent?'smartfarm':'smartfarm';
- });
- setInterval(render,1000); render(); window.mqttHandler?.bootstrap();
-})();
-</script>
+<body>
+  <p>กำลังเปิดหน้าการเชื่อมต่อกลางของสวนลุงนะ… <a href="dashboard/?page=connection">เปิดหน้าการเชื่อมต่อ</a></p>
+  <script>location.replace('dashboard/?page=connection');</script>
 </body>
 </html>
