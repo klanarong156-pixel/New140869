@@ -25,6 +25,8 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 412, height: 915 }
       hero: rect('.farm-hero'),
       metrics: all('.metric-grid > article'),
       relayCards: all('.compact-relays .relay-card'),
+      relayGridColumns: getComputedStyle(document.querySelector('.compact-relays')).gridTemplateColumns,
+      serviceWorker: navigator.serviceWorker.controller?.scriptURL || null,
       relayButtons: all('.compact-relays .button'),
       modeButtons: all('.route-page:not([hidden]) .mode-button'),
       bottomNav: rect('.bottom-nav'),
