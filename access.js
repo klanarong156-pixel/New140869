@@ -24,7 +24,7 @@
   }
 
   async function ensureFreshSession() {
-    if (!FirebaseAuth.user) return false;
+    if (!FirebaseAuth.user || !FirebaseAuth.token) return false;
     if (!FirebaseAuth.refreshToken) return true;
     return FirebaseAuth.refresh();
   }
@@ -54,6 +54,10 @@
     if (!accessPromise) accessPromise = resolveAccess();
     return accessPromise;
   }
+
+  window.addEventListener('firebase:auth-expired', () => {
+    location.replace(loginUrl());
+  });
 
   window.requireAuth = async function requireAuth() {
     return Boolean(await init());
