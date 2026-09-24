@@ -3,6 +3,7 @@
 
   const $ = id => document.getElementById(id);
   const $$ = selector => Array.from(document.querySelectorAll(selector));
+  const resolveElement = target => typeof target === 'string' && /^[.#\[]/.test(target) ? document.querySelector(target) : $(target);
   const relayLabel = relay => window.RELAY_NAMES?.[relay] || relay;
   let deviceOnline = false;
   let lastDeviceHeartbeatAt = 0;
@@ -16,24 +17,24 @@
   const RELAY_ACK_TIMEOUT_MS = 12000;
 
   function setText(target, value) {
-    const element = typeof target === 'string' ? $(target) : target;
+    const element = typeof target === 'string' ? resolveElement(target) : target;
     if (element) element.textContent = value;
   }
 
   function renderDashboardReadiness() {
-    const mqtt = Boolean(window.APP_STATE?.mqttConnected);
-    const handler = window.mqttHandler;
-    const mqttBusy = Boolean(handler?.connecting || handler?.reconnectTimer);
-    const esp = Boolean(deviceOnline);
-    const label = mqtt && esp ? 'พร้อมใช้งาน' : mqtt ? 'ESP ออฟไลน์' : mqttBusy ? 'กำลังเชื่อมต่อ MQTT' : 'MQTT ไม่เชื่อมต่อ';
-    const detail = mqtt && esp
+  const mqtt = Boolean(window.APP_STATE?.mqttConnected);
+  const handler = window.mqttHandler;
+  const mqttBusy = Boolean(handler?.connecting || handler?.reconnectTimer);
+  const esp = Boolean(deviceOnline);
+  const label = mqtt && esp ? 'พร้อมใช้งาน' : mqtt ? 'ESP ออฟไลน์' : mqttBusy ? 'กำลังเชื่อมต่อ MQTT' : 'MQTT ไม่เชื่อมต่อ';
+  const detail = mqtt && esp
       ? 'อุปกรณ์ออนไลน์ ควบคุมได้ตามสถานะยืนยันจาก ESP8266'
       : mqtt
         ? 'MQTT เชื่อมต่ออยู่ แต่ยังไม่พบ heartbeat จาก ESP8266'
         : mqttBusy
           ? 'กำลังเชื่อมต่อใหม่โดยอัตโนมัติ · ยังไม่ถือว่าออฟไลน์ถาวร'
           : 'เชื่อมต่อ MQTT เพื่อดูสถานะจริงและสั่งงานอุปกรณ์';
-    $('[data-dashboard-readiness]').forEach(element => { element.textContent = label; });
+    $$('[data-dashboard-readiness]').forEach(element => { element.textContent = label; });
     const header = document.querySelector('.dashboard-header-status');
     if (header) {
       header.dataset.state = mqtt && esp ? 'ready' : mqtt ? 'device-offline' : mqttBusy ? 'mqtt-reconnecting' : 'mqtt-offline';
@@ -112,7 +113,7 @@
     }
     const label = text || (connected ? 'MQTT เชื่อมต่อ' : 'MQTT ยังไม่เชื่อมต่อ');
     const detail = connected ? 'ช่องทางสั่งงานพร้อมใช้งาน' : (text || 'รอการเชื่อมต่อช่องทางสั่งงาน');
-    $('[data-mqtt-status]').forEach(element => {
+    $$('[data-mqtt-status]').forEach(element => {
       element.classList.toggle('online', Boolean(connected));
       element.classList.toggle('offline', !connected && !text);
       element.classList.toggle('warning', !connected && Boolean(text));
@@ -123,12 +124,12 @@
     // Connection controls must reflect the actual MQTT socket state.
     // The old UI kept the "Connect MQTT" action visible even after a successful
     // broker connection, which made it look as if the connection had failed.
-    $('[data-mqtt-connect]').forEach(button => {
+    $$('[data-mqtt-connect]').forEach(button => {
       button.hidden = Boolean(connected);
       button.disabled = Boolean(connected);
       button.setAttribute('aria-hidden', String(Boolean(connected)));
     });
-    $('[data-mqtt-setup]').forEach(button => {
+    $$('[data-mqtt-setup]').forEach(button => {
       button.hidden = false;
       button.disabled = false;
       button.textContent = connected ? 'ตั้งค่า MQTT' : 'ตั้งค่า';
@@ -327,7 +328,7 @@
     const suffix = type === 'temperature' ? ' °C' : ' %';
     const precision = type === 'temperature' ? 1 : 0;
     $$(`[data-sensor="${type}"]`).forEach(element => { element.textContent = `${numeric.toFixed(precision)}${suffix}`; });
-    $('[data-sensor-freshness]').forEach(element => { element.textContent = deviceOnline ? 'DHT11 · เรียลไทม์' : 'DHT11 · ค่าล่าสุดที่ได้รับ'; });
+    $$('[data-sensor-freshness]').forEach(element => { element.textContent = deviceOnline ? 'DHT11 · เรียลไทม์' : 'DHT11 · ค่าล่าสุดที่ได้รับ'; });
     renderRealtimeStatus();
   }
 

@@ -42,3 +42,20 @@ html{scroll-behavior:smooth}body{font-size:15px;line-height:1.45;letter-spacing:
 .device-ref,.water-ref{display:flex;align-items:flex-start;min-width:0;overflow:hidden;gap:8px}.device-ref>div,.water-ref>div{min-width:0;flex:1}.device-ref b,.device-ref small,.water-ref b,.water-ref small{max-width:100%;overflow:hidden;text-overflow:ellipsis}.device-ref small,.water-ref small{white-space:nowrap}.device-ref .inline-status{width:max-content;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.device-ref .ref-icon,.water-ref .ref-icon{flex:0 0 auto}
 @media(max-width:650px){.device-ref,.water-ref{padding:11px;gap:8px}.device-ref .ref-icon,.water-ref .ref-icon{width:32px;height:32px;font-size:.92rem}.device-ref b,.water-ref b{font-size:.74rem}.device-ref small,.water-ref small,.water-ref em{font-size:.58rem}}
 @media(max-width:390px){.device-ref,.water-ref{padding:10px;gap:7px}.device-ref .ref-icon,.water-ref .ref-icon{width:29px;height:29px;font-size:.82rem}.device-ref b,.water-ref b{font-size:.68rem}.device-ref small,.water-ref small,.water-ref em{font-size:.54rem}}
+
+/* Settings cards communicate unavailable controls without pretending they are links. */
+.settings-list-item{display:flex;align-items:center;gap:12px;min-height:66px;padding:15px 17px;border:1px solid var(--line);border-radius:var(--radius-md);background:#f7fbf8;color:var(--muted);box-shadow:var(--shadow-soft)}
+.settings-list-item>span:first-child{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;color:var(--green);background:var(--green-soft)}
+.settings-list-item>span:nth-child(2){display:grid;flex:1;color:var(--ink)}
+.settings-list-item b{font-size:.9rem;color:var(--ink)}
+.settings-list-item small{margin-top:3px;font-size:.72rem}
+.settings-list-item em{font-style:normal;color:var(--muted);font-size:.65rem;white-space:nowrap}
+@media(max-width:520px){.settings-list-item{align-items:flex-start;min-height:72px;padding:13px}.settings-list-item em{max-width:76px;text-align:right;white-space:normal}}
+
+@media (max-width:780px) and (min-width:651px){.status-banner{align-items:flex-start;flex-direction:column;gap:10px}.status-banner-main{min-width:0}.status-banner-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:8px}.status-banner-meta span{min-width:0}.status-banner-meta em{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+
+.dashboard-lower>*,.connection-grid>*,.device-grid>*,.water-grid>*{min-width:0;max-width:100%}
+.table-card,.timeline-card{min-width:0;overflow:hidden}.table-card table{table-layout:fixed;max-width:100%;word-break:break-word}.table-card th,.table-card td{overflow:hidden;text-overflow:ellipsis;word-break:break-word}
+@media(max-width:390px){.topbar{width:100%;max-width:100%;overflow:hidden}.topbar-status{min-width:0;flex:1;justify-content:flex-end;gap:6px}.header-status{min-width:0;width:100px;padding-left:6px;padding-right:6px}.header-status b,.header-status small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+
+@media(max-width:650px){.status-banner-meta span{min-width:0}}

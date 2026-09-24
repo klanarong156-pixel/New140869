@@ -8,7 +8,7 @@
     const next = new URLSearchParams(location.search).get('next') || 'index.html';
     try {
       const target = new URL(next, location.href);
-      if (target.origin === location.origin && !target.pathname.endsWith('/auth.html')) return `${target.pathname.split('/').pop() || 'index.html'}${target.search}`;
+      if (target.origin === location.origin && !target.pathname.endsWith('/auth.html')) return `${target.pathname}${target.search}${target.hash}`;
     } catch (_) { /* Fall back to dashboard. */ }
     return 'index.html';
   }

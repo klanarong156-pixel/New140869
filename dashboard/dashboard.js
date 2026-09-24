@@ -303,6 +303,11 @@
     $$('[data-relay-on]').forEach(button => button.addEventListener('click', () => submitRelay(button.closest('[data-relay-card]').dataset.relayCard, true)));
     $$('[data-relay-off]').forEach(button => button.addEventListener('click', () => submitRelay(button.closest('[data-relay-card]').dataset.relayCard, false)));
     $$('[data-mode]').forEach(button => button.addEventListener('click', () => submitMode(button.dataset.mode)));
+    $$('[data-event-filter]').forEach(button => button.addEventListener('click', () => {
+      const filter = button.dataset.eventFilter;
+      $$('[data-event-filter]').forEach(item => item.classList.toggle('active', item === button));
+      $$('[data-event-type]').forEach(item => { item.hidden = filter !== 'all' && !item.dataset.eventType.split(' ').includes(filter); });
+    }));
     window.addEventListener('smartfarm:mqtt:credentials-required', event => {
       if (elements.credentialPanel) elements.credentialPanel.hidden = false;
       if (event.detail?.reason && event.detail.reason.includes('ไม่ถูกต้อง')) {

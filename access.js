@@ -18,8 +18,9 @@
   }
 
   function loginUrl() {
-    const current = `${location.pathname.split('/').pop() || 'index.html'}${location.search || ''}`;
-    return `auth.html?next=${encodeURIComponent(current)}`;
+    const current = `${location.pathname}${location.search || ''}${location.hash || ''}`;
+    const authPath = location.pathname.includes('/dashboard/') ? '../auth.html' : 'auth.html';
+    return `${authPath}?next=${encodeURIComponent(current)}`;
   }
 
   async function ensureFreshSession() {

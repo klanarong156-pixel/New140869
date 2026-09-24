@@ -1,1 +1,39 @@
-.cucumber-sales-section{margin-top:24px}.cucumber-sales-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:18px}.cucumber-sales-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.cucumber-sales-form .full{grid-column:1/-1}.cucumber-sales-grades{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cucumber-grade{padding:14px;border:1px solid var(--sf-line,#dce9df);border-radius:18px;background:var(--sf-surface,#f6faf7)}.cucumber-grade label{display:block;font-weight:700;margin-bottom:8px}.cucumber-grade input{width:100%}.cucumber-sales-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.cucumber-sales-stat{padding:14px;border-radius:18px;background:var(--sf-surface,#f6faf7);border:1px solid var(--sf-line,#dce9df)}.cucumber-sales-stat span{display:block;font-size:.78rem;color:var(--sf-muted,#6c7f73)}.cucumber-sales-stat strong{display:block;margin-top:5px;font-size:1.05rem;color:var(--sf-text,#18382b)}.cucumber-sales-status{min-height:20px}.cucumber-sales-status.success{color:#176b4d}.cucumber-sales-status.error{color:#b53f4a}.cucumber-sales-table{margin-top:18px}.cucumber-delete{min-height:40px;padding:8px 12px}.cucumber-sales-table th,.cucumber-sales-table td{white-space:nowrap}@media(max-width:900px){.cucumber-sales-layout{grid-template-columns:1fr}}@media(max-width:600px){.cucumber-sales-form{grid-template-columns:1fr}.cucumber-sales-form .full{grid-column:auto}.cucumber-sales-grades{grid-template-columns:1fr}.cucumber-sales-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.cucumber-sales-table{overflow-x:auto}.cucumber-sales-table table{min-width:780px}}
+/* Cucumber Sales is intentionally scoped so it cannot alter MQTT, Firebase, or firmware controls. */
+.cucumber-sales-section { margin-top: 24px; min-width: 0; }
+.cucumber-sales-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr); gap: 18px; }
+.cucumber-sales-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.cucumber-sales-form .field.full,
+.cucumber-sales-form .cucumber-legacy-fields { grid-column: 1 / -1; }
+.cucumber-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+.cucumber-grade input { width: 100%; }
+.cucumber-legacy-fields { padding: 10px 12px; border: 1px dashed #c6ddd3; border-radius: 12px; color: #527166; }
+.cucumber-legacy-fields summary { cursor: pointer; font-weight: 700; }
+.cucumber-legacy-fields input { width: 100%; margin-top: 8px; }
+.cucumber-sales-status { min-height: 24px; }
+.cucumber-sales-status.success { color: #14794b; }
+.cucumber-sales-status.error { color: #b33d45; }
+.cucumber-sales-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.cucumber-sales-stat { display: grid; gap: 6px; min-height: 74px; padding: 13px; border: 1px solid #d4e7df; border-radius: 14px; background: #f4fbf7; }
+.cucumber-sales-stat span { color: #61796e; font-size: .75rem; }
+.cucumber-sales-stat strong { color: #123d30; font-size: 1.12rem; }
+.cucumber-sales-stat.income { grid-column: 1 / -1; background: linear-gradient(135deg, #e9f8ee, #eef7ff); }
+.cucumber-sales-table { overflow: hidden; }
+.cucumber-sales-table .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.cucumber-sales-table table { min-width: 820px; }
+.cucumber-sales-table th, .cucumber-sales-table td { white-space: nowrap; vertical-align: middle; }
+.cucumber-sales-table td:nth-child(8) { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+.cucumber-sales-table .cucumber-delete { min-height: 38px; }
+@media (max-width: 760px) {
+  .cucumber-sales-layout { grid-template-columns: 1fr; gap: 12px; }
+  .cucumber-sales-form { gap: 11px; }
+}
+@media (max-width: 520px) {
+  .cucumber-sales-form { grid-template-columns: 1fr; }
+  .cucumber-sales-form .field.full, .cucumber-sales-form .cucumber-legacy-fields { grid-column: auto; }
+  .cucumber-grade { gap: 8px; }
+  .cucumber-sales-summary { gap: 8px; }
+  .cucumber-sales-stat { padding: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cucumber-sales-section * { scroll-behavior: auto !important; transition: none !important; }
+}

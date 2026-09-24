@@ -2,38 +2,113 @@
   'use strict';
 
   const GRADE_KEYS = Object.freeze(['good', 'sorted', 'large']);
-  const GRADE_LABELS = Object.freeze({ good: 'เกรดดี', sorted: 'เกรดคัด', large: 'เกรดใหญ่' });
+  const GRADE_LABELS = Object.freeze({ good: 'เกรด A', sorted: 'เกรด B', large: 'เกรดใหญ่เดิม' });
+  const FLAT_FIELDS = Object.freeze(['gradeAKg', 'gradeAPrice', 'gradeBKg', 'gradeBPrice']);
   let saveLock = false;
 
   function generateId() {
     return `CUC-${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`;
   }
 
-  function numberValue(value) {
+  function hasValue(value) {
+    return value !== undefined && value !== null && String(value).trim() !== '';
+  }
+
+  function round(value) {
+    return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+  }
+
+  function numberValue(value, label, { required = false } = {}) {
+    if (!hasValue(value)) {
+      if (required) throw new Error(`${label}ต้องระบุ`);
+      return 0;
+    }
     const number = Number(value);
-    return Number.isFinite(number) && number >= 0 ? Math.round(number * 100) / 100 : 0;
+    if (!Number.isFinite(number)) throw new Error(`${label}ต้องเป็นตัวเลข`);
+    if (number < 0) throw new Error(`${label}ต้องไม่ติดลบ`);
+    return round(number);
+  }
+
+  function isValidDateKey(value) {
+    const date = String(value || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+    const parsed = new Date(`${date}T00:00:00Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+  }
+
+  function isSafeId(value) {
+    return /^[A-Za-z0-9_-]{1,64}$/.test(String(value || ''));
+  }
+
+  function isFlatSchema(record) {
+    return FLAT_FIELDS.some(field => hasValue(record?.[field]));
+  }
+
+  function gradeValues(record) {
+    const flat = isFlatSchema(record);
+    return {
+      flat,
+      good: flat ? numberValue(record?.gradeAKg, 'น้ำหนักเกรด A', { required: true }) : numberValue(record?.weights?.good, 'น้ำหนักเกรดดี'),
+      sorted: flat ? numberValue(record?.gradeBKg, 'น้ำหนักเกรด B', { required: true }) : numberValue(record?.weights?.sorted, 'น้ำหนักเกรดคัด'),
+      large: flat ? numberValue(record?.weights?.large ?? record?.gradeLargeKg, 'น้ำหนักเกรดใหญ่เดิม') : numberValue(record?.weights?.large, 'น้ำหนักเกรดใหญ่')
+    };
   }
 
   function normalize(record) {
-    const totalWeight = numberValue(record?.totalWeight);
-    const weights = {
-      good: numberValue(record?.weights?.good),
-      sorted: numberValue(record?.weights?.sorted),
-      large: numberValue(record?.weights?.large)
-    };
-    const gradeTotal = GRADE_KEYS.reduce((sum, key) => sum + weights[key], 0);
-    if (totalWeight <= 0) throw new Error('กรุณาระบุน้ำหนักรวมมากกว่า 0 กก.');
+    const values = gradeValues(record);
+    const totalWeight = hasValue(record?.totalWeight)
+      ? numberValue(record.totalWeight, 'น้ำหนักรวม', { required: true })
+      : round(values.good + values.sorted + values.large);
+    const gradeTotal = GRADE_KEYS.reduce((sum, key) => sum + values[key], 0);
+    const date = String(record?.date || new Date().toISOString().slice(0, 10)).slice(0, 10);
+    const createdAt = String(record?.createdAt || new Date().toISOString());
+
+    if (!isValidDateKey(date)) throw new Error('วันที่ขายไม่ถูกต้อง');
+    if (!Number.isFinite(totalWeight) || totalWeight <= 0) throw new Error('กรุณาระบุน้ำหนักรวมมากกว่า 0 กก.');
     if (gradeTotal <= 0) throw new Error('กรุณาระบุน้ำหนักอย่างน้อย 1 เกรด');
-    if (Math.abs(totalWeight - gradeTotal) > 0.01) {
-      throw new Error('น้ำหนักแต่ละเกรดต้องรวมเท่ากับน้ำหนักรวม');
-    }
-    return {
-      id: String(record?.id || generateId()),
-      date: String(record?.date || new Date().toISOString().slice(0, 10)).slice(0, 10),
+    if (Math.abs(totalWeight - gradeTotal) > 0.01) throw new Error('น้ำหนักแต่ละเกรดต้องรวมเท่ากับน้ำหนักรวม');
+    if (Number.isNaN(new Date(createdAt).getTime())) throw new Error('เวลาบันทึกไม่ถูกต้อง');
+
+    const id = String(record?.id || generateId());
+    if (!isSafeId(id)) throw new Error('รหัสรายการไม่ถูกต้อง');
+
+    const data = {
+      id,
+      date,
       totalWeight,
-      weights,
+      weights: { good: values.good, sorted: values.sorted, large: values.large },
       note: String(record?.note || '').trim().slice(0, 140),
-      createdAt: record?.createdAt || new Date().toISOString()
+      createdAt
+    };
+
+    if (values.flat) {
+      data.gradeAKg = values.good;
+      data.gradeAPrice = numberValue(record?.gradeAPrice, 'ราคากิโลกรัมเกรด A', { required: true });
+      data.gradeBKg = values.sorted;
+      data.gradeBPrice = numberValue(record?.gradeBPrice, 'ราคากิโลกรัมเกรด B', { required: true });
+    }
+    return data;
+  }
+
+  function calculate(record) {
+    const values = gradeValues(record || {});
+    const totalKg = hasValue(record?.totalWeight)
+      ? numberValue(record.totalWeight, 'น้ำหนักรวม')
+      : round(values.good + values.sorted + values.large);
+    const gradeAPrice = values.flat ? numberValue(record?.gradeAPrice, 'ราคากิโลกรัมเกรด A') : 0;
+    const gradeBPrice = values.flat ? numberValue(record?.gradeBPrice, 'ราคากิโลกรัมเกรด B') : 0;
+    const gradeAIncome = round(values.good * gradeAPrice);
+    const gradeBIncome = round(values.sorted * gradeBPrice);
+    return {
+      gradeAKg: values.good,
+      gradeAPrice,
+      gradeAIncome,
+      gradeBKg: values.sorted,
+      gradeBPrice,
+      gradeBIncome,
+      legacyLargeKg: values.large,
+      totalKg: round(totalKg),
+      totalIncome: round(gradeAIncome + gradeBIncome)
     };
   }
 
@@ -52,14 +127,15 @@
   async function loadCucumberSales() {
     const data = await FirebaseDB.get('cucumberSales');
     const items = data ? Object.entries(data).map(([id, value]) => ({ id, ...value })) : [];
-    return items.sort((a, b) => String(b.date || b.createdAt).localeCompare(String(a.date || a.createdAt)));
+    return items.sort((a, b) => String(b.date || b.createdAt || '').localeCompare(String(a.date || a.createdAt || '')));
   }
 
   async function deleteCucumberSale(id) {
     const key = String(id || '').trim();
-    if (!key || /[./#$\[\]]/.test(key)) throw new Error('รหัสรายการไม่ถูกต้อง');
-    await FirebaseDB.delete(`cucumberSales/${key}`);
-    const remaining = await FirebaseDB.get(`cucumberSales/${key}`);
+    if (!isSafeId(key)) throw new Error('รหัสรายการไม่ถูกต้อง');
+    const path = `cucumberSales/${key}`;
+    await FirebaseDB.delete(path);
+    const remaining = await FirebaseDB.get(path);
     if (remaining !== null) throw new Error('Firebase ยังไม่ยืนยันการลบรายการ กรุณาลองใหม่');
   }
 
@@ -67,6 +143,7 @@
     GRADE_KEYS,
     GRADE_LABELS,
     normalize,
+    calculate,
     save: saveCucumberSale,
     load: loadCucumberSales,
     remove: deleteCucumberSale

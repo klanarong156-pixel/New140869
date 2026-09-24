@@ -39,6 +39,7 @@ jobs:
         run: |
           node dashboard-smoke-test.mjs
           node dashboard-contract-test.mjs
+          node cucumber-sales-regression-test.mjs
           node schedule-regression-test.mjs
           node usage-reset-calculation-test.mjs
           node ai-advisor-regression-test.mjs
