@@ -22,11 +22,16 @@
   }
 
   function renderMode() {
-    document.querySelectorAll('[data-auth-mode]').forEach(button => button.classList.toggle('active', button.dataset.authMode === mode));
+    document.querySelectorAll('[data-auth-mode]').forEach(button => {
+      const active = button.dataset.authMode === mode;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
     $('authTitle').textContent = mode === 'signin' ? 'ยินดีต้อนรับกลับมา' : 'เริ่มต้นฟาร์มของคุณ';
     $('authDescription').textContent = mode === 'signin' ? 'เข้าสู่ระบบเพื่อจัดการข้อมูลฟาร์มและบันทึกการเงินของคุณ' : 'สร้างบัญชีเพื่อบันทึกข้อมูลฟาร์มของคุณอย่างเป็นส่วนตัว';
     $('authSubmit').textContent = mode === 'signin' ? 'เข้าสู่ระบบ' : 'สร้างบัญชี';
     $('passwordHint').textContent = mode === 'signin' ? 'ใช้รหัสผ่านของบัญชี Smart Farm' : 'อย่างน้อย 6 ตัวอักษร';
+    $('password').setAttribute('autocomplete', mode === 'signin' ? 'current-password' : 'new-password');
     setStatus();
   }
 
@@ -35,8 +40,10 @@
     const email = $('email').value.trim();
     const password = $('password').value;
     const submitButton = $('authSubmit');
+    const form = $('authForm');
     if (!email || !password) return setStatus('กรอกอีเมลและรหัสผ่านให้ครบ', 'warning');
     submitButton.disabled = true;
+    form.setAttribute('aria-busy', 'true');
     setStatus(mode === 'signin' ? 'กำลังเข้าสู่ระบบ…' : 'กำลังสร้างบัญชี…');
     try {
       const session = mode === 'signin' ? await FirebaseAuth.signIn(email, password) : await FirebaseAuth.signUp(email, password);
@@ -53,6 +60,7 @@
       setStatus(error.message || 'ไม่สามารถยืนยันตัวตนได้', 'danger');
     } finally {
       submitButton.disabled = false;
+      form.removeAttribute('aria-busy');
     }
   }
 
