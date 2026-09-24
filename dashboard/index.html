@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json">
   <link rel="icon" href="../icon-192.png">
   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-  <link rel="stylesheet" href="dashboard.css?v=8">
+  <link rel="stylesheet" href="dashboard.css?v=8"><link rel="stylesheet" href="production-modern.css?v=1">
   <style>.bottom-nav{--nav-items:8}@media(max-width:650px){.bottom-nav{grid-template-columns:repeat(8,minmax(0,1fr))}.bottom-nav a{min-width:0}.bottom-nav a span,.bottom-nav a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}</style>
   <title>สวนลุงนะ · Smart Farm Dashboard</title>
 </head>
@@ -16,7 +16,7 @@
   <div class="app-shell">
     <aside class="sidebar" aria-label="เมนูหลัก">
       <a class="sidebar-brand" href="?page=dashboard" aria-label="หน้าหลักสวนลุงนะ">
-        <img src="../assets/logo-suanlungna-transparent.png" alt="โลโก้สวนลุงนะ">
+        <img src="../assets/logo-suanlungna-new.png" alt="โลโก้สวนลุงนะ">
         <strong>สวนลุงนะ</strong><small>Smart Farm</small>
       </a>
       <nav class="sidebar-nav">
@@ -33,7 +33,7 @@
 
     <div class="app-content">
       <header class="topbar">
-        <a class="mobile-brand" href="?page=dashboard"><img src="../assets/logo-suanlungna-transparent.png" alt=""><span><b>สวนลุงนะ</b><small>Smart Farm</small></span></a>
+        <a class="mobile-brand" href="?page=dashboard"><img src="../assets/logo-suanlungna-new.png" alt=""><span><b>สวนลุงนะ</b><small>Smart Farm</small></span></a>
         <div class="topbar-status" aria-label="สถานะระบบ">
           <span class="header-status" data-mqtt-shell data-tone="warn"><i></i><b>MQTT</b><small data-mqtt-status>ออฟไลน์</small></span>
           <span class="header-status" data-esp-shell data-tone="bad"><i></i><b>ESP8266</b><small data-esp-status>ออฟไลน์</small></span>
@@ -52,15 +52,18 @@
         </section>
 
         <section class="route-page" data-page-section="dashboard">
-          <section class="farm-hero">
-            <img src="../assets/farm-background.jpg" alt="บรรยากาศสวนลุงนะ Smart Farm">
-            <div class="farm-hero-overlay"><img src="../assets/logo-suanlungna-transparent.png" alt=""><div><h2>สวนลุงนะ</h2><p>Smart Farm Dashboard</p></div></div>
+          <section class="farm-hero farm-hero-immersive">
+            <img src="../assets/oil-palm-dashboard-hero.jpg" alt="ภาพสวนปาล์มน้ำมันสวนลุงนะ">
+            <div class="farm-hero-overlay"><img src="../assets/logo-suanlungna-new.png" alt="โลโก้สวนลุงนะ"><div><h2>สวนลุงนะ</h2><p>Smart Farm · Oil Palm Control Center</p></div></div>
+            <div class="immersive-copy"><strong>สวนปาล์มที่มองเห็นได้</strong><span>ข้อมูลจริงจาก ESP8266, Firebase และ MQTT อยู่ในหน้าเดียว</span><div class="immersive-pills"><span>● ESP8266 status</span><span>⌁ MQTT control</span><span>◷ Live data</span></div></div>
+            <div class="immersive-float temp"><label>DHT11 / อุณหภูมิ</label><strong data-temperature>—</strong><small data-sensor-freshness>รอข้อมูลจากอุปกรณ์จริง</small></div>
+            <div class="immersive-float humidity"><label>DHT11 / ความชื้น</label><strong data-humidity>—</strong><small data-sensor-freshness>รอข้อมูลจากอุปกรณ์จริง</small></div>
           </section>
           <section class="metric-grid" aria-label="ภาพรวม">
             <article class="ref-card metric-ref"><span class="ref-icon blue">♨</span><div><small>อุณหภูมิ (DHT11)</small><strong data-temperature>—</strong></div></article>
             <article class="ref-card metric-ref"><span class="ref-icon cyan">◈</span><div><small>ความชื้น (DHT11)</small><strong data-humidity>—</strong></div></article>
             <article class="ref-card device-ref"><span class="ref-icon green">▣</span><div><b>ESP8266</b><strong class="inline-status" data-esp-badge data-tone="bad">ออฟไลน์</strong><small>RSSI <em data-rssi>—</em></small><small>Firmware <em data-firmware>—</em></small></div></article>
-            <article class="ref-card water-ref"><span class="ref-icon leaf">♧</span><div><b>ระบบน้ำ</b><small>Pump <em>● ปิด</em></small><small>Zone 1 <em>● ปิด</em></small><small>Zone 2 <em>● ปิด</em></small><small>Zone 3 <em>● ปิด</em></small></div></article>
+            <article class="ref-card water-ref"><span class="ref-icon leaf">♧</span><div><b>ระบบน้ำ</b><small>Pump <em>● ปิด</em></small><small>Zone 1 <em>● ปิด</em></small><small>ไฟบ้าน <em>● ปิด</em></small><small>ไฟศาลา <em>● ปิด</em></small></div></article>
           </section>
           <section class="section-block"><h2>สถานะระบบน้ำ</h2><div class="relay-grid compact-relays">
             <article class="relay-card" data-relay-card="pump"><span class="relay-icon blue">♨</span><div><b>ปั๊มน้ำ</b><strong data-relay-state>รอข้อมูล</strong></div><div class="relay-actions"><button class="button button-on" data-relay-on type="button">เปิด</button><button class="button button-off" data-relay-off type="button">ปิด</button></div></article>
