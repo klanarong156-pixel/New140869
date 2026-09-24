@@ -5,7 +5,7 @@ const FIREBASE_CONFIG = Object.freeze({
   projectId: "smart-farm-platfor",
   functionsRegion: "us-central1",
   databaseURL: "https://smart-farm-platfor-default-rtdb.asia-southeast1.firebasedatabase.app",
-  apiKey: "AIzaSyBFklOdg4RXlHfG826DwaKTjf5hV4eHo",
+  apiKey: "AIzaSyBFklOdg4RXeXlHfG826DwaKTjf5hV4eHo",
   authDomain: "smart-farm-platfor.firebaseapp.com",
   paths: Object.freeze({ farms: "farms", farm: "farm" }),
   timeoutMs: 10000
