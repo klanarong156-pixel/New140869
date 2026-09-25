@@ -59,7 +59,10 @@
     const totalWeight = hasValue(record?.totalWeight)
       ? numberValue(record.totalWeight, 'น้ำหนักรวม', { required: true })
       : round(values.good + values.sorted + values.large);
-    const gradeTotal = GRADE_KEYS.reduce((sum, key) => sum + values[key], 0);
+    const quickEntry = hasValue(record?.totalIncome) && !isFlatSchema(record);
+    const totalIncome = hasValue(record?.totalIncome) ? numberValue(record.totalIncome, 'เงินที่ได้รับ', { required: true }) : 0;
+    const storedValues = quickEntry ? { ...values, good: totalWeight } : values;
+    const gradeTotal = GRADE_KEYS.reduce((sum, key) => sum + storedValues[key], 0);
     const date = String(record?.date || new Date().toISOString().slice(0, 10)).slice(0, 10);
     const createdAt = String(record?.createdAt || new Date().toISOString());
 
@@ -76,10 +79,11 @@
       id,
       date,
       totalWeight,
-      weights: { good: values.good, sorted: values.sorted, large: values.large },
+      weights: { good: storedValues.good, sorted: storedValues.sorted, large: storedValues.large },
       note: String(record?.note || '').trim().slice(0, 140),
       createdAt
     };
+    if (quickEntry) { data.entryMode = 'quick'; data.totalIncome = totalIncome; }
 
     if (values.flat) {
       data.gradeAKg = values.good;
@@ -99,16 +103,17 @@
     const gradeBPrice = values.flat ? numberValue(record?.gradeBPrice, 'ราคากิโลกรัมเกรด B') : 0;
     const gradeAIncome = round(values.good * gradeAPrice);
     const gradeBIncome = round(values.sorted * gradeBPrice);
+    const isQuick = record?.entryMode === 'quick' && hasValue(record?.totalIncome);
     return {
-      gradeAKg: values.good,
+      gradeAKg: isQuick ? 0 : values.good,
       gradeAPrice,
       gradeAIncome,
-      gradeBKg: values.sorted,
+      gradeBKg: isQuick ? 0 : values.sorted,
       gradeBPrice,
       gradeBIncome,
       legacyLargeKg: values.large,
       totalKg: round(totalKg),
-      totalIncome: round(gradeAIncome + gradeBIncome)
+      totalIncome: isQuick ? numberValue(record.totalIncome, 'เงินที่ได้รับ', { required: true }) : round(gradeAIncome + gradeBIncome)
     };
   }
 

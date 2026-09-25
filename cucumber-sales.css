@@ -37,3 +37,13 @@
 @media (prefers-reduced-motion: reduce) {
   .cucumber-sales-section * { scroll-behavior: auto !important; transition: none !important; }
 }
+
+
+.cucumber-detail-fields { padding: 12px 14px; border: 1px dashed #c6ddd3; border-radius: 12px; color: #527166; }
+.cucumber-detail-fields summary { cursor: pointer; font-weight: 750; }
+.cucumber-detail-fields .cucumber-grade:first-of-type { margin-top: 12px; }
+.cucumber-detail-fields > input { width: 100%; margin-top: 10px; }
+.cucumber-sales-status.success { font-weight: 700; }
+@media (max-width: 520px) {
+  .cucumber-detail-fields .cucumber-grade { grid-template-columns: 1fr; }
+}

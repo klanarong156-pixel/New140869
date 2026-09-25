@@ -6,6 +6,7 @@
   const rows = document.getElementById('cucumberSalesRows');
   const empty = document.getElementById('cucumberSalesEmpty');
   const totalWeight = document.getElementById('cucumberTotalWeight');
+  const totalIncome = document.getElementById('cucumberTotalIncome');
   const goodWeight = document.getElementById('cucumberGoodWeight');
   const goodPrice = document.getElementById('cucumberGoodPrice');
   const sortedWeight = document.getElementById('cucumberSortedWeight');
@@ -14,6 +15,7 @@
   const dateInput = document.getElementById('cucumberSaleDate');
   const noteInput = document.getElementById('cucumberSaleNote');
   const summaryTotal = document.getElementById('cucumberSummaryTotal');
+  const summarySimple = document.getElementById('cucumberSummarySimple');
   const summaryGood = document.getElementById('cucumberSummaryGood');
   const summarySorted = document.getElementById('cucumberSummarySorted');
   const summaryLarge = document.getElementById('cucumberSummaryLarge');
@@ -46,13 +48,15 @@
     const totals = items.reduce((sum, item) => {
       const calculated = toCalculated(item);
       sum.total += calculated.totalKg;
-      sum.good += calculated.gradeAKg;
+      if (item.entryMode === 'quick') sum.simple += calculated.totalKg;
+      else sum.good += calculated.gradeAKg;
       sum.sorted += calculated.gradeBKg;
       sum.large += calculated.legacyLargeKg;
       sum.income += calculated.totalIncome;
       return sum;
-    }, { total: 0, good: 0, sorted: 0, large: 0, income: 0 });
+    }, { total: 0, simple: 0, good: 0, sorted: 0, large: 0, income: 0 });
     summaryTotal.textContent = formatKg(totals.total);
+    if (summarySimple) summarySimple.textContent = formatKg(totals.simple);
     summaryGood.textContent = formatKg(totals.good);
     summarySorted.textContent = formatKg(totals.sorted);
     summaryLarge.textContent = formatKg(totals.large);
@@ -66,9 +70,9 @@
         <tr>
           <td>${escapeHtml(item.date || '—')}</td>
           <td>${formatKg(calculated.totalKg)}</td>
-          <td>${formatKg(calculated.gradeAKg)}</td>
-          <td>${calculated.gradeAPrice ? formatMoney(calculated.gradeAPrice) : '—'}</td>
-          <td>${formatKg(calculated.gradeBKg)}</td>
+          <td>${item.entryMode === 'quick' ? 'แบบเร็ว' : formatKg(calculated.gradeAKg)}</td>
+          <td>${item.entryMode === 'quick' ? '—' : (calculated.gradeAPrice ? formatMoney(calculated.gradeAPrice) : '—')}</td>
+          <td>${item.entryMode === 'quick' ? '—' : formatKg(calculated.gradeBKg)}</td>
           <td>${calculated.gradeBPrice ? formatMoney(calculated.gradeBPrice) : '—'}</td>
           <td>${calculated.totalIncome ? formatMoney(calculated.totalIncome) : '—'}</td>
           <td>${escapeHtml(item.note || '—')}</td>
@@ -109,7 +113,8 @@
       gradeAPrice: goodPrice?.value,
       gradeBKg: sortedWeight.value,
       gradeBPrice: sortedPrice?.value,
-      note: noteInput.value
+      note: noteInput.value,
+      totalIncome: totalIncome?.value
     };
   }
 
@@ -122,10 +127,26 @@
     try {
       setStatus('กำลังตรวจสอบและบันทึกข้อมูล…');
       const data = window.CucumberSales.normalize(payloadFromForm());
-      await window.CucumberSales.save(data);
+      const saved = await window.CucumberSales.save(data);
+      try {
+        if (!window.saveFinanceItem) throw new Error('ระบบรายรับยังโหลดไม่เสร็จ กรุณาลองใหม่อีกครั้ง');
+        const calculated = window.CucumberSales.calculate(saved);
+        await window.saveFinanceItem({
+          id: `CUC-INCOME-${saved.id}`,
+          type: 'income',
+          category: 'ขายผลผลิต',
+          item: `ขายแตงกวา ${calculated.totalKg.toLocaleString('th-TH')} กก.`,
+          amount: calculated.totalIncome,
+          createdAt: `${saved.date}T12:00:00+07:00`
+        });
+      } catch (financeError) {
+        await window.CucumberSales.remove(saved.id).catch(() => {});
+        throw new Error(`บันทึกผลผลิตแล้ว แต่เพิ่มรายรับไม่สำเร็จ: ${financeError.message}`);
+      }
       form.reset();
       dateInput.value = today();
       await refresh();
+      window.dispatchEvent(new CustomEvent('finance:changed'));
       setStatus('บันทึกผลการขายเรียบร้อยแล้ว', 'success');
     } catch (error) {
       setStatus(error.message || 'บันทึกข้อมูลไม่สำเร็จ', 'error');
@@ -142,6 +163,7 @@
     button.disabled = true;
     try {
       setStatus('กำลังลบข้อมูล…');
+      if (window.deleteFinanceItem) await window.deleteFinanceItem(`CUC-INCOME-${button.dataset.id}`);
       await window.CucumberSales.remove(button.dataset.id);
       await refresh();
       setStatus('ลบรายการเรียบร้อยแล้ว', 'success');

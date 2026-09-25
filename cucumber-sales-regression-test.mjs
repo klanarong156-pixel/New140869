@@ -35,6 +35,15 @@ assert.deepEqual(plain(api.calculate(flat)), {
   legacyLargeKg: 0, totalKg: 90, totalIncome: 1000
 });
 
+const quick = api.normalize({ date: '2026-09-24', totalWeight: '25', totalIncome: '500', note: 'ขายตลาดเช้า' });
+assert.equal(quick.entryMode, 'quick');
+assert.equal(quick.totalIncome, 500);
+assert.deepEqual(plain(api.calculate(quick)), {
+  gradeAKg: 0, gradeAPrice: 0, gradeAIncome: 0,
+  gradeBKg: 0, gradeBPrice: 0, gradeBIncome: 0,
+  legacyLargeKg: 0, totalKg: 25, totalIncome: 500
+});
+
 for (const invalid of [
   { date: '2026-09-24', totalWeight: '-1', weights: { good: '1', sorted: '0', large: '0' } },
   { date: '2026-02-30', totalWeight: '1', weights: { good: '1', sorted: '0', large: '0' } },
@@ -53,4 +62,4 @@ assert.match(rules, /"cucumberSales"/);
 assert.match(rules, /gradeAKg/);
 assert.match(rules, /gradeAPrice/);
 assert.match(rules, /createdAt/);
-console.log('Cucumber Sales regression: 12 passed, 0 failed');
+console.log('Cucumber Sales regression: 15 passed, 0 failed');

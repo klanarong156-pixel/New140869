@@ -289,6 +289,7 @@
 
   function boot() {
     $('financeForm')?.addEventListener('submit', add);
+    window.addEventListener('finance:changed', refresh);
     $('financePrint')?.addEventListener('click', printReport);
     $('financeReportMonth')?.addEventListener('input', renderMonthlyReport);
     $('financeMonthlyPrint')?.addEventListener('click', printMonthlyReport);
