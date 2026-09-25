@@ -1,9 +1,9 @@
-const CACHE_NAME = 'smartfarm-v22-monthly-report-theme-1';
+const CACHE_NAME = 'smartfarm-v23-field-control-dashboard';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
-  './dashboard/dashboard.css?v=8', './dashboard/dashboard-config.js?v=1',
+  './dashboard/dashboard.css?v=9', './dashboard/dashboard-config.js?v=1',
   './dashboard/dashboard-state.js?v=2', './dashboard/dashboard-mqtt.js?v=3',
-  './dashboard/dashboard.js?v=4', './mqtt.min.js?v=5', './404.html',
+  './dashboard/dashboard.js?v=5', './mqtt.min.js?v=5', './404.html',
   './auth.html', './finance.html', './account.html', './admin.html', './ota.html',
   './manifest.json', './app.css', './core-theme.css?v=1', './redesign-lambo.css', './pump-hero.css', './suanlungna-design-system.css', './dashboard-polish.css', './dashboard-realtime.css', './app.js', './dashboard-ota.js', './config.js', './mqtt-connection.js', './internet-time.js', './weather.js', './auto-weather-guard.js', './schedule.js', './firebase.js', './access.js', './auth-page.js', './finance-core.js', './finance-firebase.js', './finance.js', './account.js', './crop-reminders.js', './crop-plots.js', './farm-analytics.js', './ai-farm-advisor.js', './farm-tools.js', './farm-clock.js', './user-management.js',
   './logo.png', './assets/logo-suanlungna-transparent.png', './assets/farm-background.jpg', './assets/cucumber-plot.jpg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'

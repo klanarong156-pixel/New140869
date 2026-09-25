@@ -23,7 +23,12 @@
     text(document.querySelector('[data-page-title]'), title);
     text(document.querySelector('[data-page-subtitle]'), subtitle);
     $$('[data-page-section]').forEach(section => { section.hidden = section.dataset.pageSection !== page; });
-    $$('[data-route]').forEach(link => { link.classList.toggle('active', link.dataset.route === page); });
+    $$('[data-route]').forEach(link => {
+      const active = link.dataset.route === page;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
     document.title = `สวนลุงนะ · ${title}`;
   };
 
