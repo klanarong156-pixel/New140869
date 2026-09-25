@@ -264,3 +264,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .app-content { width: 100%; margin-left: 0; }
   .sidebar { display: none; }
 }
+
+
+/* Bottom navigation fit: show all eight routes within the mobile viewport. */
+@media (max-width: 650px) {
+  .bottom-nav {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0;
+    padding: 5px 4px env(safe-area-inset-bottom);
+    overflow: hidden;
+  }
+  .bottom-nav a {
+    min-width: 0;
+    width: auto;
+    flex: none;
+    padding: 4px 1px;
+    font-size: .43rem;
+    line-height: 1.1;
+  }
+  .bottom-nav a span { font-size: .92rem; }
+}
