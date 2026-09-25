@@ -1,7 +1,7 @@
-const CACHE_NAME = 'smartfarm-v23-field-control-dashboard';
+const CACHE_NAME = 'smartfarm-v24-mobile-layout-fix';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
-  './dashboard/dashboard.css?v=9', './dashboard/dashboard-config.js?v=1',
+  './dashboard/dashboard.css?v=10', './dashboard/dashboard-config.js?v=1',
   './dashboard/dashboard-state.js?v=2', './dashboard/dashboard-mqtt.js?v=3',
   './dashboard/dashboard.js?v=5', './mqtt.min.js?v=5', './404.html',
   './auth.html', './finance.html', './account.html', './admin.html', './ota.html',

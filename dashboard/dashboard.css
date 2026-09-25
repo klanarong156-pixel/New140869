@@ -257,3 +257,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Mobile layout correction: the sidebar is hidden, so content must reclaim its width. */
+@media (max-width: 650px) {
+  .app-content { width: 100%; margin-left: 0; }
+  .sidebar { display: none; }
+}
