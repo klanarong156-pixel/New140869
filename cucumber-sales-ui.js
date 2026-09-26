@@ -92,8 +92,8 @@
     if (refreshInFlight) return refreshInFlight;
     setStatus('กำลังโหลดข้อมูลแตงกวา…');
     refreshInFlight = window.CucumberSales.load()
-      .then(items => {
-        items = items || [];
+      .then(loadedItems => {
+        items = loadedItems || [];
         renderRows(items);
         setStatus(`พร้อมใช้งาน · พบ ${items.length} รายการ`, 'success');
         return items;
