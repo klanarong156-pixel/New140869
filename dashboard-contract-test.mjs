@@ -96,6 +96,11 @@ check(store.get().sensor.temperature === 31.25 && store.get().sensor.humidity ==
 manager.handleMessage(config.topics.modeStatus, 'AUTO', { retain: true });
 check(store.get().mode === 'AUTO', 'mode status is accepted');
 
+manager.handleMessage(config.topics.emergencyStatus, JSON.stringify({ active: true, source: 'mqtt', time: '2026-09-27T01:00:00+07:00' }), { retain: true });
+check(store.get().esp.emergencyLock === true && store.get().esp.emergencySource === 'mqtt', 'emergency status is accepted from firmware');
+manager.handleMessage(config.topics.time, JSON.stringify({ date: '2026-09-27', time: '01:00:00', timezone: 'Asia/Bangkok' }), { retain: false });
+check(store.get().esp.time === '2026-09-27T01:00:00' && store.get().esp.clockValid === true, 'firmware time status is accepted');
+
 manager.handleMessage(config.topics.relayStatus('pump'), 'OFF', { retain: true });
 check(store.get().relays.pump === false, 'relay OFF status is accepted');
 
@@ -115,6 +120,9 @@ check(store.get().esp.online === true, 'live heartbeat restores ESP online after
 check(fakeClient.published[0].payload === 'ON' && fakeClient.published[0].options.retain === false, 'relay command uses ON payload and non-retained publish');
 check(fakeClient.subscriptions.some(item => item.topic === 'smartfarm/status/device'), 'dashboard subscribes to device heartbeat');
 check(fakeClient.subscriptions.some(item => item.topic === 'smartfarm/relay/+/status'), 'dashboard subscribes to relay status wildcard');
+check(fakeClient.subscriptions.some(item => item.topic === 'smartfarm/emergency/status'), 'dashboard subscribes to emergency status');
+check(fakeClient.subscriptions.some(item => item.topic === 'smartfarm/config/telegram/status'), 'dashboard subscribes to Telegram status');
+check(config.topics.emergencySet === 'smartfarm/emergency/set', 'dashboard emergency command matches firmware topic');
 check(events.filter(event => event.type === 'smartfarm:mqtt:connected').length === 1, 'one MQTT connected event is emitted');
 
 console.log('\nClean dashboard MQTT contract tests passed.');

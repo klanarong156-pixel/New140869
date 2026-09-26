@@ -24,6 +24,26 @@
       uptimeSec: null,
       wifi: null,
       mqtt: null,
+      heap: null,
+      heapMaxBlock: null,
+      heapFrag: null,
+      resetReason: '',
+      wifiReconnects: null,
+      mqttConnects: null,
+      mqttFailures: null,
+      pumpSafeLock: false,
+      emergencyLock: false,
+      emergencySource: '',
+      pumpRuntimeSec: 0,
+      clockValid: false,
+      rtc: false,
+      ntp: false,
+      clockSource: 'none',
+      sensorReads: null,
+      sensorFaults: null,
+      sensorAgeSec: null,
+      sensorOk: false,
+      time: '',
       raw: null
     },
     sensor: {
@@ -98,6 +118,26 @@
     current.esp.uptimeSec = Number.isFinite(Number(device.uptimeSec ?? device.uptime)) ? Number(device.uptimeSec ?? device.uptime) : null;
     current.esp.wifi = typeof device.wifi === 'boolean' ? device.wifi : null;
     current.esp.mqtt = typeof device.mqtt === 'boolean' ? device.mqtt : null;
+    current.esp.heap = Number.isFinite(Number(device.heap)) ? Number(device.heap) : null;
+    current.esp.heapMaxBlock = Number.isFinite(Number(device.heapMaxBlock)) ? Number(device.heapMaxBlock) : null;
+    current.esp.heapFrag = Number.isFinite(Number(device.heapFrag)) ? Number(device.heapFrag) : null;
+    current.esp.resetReason = String(device.resetReason || '');
+    current.esp.wifiReconnects = Number.isFinite(Number(device.wifiReconnects)) ? Number(device.wifiReconnects) : null;
+    current.esp.mqttConnects = Number.isFinite(Number(device.mqttConnects)) ? Number(device.mqttConnects) : null;
+    current.esp.mqttFailures = Number.isFinite(Number(device.mqttFailures)) ? Number(device.mqttFailures) : null;
+    current.esp.pumpSafeLock = device.pumpSafeLock === true;
+    current.esp.emergencyLock = device.emergencyLock === true;
+    current.esp.emergencySource = String(device.emergencySource || '');
+    current.esp.pumpRuntimeSec = Number.isFinite(Number(device.pumpRuntimeSec)) ? Number(device.pumpRuntimeSec) : 0;
+    current.esp.clockValid = device.clockValid === true;
+    current.esp.rtc = device.rtc === true;
+    current.esp.ntp = device.ntp === true;
+    current.esp.clockSource = String(device.clockSource || 'none');
+    current.esp.sensorReads = Number.isFinite(Number(device.sensorReads)) ? Number(device.sensorReads) : null;
+    current.esp.sensorFaults = Number.isFinite(Number(device.sensorFaults)) ? Number(device.sensorFaults) : null;
+    current.esp.sensorAgeSec = Number.isFinite(Number(device.sensorAgeSec)) ? Number(device.sensorAgeSec) : null;
+    current.esp.sensorOk = device.sensorOk === true;
+    current.esp.time = String(device.time || '');
     current.esp.lastHeartbeatAt = now;
     current.esp.lastHeartbeatWasRetained = retained;
     current.esp.heartbeatCount += 1;
@@ -158,6 +198,17 @@
     current.diagnostic.lastErrorAt = Date.now();
   }, 'system:error');
 
+  const setEmergency = emergency => update(current => {
+    current.esp.emergencyLock = emergency?.active === true;
+    current.esp.emergencySource = String(emergency?.source || '');
+    if (emergency?.time) current.esp.time = String(emergency.time);
+  }, 'emergency:status');
+
+  const setTime = time => update(current => {
+    current.esp.time = String(time?.date && time?.time ? `${time.date}T${time.time}` : '');
+    if (current.esp.time) current.esp.clockValid = true;
+  }, 'time:status');
+
   const setWeather = weather => update(current => {
     current.weather = { ...current.weather, ...weather, updatedAt: Date.now() };
   }, 'weather:update');
@@ -185,6 +236,8 @@
     setMode,
     setSchedule,
     setError,
+    setEmergency,
+    setTime,
     setWeather
   });
 })();

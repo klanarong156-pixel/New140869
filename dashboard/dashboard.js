@@ -148,12 +148,20 @@
     textAll('[data-esp-device-id]', state.esp.deviceId || 'ยังไม่มีข้อมูล');
     textAll('[data-esp-firmware]', state.esp.firmware || '—');
     textAll('[data-esp-last-seen]', elapsed(state.esp.lastHeartbeatAt));
+    textAll('[data-esp-heap]', state.esp.heap === null ? '—' : `${state.esp.heap} B`);
+    textAll('[data-esp-heap-frag]', state.esp.heapFrag === null ? '—' : `${state.esp.heapFrag}%`);
+    textAll('[data-esp-reset-reason]', state.esp.resetReason || '—');
+    textAll('[data-esp-clock]', state.esp.clockValid ? `${state.esp.clockSource.toUpperCase()} · ${state.esp.time || 'valid'}` : 'ยังไม่ valid');
+    textAll('[data-emergency-status]', state.esp.emergencyLock ? `หยุดฉุกเฉินทำงาน${state.esp.emergencySource ? ` · ${state.esp.emergencySource}` : ''}` : 'ปกติ');
+    textAll('[data-pump-safety-status]', state.esp.pumpSafeLock ? 'ล็อกปั๊มเพื่อความปลอดภัย' : 'พร้อมตามคำสั่ง/ตาราง');
+    toneAll('[data-emergency-status]', state.esp.emergencyLock ? 'bad' : 'good');
     const lwtOffline = state.diagnostic.connectionReason === 'status/online=false';
     textAll('[data-esp-status-detail]', espOnline ? `ออนไลน์ · heartbeat ${elapsed(state.esp.lastHeartbeatAt)}` : lwtOffline ? `LWT · ESP/WiFi หลุด · ล่าสุด ${elapsed(state.esp.lastHeartbeatAt)}` : state.mqtt.status !== 'connected' ? 'รอการเชื่อมต่อ MQTT' : state.esp.lastHeartbeatAt ? `ไม่พบ heartbeat ใหม่ · ${elapsed(state.esp.lastHeartbeatAt)}` : 'ยังไม่ได้รับ heartbeat จากอุปกรณ์จริง');
 
     textAll('[data-temperature]', state.sensor.temperature === null ? '—' : `${formatNumber(state.sensor.temperature, 1)} °C`);
     textAll('[data-humidity]', state.sensor.humidity === null ? '—' : `${formatNumber(state.sensor.humidity, 0)} %`);
     textAll('[data-sensor-freshness]', state.sensor.receivedAt ? `DHT11 · ${elapsed(state.sensor.receivedAt)}` : 'DHT11 · ยังไม่มีข้อมูล');
+    textAll('[data-sensor-health]', state.esp.sensorOk ? 'ปกติ' : state.sensor.receivedAt ? 'รอตรวจสอบรอบถัดไป' : 'รอข้อมูล');
 
     text(elements.mode, state.mode || '—');
     setTone(elements.mode, state.mode ? 'good' : 'neutral');
@@ -162,6 +170,10 @@
       button.dataset.active = button.dataset.mode === state.mode ? 'true' : 'false';
       button.disabled = !mqtt.client?.connected;
     });
+    const emergencyStop = $('[data-emergency-stop]');
+    const emergencyReset = $('[data-emergency-reset]');
+    if (emergencyStop) emergencyStop.disabled = !mqtt.client?.connected || state.esp.emergencyLock;
+    if (emergencyReset) emergencyReset.disabled = !mqtt.client?.connected || !state.esp.emergencyLock;
 
     textAll('[data-diagnostic-mqtt]', mqttLabel(mqttStatus));
     textAll('[data-diagnostic-esp]', espOnline ? 'ONLINE' : 'OFFLINE');
@@ -178,7 +190,7 @@
       const offButton = card.querySelector('[data-relay-off]');
       text(label, value === null ? 'รอข้อมูลจาก ESP8266' : value ? 'เปิด' : 'ปิด');
       card.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
-      if (onButton) onButton.disabled = !mqtt.client?.connected;
+      if (onButton) onButton.disabled = !mqtt.client?.connected || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
       if (offButton) offButton.disabled = !mqtt.client?.connected;
     });
 
@@ -239,6 +251,12 @@
     const sent = mqtt.publish(config.topics.modeSet, mode);
     if (sent) showToast(`ส่งคำสั่งโหมด ${mode} แล้ว · รอ status จาก ESP8266`, 'info');
     else showToast('ยังส่งคำสั่งโหมดไม่ได้ · MQTT ยังไม่เชื่อมต่อ', 'warn');
+  };
+
+  const submitEmergency = command => {
+    const sent = mqtt.publish(config.topics.emergencySet, command);
+    if (sent) showToast(command === 'STOP' ? 'ส่งคำสั่งหยุดฉุกเฉินแล้ว' : 'ส่งคำสั่งปลดหยุดฉุกเฉินแล้ว · รอ status จาก ESP8266', command === 'STOP' ? 'warn' : 'info');
+    else showToast('ยังส่งคำสั่งฉุกเฉินไม่ได้ · MQTT ยังไม่เชื่อมต่อ', 'warn');
   };
 
   const loadWeather = async () => {
@@ -308,6 +326,8 @@
     $$('[data-relay-on]').forEach(button => button.addEventListener('click', () => submitRelay(button.closest('[data-relay-card]').dataset.relayCard, true)));
     $$('[data-relay-off]').forEach(button => button.addEventListener('click', () => submitRelay(button.closest('[data-relay-card]').dataset.relayCard, false)));
     $$('[data-mode]').forEach(button => button.addEventListener('click', () => submitMode(button.dataset.mode)));
+    $('[data-emergency-stop]')?.addEventListener('click', () => submitEmergency('STOP'));
+    $('[data-emergency-reset]')?.addEventListener('click', () => submitEmergency('RESET'));
     $$('[data-event-filter]').forEach(button => button.addEventListener('click', () => {
       const filter = button.dataset.eventFilter;
       $$('[data-event-filter]').forEach(item => item.classList.toggle('active', item === button));

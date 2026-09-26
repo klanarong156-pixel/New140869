@@ -285,3 +285,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
   .bottom-nav a span { font-size: .92rem; }
 }
+
+/* Firmware V7 safety surface: presentation only, commands remain MQTT-gated. */
+.emergency-card{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px;padding:14px 16px;border-color:#efc4c8;background:#fff8f7}.emergency-card h2{margin:0 0 5px}.emergency-card p{margin:0 0 7px;color:var(--muted);font-size:.7rem}.emergency-card strong,.emergency-card small{display:inline-block;margin-right:10px;font-size:.7rem}.emergency-card strong[data-tone=bad]{color:var(--red)}.emergency-card strong[data-tone=good]{color:var(--green)}.emergency-actions{display:flex;gap:7px;flex:none}.emergency-stop{color:#fff;background:#d94c54}.emergency-stop:disabled{background:#e9b8bc}
+@media(max-width:650px){.emergency-card{align-items:stretch;flex-direction:column;gap:10px}.emergency-actions{display:grid;grid-template-columns:1fr 1fr}.emergency-actions .button{width:100%}}

@@ -44,6 +44,8 @@ const checks = [
   ['Clean dashboard has state layer', /SmartFarmDashboardState/.test(cleanDashboardState) && /acceptHeartbeat/.test(cleanDashboardState)],
   ['Clean dashboard uses explicit firmware topics', /status\/device/.test(cleanDashboardConfig) && /sensor\/dht11/.test(cleanDashboardConfig) && /relaySet/.test(cleanDashboardConfig)],
   ['Clean dashboard loads MQTT.js and state modules', /mqtt\.min\.js/.test(cleanDashboard) && /dashboard-state\.js/.test(cleanDashboard) && /dashboard-mqtt\.js/.test(cleanDashboard)],
+  ['Dashboard modes match firmware commands', /data-mode="AUTO"/.test(cleanDashboard) && /data-mode="MANUAL"/.test(cleanDashboard) && !/data-mode="SCHEDULE"/.test(cleanDashboard)],
+  ['Dashboard exposes firmware emergency controls', /data-emergency-stop/.test(cleanDashboard) && /data-emergency-reset/.test(cleanDashboard) && /emergencySet/.test(cleanDashboardConfig)],
   ['Clean dashboard does not fake soil telemetry', /ไม่ได้ติดตั้ง/.test(cleanDashboard) && !/soil.*(?:value|temperature|humidity)/i.test(cleanDashboardJs)],
   ['Firmware uses HiveMQ TLS 8883', /#define MQTT_SERVER "25305924f68c41f2a1e089a1836d3287\.s1\.eu\.hivemq\.cloud"/.test(firmware) && /#define MQTT_PORT 8883/.test(firmware)],
   ['Firmware uses smartfarm base topic', /#define MQTT_BASE "smartfarm"/.test(firmware)],

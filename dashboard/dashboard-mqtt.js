@@ -302,7 +302,20 @@
         return;
       }
 
-      if (topic === topics.emergencyStatus || topic === topics.time) {
+      if (topic === topics.emergencyStatus) {
+        const emergency = this.parseJson(value);
+        if (emergency) appState.setEmergency(emergency);
+        return;
+      }
+
+      if (topic === topics.time) {
+        const time = this.parseJson(value);
+        if (time) appState.setTime(time);
+        return;
+      }
+
+      if (topic === topics.telegramStatus || topic === topics.reminderStatus || topic === topics.aiAlertStatus) {
+        window.dispatchEvent(new CustomEvent('smartfarm:device-status', { detail: { topic, payload: this.parseJson(value) || value } }));
         return;
       }
     },
