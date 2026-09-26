@@ -17,6 +17,14 @@
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
+        "controlRoomSchedules": {
+          "$scheduleId": {
+            ".validate": "newData.hasChildren(['id', 'relay', 'onTime', 'offTime', 'days', 'enabled', 'updatedAt']) && newData.child('id').isString() && newData.child('id').val() === $scheduleId && newData.child('id').val().length > 0 && newData.child('id').val().length <= 80 && newData.child('relay').isString() && (newData.child('relay').val() === 'pump' || newData.child('relay').val() === 'zone1' || newData.child('relay').val() === 'lighthome' || newData.child('relay').val() === 'lightsala') && newData.child('onTime').isString() && newData.child('onTime').val().matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/) && newData.child('offTime').isString() && newData.child('offTime').val().matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/) && newData.child('days').hasChildren() && newData.child('enabled').isBoolean() && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40",
+            "days": {
+              "$day": { ".validate": "newData.isString() && (newData.val() === 'mon' || newData.val() === 'tue' || newData.val() === 'wed' || newData.val() === 'thu' || newData.val() === 'fri' || newData.val() === 'sat' || newData.val() === 'sun')" }
+            }
+          }
+        },
         "profile": {
           ".validate": "newData.hasChildren(['displayName', 'farmName']) && newData.child('displayName').isString() && newData.child('displayName').val().length > 0 && newData.child('displayName').val().length <= 80 && newData.child('farmName').isString() && newData.child('farmName').val().length > 0 && newData.child('farmName').val().length <= 120 && (!newData.hasChild('updatedAt') || (newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40)) && (!newData.hasChild('createdAt') || (newData.child('createdAt').isString() && newData.child('createdAt').val().length <= 40))"
         },
