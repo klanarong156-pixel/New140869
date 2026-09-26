@@ -54,6 +54,7 @@ const checks = [
   ['Legacy duplicate pages are removed from service worker', !/connection\.html|schedule\.html|settings\.html/.test(sw)],
   ['Finance monthly report UI exists', /financeReportMonth/.test(finance) && /monthlyIncome/.test(finance) && /monthlyCategoryRows/.test(finance)],
   ['Finance monthly report calculates from loaded items', /monthlyItems/.test(financeJs) && /renderMonthlyReport/.test(financeJs) && /monthKey/.test(financeJs)],
+  ['Finance legacy entry form is restored', /id="financeForm"/.test(finance) && /id="financeType"/.test(finance) && /id="financeAmount"/.test(finance) && /id="financeItem"/.test(finance) && /id="financeSubmit"/.test(finance)],
   ['Dashboard routes share the renovated theme', /data-page-section="water"/.test(cleanDashboard) && /data-page-section="devices"/.test(cleanDashboard) && /data-page-section="connection"/.test(cleanDashboard) && /data-page-section="weather"/.test(cleanDashboard) && /data-page-section="settings"/.test(cleanDashboard) && /\.route-page\[hidden\]/.test(dashboardCss)]
 ];
 
