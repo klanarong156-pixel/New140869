@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { desiredState, normalizeSchedules } = require('./schedule-runner.js');
+const slot = (overrides = {}) => ({ relay: 'lightsala', enabled: true, onTime: '19:00', offTime: '22:30', days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], ...overrides });
+assert.equal(desiredState([slot()], new Date(2026, 8, 26, 20, 0)), true, 'active Bangkok schedule turns relay ON');
+assert.equal(desiredState([slot()], new Date(2026, 8, 26, 23, 0)), false, 'outside schedule turns relay OFF');
+assert.equal(desiredState([slot({ onTime: '23:00', offTime: '01:00', days: ['fri'] })], new Date(2026, 8, 26, 0, 30)), true, 'cross-midnight schedule remains ON after midnight');
+assert.equal(desiredState([slot({ days: ['mon'] })], new Date(2026, 8, 26, 20, 0)), false, 'non-selected day stays OFF');
+assert.equal(normalizeSchedules({ a: slot(), b: { relay: 'unknown', enabled: true } }).length, 1, 'only four known relays are accepted');
+console.log('PASS schedule-runner: Bangkok day/time, cross-midnight, and relay filtering');

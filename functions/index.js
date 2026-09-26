@@ -2,11 +2,23 @@ const { initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getDatabase } = require('firebase-admin/database');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { defineSecret } = require('firebase-functions/params');
+const { runScheduleTick } = require('./schedule-runner');
 
 initializeApp();
 
 const auth = getAuth();
 const db = getDatabase();
+const mqttPassword = defineSecret('MQTT_PASSWORD');
+
+exports.applyControlRoomSchedules = onSchedule({
+  schedule: 'every 1 minutes',
+  timeZone: 'Asia/Bangkok',
+  timeoutSeconds: 60,
+  memory: '256MiB',
+  secrets: [mqttPassword]
+}, async () => runScheduleTick({ db, mqttPassword: mqttPassword.value() }));
 
 function requireAdmin(request) {
   const uid = request.auth?.uid;
