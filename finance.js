@@ -125,10 +125,15 @@
       setText('financeLoadStatus', items.length ? `อัปเดตล่าสุด ${new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}` : 'ยังไม่มีรายการบันทึก');
     } catch (error) {
       console.error('Finance load failed:', error);
-      items = [];
+      // Keep the last successfully loaded snapshot. A transient auth/network
+      // failure must not make existing records appear to have disappeared.
       render();
-      setText('financeLoadStatus', 'โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
-      window.showToast?.(error.message || 'โหลดข้อมูลการเงินไม่สำเร็จ', 'error');
+      $('financeEmpty')?.classList.add('hidden');
+      const detail = error?.message || 'ไม่ทราบสาเหตุ';
+      setText('financeLoadStatus', items.length
+        ? `โหลดข้อมูลล่าสุดไม่สำเร็จ · แสดงข้อมูลเดิมอยู่ (${detail})`
+        : `โหลดข้อมูลไม่สำเร็จ · ${detail}`);
+      window.showToast?.(`โหลดข้อมูลการเงินไม่สำเร็จ: ${detail}`, 'error');
     }
   }
 

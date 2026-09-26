@@ -7,6 +7,7 @@
   const empty = document.getElementById('cucumberSalesEmpty');
   const totalWeight = document.getElementById('cucumberTotalWeight');
   const totalIncome = document.getElementById('cucumberTotalIncome');
+  const paymentStatus = document.getElementById('cucumberPaymentStatus');
   const goodWeight = document.getElementById('cucumberGoodWeight');
   const goodPrice = document.getElementById('cucumberGoodPrice');
   const sortedWeight = document.getElementById('cucumberSortedWeight');
@@ -26,6 +27,8 @@
 
   let started = false;
   let refreshInFlight = null;
+  let items = [];
+  let editingId = '';
   const today = () => new Date().toISOString().slice(0, 10);
   dateInput.value = today();
 
@@ -74,9 +77,10 @@
           <td>${item.entryMode === 'quick' ? '—' : (calculated.gradeAPrice ? formatMoney(calculated.gradeAPrice) : '—')}</td>
           <td>${item.entryMode === 'quick' ? '—' : formatKg(calculated.gradeBKg)}</td>
           <td>${calculated.gradeBPrice ? formatMoney(calculated.gradeBPrice) : '—'}</td>
-          <td>${calculated.totalIncome ? formatMoney(calculated.totalIncome) : '—'}</td>
+          <td>${calculated.totalIncome ? formatMoney(calculated.totalIncome) : 'รอราคา'}</td>
+          <td><span class="cucumber-payment ${item.paymentStatus === 'paid' ? 'paid' : 'pending'}">${item.paymentStatus === 'paid' ? 'จ่ายแล้ว' : 'ค้างจ่าย'}</span></td>
           <td>${escapeHtml(item.note || '—')}</td>
-          <td><button type="button" class="btn danger cucumber-delete" data-id="${escapeHtml(item.id)}">ลบ</button></td>
+          <td><button type="button" class="btn secondary cucumber-edit" data-id="${escapeHtml(item.id)}">แก้ไข</button><button type="button" class="btn danger cucumber-delete" data-id="${escapeHtml(item.id)}">ลบ</button></td>
         </tr>
       `;
     }).join('');
@@ -89,15 +93,14 @@
     setStatus('กำลังโหลดข้อมูลแตงกวา…');
     refreshInFlight = window.CucumberSales.load()
       .then(items => {
+        items = items || [];
         renderRows(items);
         setStatus(`พร้อมใช้งาน · พบ ${items.length} รายการ`, 'success');
         return items;
       })
       .catch(error => {
-        rows.innerHTML = '';
-        empty.hidden = true;
-        renderSummary([]);
-        setStatus(`โหลดข้อมูลไม่สำเร็จ: ${error.message}`, 'error');
+        renderRows(items);
+        setStatus(`โหลดข้อมูลล่าสุดไม่สำเร็จ: ${error.message}`, 'error');
         return [];
       })
       .finally(() => { refreshInFlight = null; });
@@ -114,8 +117,19 @@
       gradeBKg: sortedWeight.value,
       gradeBPrice: sortedPrice?.value,
       note: noteInput.value,
-      totalIncome: totalIncome?.value
+      totalIncome: totalIncome?.value,
+      entryMode: 'graded',
+      priceA: goodPrice?.value,
+      priceB: sortedPrice?.value,
+      paymentStatus: paymentStatus?.value || 'pending',
+      id: editingId || undefined
     };
+  }
+
+  function updateTotalWeight() {
+    const total = numberOrZero(goodWeight?.value) + numberOrZero(sortedWeight?.value) + numberOrZero(largeWeight?.value);
+    if (totalWeight) totalWeight.value = total ? String(Math.round(total * 100) / 100) : '';
+    updateWeightStatus();
   }
 
   async function save(event) {
@@ -129,22 +143,28 @@
       const data = window.CucumberSales.normalize(payloadFromForm());
       const saved = await window.CucumberSales.save(data);
       try {
-        if (!window.saveFinanceItem) throw new Error('ระบบรายรับยังโหลดไม่เสร็จ กรุณาลองใหม่อีกครั้ง');
         const calculated = window.CucumberSales.calculate(saved);
-        await window.saveFinanceItem({
-          id: `CUC-INCOME-${saved.id}`,
-          type: 'income',
-          category: 'ขายผลผลิต',
-          item: `ขายแตงกวา ${calculated.totalKg.toLocaleString('th-TH')} กก.`,
-          amount: calculated.totalIncome,
-          createdAt: `${saved.date}T12:00:00+07:00`
-        });
+        if (calculated.totalIncome > 0) {
+          if (!window.saveFinanceItem) throw new Error('ระบบรายรับยังโหลดไม่เสร็จ กรุณาลองใหม่อีกครั้ง');
+          await window.saveFinanceItem({
+            id: `CUC-INCOME-${saved.id}`,
+            type: saved.paymentStatus === 'paid' ? 'income' : 'pending',
+            category: 'ขายผลผลิต',
+            item: `แตงกวา ${calculated.totalKg.toLocaleString('th-TH')} กก. · ${saved.paymentStatus === 'paid' ? 'จ่ายแล้ว' : 'ค้างจ่าย'}`,
+            amount: calculated.totalIncome,
+            createdAt: `${saved.date}T12:00:00+07:00`
+          });
+        } else if (window.deleteFinanceItem) {
+          await window.deleteFinanceItem(`CUC-INCOME-${saved.id}`).catch(() => {});
+        }
       } catch (financeError) {
-        await window.CucumberSales.remove(saved.id).catch(() => {});
-        throw new Error(`บันทึกผลผลิตแล้ว แต่เพิ่มรายรับไม่สำเร็จ: ${financeError.message}`);
+        throw new Error(`บันทึกผลผลิตแล้ว แต่ปรับรายการการเงินไม่สำเร็จ: ${financeError.message}`);
       }
       form.reset();
       dateInput.value = today();
+      editingId = '';
+      if (submit) submit.textContent = 'บันทึกผลผลิต';
+      if (totalWeight) totalWeight.value = '';
       await refresh();
       window.dispatchEvent(new CustomEvent('finance:changed'));
       setStatus('บันทึกผลการขายเรียบร้อยแล้ว', 'success');
@@ -157,6 +177,26 @@
   }
 
   async function remove(event) {
+    const editButton = event.target.closest('.cucumber-edit');
+    if (editButton) {
+      const item = items.find(entry => entry.id === editButton.dataset.id);
+      if (!item) return;
+      editingId = item.id;
+      dateInput.value = item.date || today();
+      goodWeight.value = item.weights?.good || item.gradeAKg || '';
+      sortedWeight.value = item.weights?.sorted || item.gradeBKg || '';
+      largeWeight.value = item.weights?.large || '';
+      goodPrice.value = item.prices?.good ?? item.gradeAPrice ?? '';
+      sortedPrice.value = item.prices?.sorted ?? item.gradeBPrice ?? '';
+      paymentStatus.value = item.paymentStatus === 'paid' ? 'paid' : 'pending';
+      noteInput.value = item.note || '';
+      updateTotalWeight();
+      const submit = form.querySelector('button[type="submit"]');
+      if (submit) submit.textContent = 'บันทึกการแก้ไข';
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setStatus('กำลังแก้ไขรายการนี้ ใส่ราคาแล้วกดบันทึกได้เลย');
+      return;
+    }
     const button = event.target.closest('.cucumber-delete');
     if (!button) return;
     if (!window.confirm('ต้องการลบผลการขายรอบนี้ใช่หรือไม่?')) return;
@@ -190,7 +230,7 @@
     }
     form.addEventListener('submit', save);
     rows.addEventListener('click', remove);
-    [totalWeight, goodWeight, sortedWeight, largeWeight, goodPrice, sortedPrice].filter(Boolean).forEach(input => input.addEventListener('input', updateWeightStatus));
+    [goodWeight, sortedWeight, largeWeight, goodPrice, sortedPrice].filter(Boolean).forEach(input => input.addEventListener('input', updateTotalWeight));
     retryButton?.addEventListener('click', refresh);
     refresh();
   }

@@ -43,10 +43,12 @@
       financeItems = await loadFinanceItems();
       renderFinance();
     } catch (error) {
-      financeItems = [];
       renderFinance();
-      setText('accountFinanceStatus', 'โหลดรายการการเงินไม่สำเร็จ');
-      window.showToast?.(error.message || 'โหลดข้อมูลการเงินไม่สำเร็จ', 'error');
+      const detail = error?.message || 'ไม่ทราบสาเหตุ';
+      setText('accountFinanceStatus', financeItems.length
+        ? `โหลดข้อมูลล่าสุดไม่สำเร็จ · แสดงข้อมูลเดิมอยู่ (${detail})`
+        : `โหลดรายการการเงินไม่สำเร็จ · ${detail}`);
+      window.showToast?.(`โหลดข้อมูลการเงินไม่สำเร็จ: ${detail}`, 'error');
     }
   }
   async function removeFinance(id, label) {

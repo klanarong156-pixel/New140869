@@ -44,6 +44,15 @@ assert.deepEqual(plain(api.calculate(quick)), {
   legacyLargeKg: 0, totalKg: 25, totalIncome: 500
 });
 
+const gradedPending = api.normalize({ date: '2026-09-24', entryMode: 'graded', weights: { good: '15', sorted: '10', large: '0' }, paymentStatus: 'pending' });
+assert.equal(gradedPending.totalWeight, 25);
+assert.deepEqual(plain(gradedPending.prices), { good: 0, sorted: 0 });
+assert.equal(gradedPending.paymentStatus, 'pending');
+assert.equal(api.calculate(gradedPending).totalIncome, 0);
+const gradedPaid = api.normalize({ ...gradedPending, priceA: '20', priceB: '10', paymentStatus: 'paid' });
+assert.equal(api.calculate(gradedPaid).totalIncome, 400);
+assert.equal(gradedPaid.paymentStatus, 'paid');
+
 for (const invalid of [
   { date: '2026-09-24', totalWeight: '-1', weights: { good: '1', sorted: '0', large: '0' } },
   { date: '2026-02-30', totalWeight: '1', weights: { good: '1', sorted: '0', large: '0' } },
@@ -62,4 +71,4 @@ assert.match(rules, /"cucumberSales"/);
 assert.match(rules, /gradeAKg/);
 assert.match(rules, /gradeAPrice/);
 assert.match(rules, /createdAt/);
-console.log('Cucumber Sales regression: 15 passed, 0 failed');
+console.log('Cucumber Sales regression: 20 passed, 0 failed');

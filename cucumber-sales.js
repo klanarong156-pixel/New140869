@@ -45,7 +45,7 @@
   }
 
   function gradeValues(record) {
-    const flat = isFlatSchema(record);
+    const flat = record?.entryMode === 'graded' ? false : isFlatSchema(record);
     return {
       flat,
       good: flat ? numberValue(record?.gradeAKg, 'น้ำหนักเกรด A', { required: true }) : numberValue(record?.weights?.good, 'น้ำหนักเกรดดี'),
@@ -59,7 +59,12 @@
     const totalWeight = hasValue(record?.totalWeight)
       ? numberValue(record.totalWeight, 'น้ำหนักรวม', { required: true })
       : round(values.good + values.sorted + values.large);
-    const quickEntry = hasValue(record?.totalIncome) && !isFlatSchema(record);
+    const gradedEntry = record?.entryMode === 'graded';
+    const quickEntry = hasValue(record?.totalIncome) && !isFlatSchema(record) && !gradedEntry;
+    const gradePrices = gradedEntry ? {
+      good: numberValue(record?.priceA ?? record?.prices?.good, 'ราคาเกรด A'),
+      sorted: numberValue(record?.priceB ?? record?.prices?.sorted, 'ราคาเกรด B')
+    } : null;
     const totalIncome = hasValue(record?.totalIncome) ? numberValue(record.totalIncome, 'เงินที่ได้รับ', { required: true }) : 0;
     const storedValues = quickEntry ? { ...values, good: totalWeight } : values;
     const gradeTotal = GRADE_KEYS.reduce((sum, key) => sum + storedValues[key], 0);
@@ -84,6 +89,7 @@
       createdAt
     };
     if (quickEntry) { data.entryMode = 'quick'; data.totalIncome = totalIncome; }
+    if (gradedEntry) { data.entryMode = 'graded'; data.prices = gradePrices; data.paymentStatus = record?.paymentStatus === 'paid' ? 'paid' : 'pending'; }
 
     if (values.flat) {
       data.gradeAKg = values.good;
@@ -99,8 +105,9 @@
     const totalKg = hasValue(record?.totalWeight)
       ? numberValue(record.totalWeight, 'น้ำหนักรวม')
       : round(values.good + values.sorted + values.large);
-    const gradeAPrice = values.flat ? numberValue(record?.gradeAPrice, 'ราคากิโลกรัมเกรด A') : 0;
-    const gradeBPrice = values.flat ? numberValue(record?.gradeBPrice, 'ราคากิโลกรัมเกรด B') : 0;
+    const gradedEntry = record?.entryMode === 'graded';
+    const gradeAPrice = gradedEntry ? numberValue(record?.priceA ?? record?.prices?.good, 'ราคาเกรด A') : (values.flat ? numberValue(record?.gradeAPrice, 'ราคากิโลกรัมเกรด A') : 0);
+    const gradeBPrice = gradedEntry ? numberValue(record?.priceB ?? record?.prices?.sorted, 'ราคาเกรด B') : (values.flat ? numberValue(record?.gradeBPrice, 'ราคากิโลกรัมเกรด B') : 0);
     const gradeAIncome = round(values.good * gradeAPrice);
     const gradeBIncome = round(values.sorted * gradeBPrice);
     const isQuick = record?.entryMode === 'quick' && hasValue(record?.totalIncome);

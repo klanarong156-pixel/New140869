@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="app.css?v=40">
   <title>การเงิน · สวนลุงนะ Smart Farm</title>
   <link rel="stylesheet" href="redesign-lambo.css?v=2">
-      <link rel="stylesheet" href="cucumber-sales.css?v=3">
+      <link rel="stylesheet" href="cucumber-sales.css?v=4">
   <link rel="stylesheet" href="suanlungna-design-system.css?v=1">
   <link rel="stylesheet" href="core-theme.css?v=1">
 </head>
@@ -29,12 +29,17 @@
       <section class="section cucumber-sales-section">
         <div class="cucumber-sales-layout">
           <article class="card pad">
-            <p class="kicker">CUCUMBER SALES</p><h2>บันทึกผลการขายแตงกวา</h2><p class="helper">กรอก 3 ช่องหลัก ระบบจะบันทึกผลผลิตและเพิ่มเป็นรายรับฟาร์มให้อัตโนมัติ</p>
+            <p class="kicker">CUCUMBER SALES</p><h2>บันทึกผลผลิตแตงกวา</h2><p class="helper">กรอกน้ำหนักเกรด A/B ก่อนได้ ราคาใส่ภายหลังได้ ระบบรวมกิโลกรัมและสถานะรับเงินให้เอง</p>
             <form id="cucumberSalesForm" class="cucumber-sales-form" style="margin-top:18px" novalidate>
               <div class="field"><label for="cucumberSaleDate">วันที่ขาย</label><input id="cucumberSaleDate" type="date" required></div>
-              <div class="field"><label for="cucumberTotalWeight">น้ำหนักขายรวม (กก.)</label><input id="cucumberTotalWeight" type="number" min="0.01" step="0.01" inputmode="decimal" required placeholder="เช่น 25"></div>
-              <div class="field"><label for="cucumberTotalIncome">เงินที่ได้รับ (บาท)</label><input id="cucumberTotalIncome" type="number" min="0.01" step="0.01" inputmode="decimal" required placeholder="เช่น 500"></div>
-              <details class="field full cucumber-detail-fields"><summary>เพิ่มรายละเอียดเกรด (ไม่กรอกก็ได้)</summary><div class="cucumber-grade"><input id="cucumberGoodWeight" type="number" min="0" step="0.01" inputmode="decimal" placeholder="น้ำหนัก A"><input id="cucumberGoodPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="ราคา A / กก."></div><div class="cucumber-grade"><input id="cucumberSortedWeight" type="number" min="0" step="0.01" inputmode="decimal" placeholder="น้ำหนัก B"><input id="cucumberSortedPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="ราคา B / กก."></div><input id="cucumberLargeWeight" type="number" min="0" step="0.01" inputmode="decimal" placeholder="น้ำหนักเกรดใหญ่เดิม (ถ้ามี)"></details>
+              <div class="field"><label for="cucumberGoodWeight">เกรด A · น้ำหนัก (กก.)</label><input id="cucumberGoodWeight" type="number" min="0" step="0.01" inputmode="decimal" placeholder="เช่น 15"></div>
+              <div class="field"><label for="cucumberGoodPrice">เกรด A · ราคา/กก. <small>(ใส่ภายหลังได้)</small></label><input id="cucumberGoodPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="ยังไม่ทราบราคา"></div>
+              <div class="field"><label for="cucumberSortedWeight">เกรด B · น้ำหนัก (กก.)</label><input id="cucumberSortedWeight" type="number" min="0" step="0.01" inputmode="decimal" placeholder="เช่น 10"></div>
+              <div class="field"><label for="cucumberSortedPrice">เกรด B · ราคา/กก. <small>(ใส่ภายหลังได้)</small></label><input id="cucumberSortedPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="ยังไม่ทราบราคา"></div>
+              <div class="field"><label for="cucumberTotalWeight">รวมทั้งหมด (ระบบคำนวณ)</label><input id="cucumberTotalWeight" type="number" min="0.01" step="0.01" inputmode="decimal" readonly required placeholder="กรอกน้ำหนัก A หรือ B"></div>
+              <div class="field"><label for="cucumberPaymentStatus">สถานะการจ่าย</label><select id="cucumberPaymentStatus"><option value="pending">ค้างจ่าย</option><option value="paid">จ่ายแล้ว</option></select></div>
+              <input id="cucumberTotalIncome" type="hidden" value="">
+              <details class="field full cucumber-detail-fields"><summary>รายละเอียดเพิ่มเติม</summary><input id="cucumberLargeWeight" type="number" min="0" step="0.01" inputmode="decimal" placeholder="น้ำหนักเกรดใหญ่เดิม (ถ้ามี)"></details>
               <div class="field full"><label for="cucumberSaleNote">หมายเหตุ</label><input id="cucumberSaleNote" type="text" maxlength="140" placeholder="เช่น ตลาดเช้า / ลูกค้าประจำ"></div>
               <div class="field full"><button class="btn primary block" type="submit">บันทึกผลการขาย</button></div>
             </form>
@@ -42,13 +47,13 @@
           </article>
           <article class="card pad"><p class="kicker">HARVEST SUMMARY</p><h2>สรุปน้ำหนักแตงกวา</h2><p class="helper">รวมจากรายการขายที่บันทึกไว้ในบัญชีนี้</p><div class="cucumber-sales-summary"><div class="cucumber-sales-stat"><span>รวมทั้งหมด</span><strong id="cucumberSummaryTotal">0 กก.</strong></div><div class="cucumber-sales-stat"><span>กรอกแบบเร็ว</span><strong id="cucumberSummarySimple">0 กก.</strong></div><div class="cucumber-sales-stat"><span>เกรด A</span><strong id="cucumberSummaryGood">0 กก.</strong></div><div class="cucumber-sales-stat"><span>เกรด B</span><strong id="cucumberSummarySorted">0 กก.</strong></div><div class="cucumber-sales-stat"><span>เกรดใหญ่เดิม</span><strong id="cucumberSummaryLarge">0 กก.</strong></div><div class="cucumber-sales-stat income"><span>รายรับรวมแตงกวา</span><strong id="cucumberSummaryIncome">฿0</strong></div></div></article>
         </div>
-        <article class="card pad cucumber-sales-table"><div class="section-head"><div><p class="kicker">SALES HISTORY</p><h2>ประวัติผลการขาย</h2></div></div><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>รวม</th><th>A กก.</th><th>A บาท/กก.</th><th>B กก.</th><th>B บาท/กก.</th><th>รายรับ</th><th>หมายเหตุ</th><th></th></tr></thead><tbody id="cucumberSalesRows"></tbody></table></div><div id="cucumberSalesEmpty" class="empty-state"><div><div class="empty-icon">🥒</div><strong>ยังไม่มีผลการขายแตงกวา</strong><p>บันทึกรอบแรกเพื่อเริ่มติดตามผลผลิตที่ขายได้</p></div></div></article>
+          <article class="card pad cucumber-sales-table"><div class="section-head"><div><p class="kicker">SALES HISTORY</p><h2>ประวัติผลผลิตและการจ่าย</h2></div></div><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>รวม</th><th>A กก.</th><th>A บาท/กก.</th><th>B กก.</th><th>B บาท/กก.</th><th>รายรับ</th><th>สถานะ</th><th>หมายเหตุ</th><th></th></tr></thead><tbody id="cucumberSalesRows"></tbody></table></div><div id="cucumberSalesEmpty" class="empty-state"><div><div class="empty-icon">🥒</div><strong>ยังไม่มีผลผลิตแตงกวา</strong><p>กรอกน้ำหนักเกรด A หรือ B เพื่อเริ่มบันทึก</p></div></div></article>
       </section>
       <section class="section card pad"><div class="section-head"><div><p class="kicker">LATEST RECORDS</p><h2>รายการล่าสุด</h2></div><div><span id="financeCount" class="tag">0 รายการ</span><p id="financeLoadStatus" class="helper" style="text-align:right;margin-top:7px">กำลังรอการยืนยันตัวตน…</p></div></div><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>ประเภท</th><th>หมวดต้นทุน</th><th>รายการ</th><th>จำนวนเงิน</th><th></th></tr></thead><tbody id="financeRows"></tbody></table></div><div id="financeEmpty" class="empty-state"><div><div class="empty-icon">◌</div><strong>ยังไม่มีข้อมูลการเงิน</strong><p>เพิ่มรายการแรกเพื่อเริ่มเห็นภาพการเงินของฟาร์ม</p></div></div></section>
       <footer>สวนลุงนะ Smart Farm · บันทึกทุกการตัดสินใจอย่างเป็นระบบ</footer>
     </main>
   </div>
   <nav class="bottom-nav" style="--nav-items:8" aria-label="เมนูมือถือ"><a href="dashboard/"><span>⌂</span><small>หน้าหลัก</small></a><a href="dashboard/?page=water"><span>♨</span><small>ระบบน้ำ</small></a><a class="active" href="finance.html" aria-current="page"><span>฿</span><small>การเงิน</small></a><a href="dashboard/?page=devices"><span>▣</span><small>อุปกรณ์</small></a><a href="dashboard/?page=connection"><span>⌁</span><small>เชื่อมต่อ</small></a><a href="dashboard/?page=weather"><span>☀</span><small>อากาศ</small></a><a href="dashboard/?page=settings"><span>⚙</span><small>ตั้งค่า</small></a><a href="dashboard/?page=info"><span>▤</span><small>ข้อมูล</small></a></nav>
-  <script src="firebase.js?v=10"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=10"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="noto-thai.js?v=1"></script><script src="app.js?v=17"></script><script src="access.js?v=12"></script><script src="finance.js?v=11"></script><script src="cucumber-sales.js?v=3"></script><script src="cucumber-sales-ui.js?v=3"></script>
+  <script src="firebase.js?v=10"></script><script src="finance-core.js?v=9"></script><script src="finance-firebase.js?v=10"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="noto-thai.js?v=1"></script><script src="app.js?v=17"></script><script src="access.js?v=12"></script><script src="finance.js?v=12"></script><script src="cucumber-sales.js?v=4"></script><script src="cucumber-sales-ui.js?v=4"></script>
 </body>
 </html>
