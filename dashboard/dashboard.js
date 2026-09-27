@@ -75,11 +75,11 @@
     if (element) element.textContent = value;
   };
 
-  const formatNumber = (value, digits = 0) => Number.isFinite(Number(value)) ? Number(value).toFixed(digits) : '—';
   const hasNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+  const formatNumber = (value, digits = 0) => hasNumber(value) ? Number(value).toFixed(digits) : '—';
 
   const formatDuration = seconds => {
-    if (!Number.isFinite(Number(seconds))) return '—';
+    if (!hasNumber(seconds)) return '—';
     const total = Math.max(0, Math.floor(Number(seconds)));
     const hours = Math.floor(total / 3600);
     const minutes = Math.floor((total % 3600) / 60);
