@@ -1,0 +1,104 @@
+name: Firebase CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "firebase.rules.json"
+      - "firebase.json"
+      - "test/firebase-rules.test.mjs"
+      - ".github/workflows/firebase-ci.yml"
+  pull_request:
+    paths:
+      - "firebase.rules.json"
+      - "firebase.json"
+      - "test/firebase-rules.test.mjs"
+      - ".github/workflows/firebase-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rules-unit-tests:
+    name: Firebase Rules Emulator Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Java for Firebase Emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Create temporary npm manifest
+        run: npm init --yes
+
+      - name: Install Firebase test dependencies
+        run: npm install --no-save --no-audit --no-fund firebase@latest @firebase/rules-unit-testing@latest firebase-tools@latest
+
+      - name: Validate Rules JSON and test syntax
+        run: |
+          node --check test/firebase-rules.test.mjs
+          node -e "JSON.parse(require('fs').readFileSync('firebase.rules.json', 'utf8')); console.log('firebase.rules.json: valid JSON')"
+
+      - name: Run Rules tests in Firebase Emulators
+        run: npx --no-install firebase emulators:exec --only auth,database "node test/firebase-rules.test.mjs"
+
+  deploy-database-rules:
+    name: Deploy Realtime Database Rules
+    needs: rules-unit-tests
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Firebase CLI
+        run: npm install --no-save --no-audit --no-fund firebase-tools@latest
+
+      - name: Verify Firebase token is configured
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          if [ -z "$FIREBASE_TOKEN" ]; then
+            echo 'FIREBASE_TOKEN is not configured in the production environment.'
+            exit 1
+          fi
+          echo 'FIREBASE_TOKEN is configured.'
+
+      - name: Deploy Realtime Database Rules only
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          npx --no-install firebase deploy \
+            --only database \
+            --project smart-farm-platfor \
+            --token "$FIREBASE_TOKEN"
