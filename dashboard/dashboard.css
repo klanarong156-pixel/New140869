@@ -289,3 +289,64 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* Firmware V7 safety surface: presentation only, commands remain MQTT-gated. */
 .emergency-card{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px;padding:14px 16px;border-color:#efc4c8;background:#fff8f7}.emergency-card h2{margin:0 0 5px}.emergency-card p{margin:0 0 7px;color:var(--muted);font-size:.7rem}.emergency-card strong,.emergency-card small{display:inline-block;margin-right:10px;font-size:.7rem}.emergency-card strong[data-tone=bad]{color:var(--red)}.emergency-card strong[data-tone=good]{color:var(--green)}.emergency-actions{display:flex;gap:7px;flex:none}.emergency-stop{color:#fff;background:#d94c54}.emergency-stop:disabled{background:#e9b8bc}
 @media(max-width:650px){.emergency-card{align-items:stretch;flex-direction:column;gap:10px}.emergency-actions{display:grid;grid-template-columns:1fr 1fr}.emergency-actions .button{width:100%}}
+
+
+/*สวนลุงนะ Smart Farm App — final interaction layer
+   This layer is presentation-only: all existing IDs, classes, routes, and data hooks remain intact. */
+:root {
+  --sf-bg: #f3f8f5;
+  --sf-primary: #087b50;
+  --sf-dark: #12392d;
+  --sf-soft: #dff4e8;
+  --sf-blue: #4c8fd1;
+  --sf-yellow: #e5a83b;
+  --sf-red: #c94747;
+  --sf-white: #fff;
+  --sf-radius: 24px;
+  --sf-ease: cubic-bezier(.2,.8,.2,1);
+}
+body { background: var(--sf-bg); color: var(--sf-dark); }
+main { animation: sf-page-in .42s var(--sf-ease) both; }
+.farm-hero { min-height: 220px; border-radius: var(--sf-radius); isolation: isolate; }
+.farm-hero::after { background: linear-gradient(90deg, rgba(7,48,35,.82), rgba(7,48,35,.28) 58%, rgba(7,48,35,.05)), linear-gradient(0deg, rgba(7,48,35,.35), transparent 55%); }
+.farm-hero-overlay { justify-content: flex-start; padding: 28px 34px; color: var(--sf-white); }
+.farm-hero-overlay img { filter: drop-shadow(0 8px 14px rgba(0,0,0,.18)); animation: sf-float 5s ease-in-out infinite; }
+.farm-hero-overlay h2, .farm-hero-overlay p { color: var(--sf-white); text-shadow: 0 2px 16px rgba(0,0,0,.28); }
+.farm-hero-overlay h2 { font-size: clamp(1.45rem, 3vw, 2.25rem); }
+.farm-hero-overlay p { opacity: .86; letter-spacing: .1em; text-transform: uppercase; }
+.ref-card, .relay-card { border-radius: var(--sf-radius); }
+.metric-grid > *, .relay-grid > *, .dashboard-lower > *, .farm-hero { animation: sf-card-in .5s var(--sf-ease) both; }
+.metric-grid > *:nth-child(2) { animation-delay: 60ms; }
+.metric-grid > *:nth-child(3) { animation-delay: 120ms; }
+.metric-grid > *:nth-child(4) { animation-delay: 180ms; }
+.relay-grid > *:nth-child(1) { animation-delay: 120ms; }
+.relay-grid > *:nth-child(2) { animation-delay: 170ms; }
+.relay-grid > *:nth-child(3) { animation-delay: 220ms; }
+.relay-grid > *:nth-child(4) { animation-delay: 270ms; }
+.metric-value-changed { animation: sf-value-change .28s var(--sf-ease) both; }
+.header-status[data-tone="good"] i, .live-pill i, .status-orb[data-tone="good"] i { animation: sf-online-pulse 2.6s ease-out infinite; }
+.header-status[data-tone="bad"] i, .header-status[data-tone="warn"] i, .status-orb[data-tone="bad"] i { animation: none; }
+[data-relay-card="pump"][data-state="on"] { border-color: rgba(76,143,209,.55); box-shadow: 0 14px 34px rgba(76,143,209,.16), inset 0 1px 0 #fff; }
+[data-relay-card="pump"][data-state="on"] .relay-icon { animation: sf-water-glow 1.8s ease-in-out infinite; }
+[data-relay-card="pump"][data-state="off"] .relay-icon, [data-relay-card="pump"][data-state="unknown"] .relay-icon { animation: none; }
+.button, .mode-button, .bottom-nav a { min-height: 44px; }
+.button:focus-visible, .mode-button:focus-visible, .bottom-nav a:focus-visible, .sidebar-nav a:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid rgba(76,143,209,.72); outline-offset: 3px; }
+.bottom-nav a { position: relative; }
+.bottom-nav a.active::before { position: absolute; top: 3px; left: 50%; width: 22px; height: 3px; border-radius: 99px; background: var(--sf-primary); content: ""; transform: translateX(-50%); }
+.status-banner-meta em[data-esp-ip] { color: var(--sf-dark); }
+@keyframes sf-page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sf-card-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sf-value-change { from { opacity: .2; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sf-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes sf-online-pulse { 0%, 100% { box-shadow: 0 0 0 0 currentColor; } 50% { box-shadow: 0 0 0 4px transparent; } }
+@keyframes sf-water-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(76,143,209,.12); } 50% { box-shadow: 0 0 0 6px rgba(76,143,209,.12); } }
+@media (max-width: 650px) {
+  .farm-hero { min-height: 190px; }
+  .farm-hero-overlay { padding: 22px; }
+  .farm-hero-overlay img { width: 52px; height: 52px; }
+  .bottom-nav a { min-height: 58px; }
+  .bottom-nav a.active::before { top: 1px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  main, .metric-grid > *, .relay-grid > *, .dashboard-lower > *, .farm-hero, .farm-hero-overlay img, .header-status[data-tone="good"] i, .live-pill i, .status-orb[data-tone="good"] i, [data-relay-card="pump"][data-state="on"] .relay-icon, .metric-value-changed { animation: none !important; }
+}

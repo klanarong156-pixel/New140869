@@ -69,12 +69,14 @@
   };
 
   let toastTimer = null;
+  const previousMetrics = new Map();
 
   const text = (element, value) => {
     if (element) element.textContent = value;
   };
 
   const formatNumber = (value, digits = 0) => Number.isFinite(Number(value)) ? Number(value).toFixed(digits) : '—';
+  const hasNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
 
   const formatDuration = seconds => {
     if (!Number.isFinite(Number(seconds))) return '—';
@@ -99,6 +101,22 @@
 
   const textAll = (selector, value) => $$(selector).forEach(element => text(element, value));
   const toneAll = (selector, tone) => $$(selector).forEach(element => setTone(element, tone));
+
+  const metricValue = (value, suffix = '') => hasNumber(value) ? `${formatNumber(value, suffix === ' °C' ? 1 : 0)}${suffix}` : 'ยังไม่มีข้อมูล';
+
+  const renderMetric = (selector, value) => {
+    $$(selector).forEach(element => {
+      const next = String(value);
+      const key = `${selector}:${element.dataset.metric || element.closest('[data-metric]')?.dataset.metric || ''}`;
+      if (previousMetrics.has(key) && previousMetrics.get(key) !== next) {
+        element.classList.remove('metric-value-changed');
+        void element.offsetWidth;
+        element.classList.add('metric-value-changed');
+      }
+      previousMetrics.set(key, next);
+      text(element, next);
+    });
+  };
 
   const showToast = (message, tone = 'info') => {
     if (!elements.toast) return;
@@ -147,6 +165,7 @@
     textAll('[data-last-heartbeat]', elapsed(state.esp.lastHeartbeatAt));
     textAll('[data-esp-device-id]', state.esp.deviceId || 'ยังไม่มีข้อมูล');
     textAll('[data-esp-firmware]', state.esp.firmware || '—');
+    textAll('[data-esp-ip]', state.esp.ip || 'ยังไม่มีข้อมูล');
     textAll('[data-esp-last-seen]', elapsed(state.esp.lastHeartbeatAt));
     textAll('[data-esp-heap]', state.esp.heap === null ? '—' : `${state.esp.heap} B`);
     textAll('[data-esp-heap-frag]', state.esp.heapFrag === null ? '—' : `${state.esp.heapFrag}%`);
@@ -158,8 +177,8 @@
     const lwtOffline = state.diagnostic.connectionReason === 'status/online=false';
     textAll('[data-esp-status-detail]', espOnline ? `ออนไลน์ · heartbeat ${elapsed(state.esp.lastHeartbeatAt)}` : lwtOffline ? `LWT · ESP/WiFi หลุด · ล่าสุด ${elapsed(state.esp.lastHeartbeatAt)}` : state.mqtt.status !== 'connected' ? 'รอการเชื่อมต่อ MQTT' : state.esp.lastHeartbeatAt ? `ไม่พบ heartbeat ใหม่ · ${elapsed(state.esp.lastHeartbeatAt)}` : 'ยังไม่ได้รับ heartbeat จากอุปกรณ์จริง');
 
-    textAll('[data-temperature]', state.sensor.temperature === null ? '—' : `${formatNumber(state.sensor.temperature, 1)} °C`);
-    textAll('[data-humidity]', state.sensor.humidity === null ? '—' : `${formatNumber(state.sensor.humidity, 0)} %`);
+    renderMetric('[data-temperature]', metricValue(state.sensor.temperature, ' °C'));
+    renderMetric('[data-humidity]', metricValue(state.sensor.humidity, ' %'));
     textAll('[data-sensor-freshness]', state.sensor.receivedAt ? `DHT11 · ${elapsed(state.sensor.receivedAt)}` : 'DHT11 · ยังไม่มีข้อมูล');
     textAll('[data-sensor-health]', state.esp.sensorOk ? 'ปกติ' : state.sensor.receivedAt ? 'รอตรวจสอบรอบถัดไป' : 'รอข้อมูล');
 
@@ -188,7 +207,7 @@
       const label = card.querySelector('[data-relay-state]');
       const onButton = card.querySelector('[data-relay-on]');
       const offButton = card.querySelector('[data-relay-off]');
-      text(label, value === null ? 'รอข้อมูลจาก ESP8266' : value ? 'เปิด' : 'ปิด');
+      text(label, value === null ? 'ยังไม่มีข้อมูล' : value ? 'เปิด' : 'ปิด');
       card.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
       if (onButton) onButton.disabled = !mqtt.client?.connected || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
       if (offButton) offButton.disabled = !mqtt.client?.connected;
@@ -198,6 +217,7 @@
   };
 
   const weatherCode = code => {
+    if (!hasNumber(code)) return 'ยังไม่มีข้อมูล';
     const map = {
       0: 'ท้องฟ้าแจ่มใส', 1: 'เมฆเล็กน้อย', 2: 'มีเมฆบางส่วน', 3: 'มีเมฆมาก',
       45: 'หมอก', 48: 'หมอกจับตัว', 51: 'ฝนปรอยเล็กน้อย', 53: 'ฝนปรอย', 55: 'ฝนปรอยหนัก',
@@ -217,25 +237,30 @@
   const renderWeather = weather => {
     if (!elements.weatherStatus) return;
     if (weather.status === 'loading') {
-      text(elements.weatherStatus, 'กำลังโหลดพยากรณ์อากาศ…');
+      text(elements.weatherStatus, 'กำลังโหลดข้อมูล...');
       return;
     }
     if (weather.status === 'error') {
-      text(elements.weatherStatus, 'ไม่สามารถโหลดข้อมูลพยากรณ์ได้');
-      text(elements.weatherCurrent, '—');
-      text(elements.weatherRain, '—');
+      text(elements.weatherStatus, 'ไม่สามารถเชื่อมต่อข้อมูลได้');
+      text(elements.weatherCurrent, 'ยังไม่มีข้อมูล');
+      text(elements.weatherRain, 'ยังไม่มีข้อมูล');
       text(elements.weatherUpdated, weather.error || 'ลองใหม่ภายหลัง');
       return;
     }
     const current = weather.current || {};
     text(elements.weatherStatus, weatherCode(current.weather_code));
-    text(elements.weatherCurrent, Number.isFinite(Number(current.temperature_2m)) ? `${formatNumber(current.temperature_2m, 1)} °C` : '—');
-    text(elements.weatherRain, Number.isFinite(Number(current.rain)) ? `${formatNumber(current.rain, 1)} mm` : '0 mm');
+    text(elements.weatherCurrent, hasNumber(current.temperature_2m) ? `${formatNumber(current.temperature_2m, 1)} °C` : 'ยังไม่มีข้อมูล');
+    text(elements.weatherRain, hasNumber(current.rain) ? `${formatNumber(current.rain, 1)} mm` : 'ยังไม่มีข้อมูล');
+    text($('[data-weather-humidity]'), hasNumber(current.relative_humidity_2m) ? `${formatNumber(current.relative_humidity_2m, 0)} %` : 'ยังไม่มีข้อมูล');
+    text($('[data-weather-wind]'), hasNumber(current.wind_speed_10m) ? `${formatNumber(current.wind_speed_10m, 1)} km/h` : 'ยังไม่มีข้อมูล');
+    text($('[data-weather-wind-direction]'), hasNumber(current.wind_direction_10m) ? `${formatNumber(current.wind_direction_10m, 0)}°` : 'ยังไม่มีข้อมูล');
     text(elements.weatherUpdated, weather.updatedAt ? `อัปเดต ${elapsed(weather.updatedAt)}` : 'ข้อมูลล่าสุดจากอินเทอร์เน็ต');
     if (elements.forecast) {
       elements.forecast.replaceChildren(...weather.forecast.slice(0, 3).map(day => {
         const item = document.createElement('li');
-        item.innerHTML = `<span>${formatDate(day.date)}</span><strong>${formatNumber(day.max, 0)}° / ${formatNumber(day.min, 0)}°</strong><small>${weatherCode(day.code)}</small>`;
+        const max = hasNumber(day.max) ? `${formatNumber(day.max, 0)}°` : 'ยังไม่มีข้อมูล';
+        const min = hasNumber(day.min) ? `${formatNumber(day.min, 0)}°` : 'ยังไม่มีข้อมูล';
+        item.innerHTML = `<span>${formatDate(day.date)}</span><strong>${max} / ${min}</strong><small>${weatherCode(day.code)}</small>`;
         return item;
       }));
     }
@@ -263,7 +288,7 @@
     const params = new URLSearchParams({
       latitude: String(config.weather.latitude),
       longitude: String(config.weather.longitude),
-      current: 'temperature_2m,weather_code,rain',
+      current: 'temperature_2m,weather_code,rain,relative_humidity_2m,wind_speed_10m,wind_direction_10m',
       daily: 'weather_code,temperature_2m_max,temperature_2m_min',
       timezone: config.weather.timezone,
       forecast_days: '3'

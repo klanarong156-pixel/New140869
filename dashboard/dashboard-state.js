@@ -19,6 +19,7 @@
       lastHeartbeatWasRetained: false,
       heartbeatCount: 0,
       deviceId: '',
+      ip: '',
       firmware: '',
       rssi: null,
       uptimeSec: null,
@@ -113,6 +114,7 @@
     const now = Date.now();
     current.esp.raw = device;
     current.esp.deviceId = String(device.device_id || '');
+    current.esp.ip = String(device.ip || device.ipAddress || '');
     current.esp.firmware = String(device.firmware || '');
     current.esp.rssi = Number.isFinite(Number(device.rssi)) ? Number(device.rssi) : null;
     current.esp.uptimeSec = Number.isFinite(Number(device.uptimeSec ?? device.uptime)) ? Number(device.uptimeSec ?? device.uptime) : null;
