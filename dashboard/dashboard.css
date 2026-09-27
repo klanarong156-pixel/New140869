@@ -350,3 +350,11 @@ main { animation: sf-page-in .42s var(--sf-ease) both; }
 @media (prefers-reduced-motion: reduce) {
   main, .metric-grid > *, .relay-grid > *, .dashboard-lower > *, .farm-hero, .farm-hero-overlay img, .header-status[data-tone="good"] i, .live-pill i, .status-orb[data-tone="good"] i, [data-relay-card="pump"][data-state="on"] .relay-icon, .metric-value-changed { animation: none !important; }
 }
+
+
+/* Live date/time header */
+.topbar-datetime{display:grid;gap:1px;margin-right:auto;padding:6px 13px;border:1px solid var(--line);border-radius:10px;background:linear-gradient(135deg,#f6fcf8,#fff);box-shadow:inset 0 1px 0 #fff,0 3px 8px rgba(20,70,48,.05);text-align:left}
+.topbar-datetime time{color:var(--green-dark);font-variant-numeric:tabular-nums;font-size:.96rem;font-weight:900;letter-spacing:.04em;line-height:1.1}
+.topbar-datetime span{color:var(--muted);font-size:.61rem;font-weight:700;line-height:1.2}
+@media(max-width:650px){.topbar{flex-wrap:wrap;gap:7px}.topbar-datetime{order:3;flex:1 0 100%;margin:0;padding:6px 9px}.topbar-datetime time{font-size:.88rem}.topbar-datetime span{font-size:.57rem}}
+@media(max-width:390px){.topbar-datetime{padding:5px 8px}.topbar-datetime time{font-size:.82rem}.topbar-datetime span{font-size:.53rem}}

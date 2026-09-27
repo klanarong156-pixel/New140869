@@ -61,6 +61,8 @@
     diagnosticReason: $('[data-diagnostic-reason]'),
     diagnosticError: $('[data-diagnostic-error]'),
     reconnectCount: $('[data-reconnect-count]'),
+    currentTime: $('[data-current-time]'),
+    currentDate: $('[data-current-date]'),
     weatherStatus: $('[data-weather-status]'),
     weatherCurrent: $('[data-weather-current]'),
     weatherRain: $('[data-weather-rain]'),
@@ -73,6 +75,28 @@
 
   const text = (element, value) => {
     if (element) element.textContent = value;
+  };
+
+  const renderClock = () => {
+    const now = new Date();
+    const clockTimeZone = config.weather?.timezone || 'Asia/Bangkok';
+    if (elements.currentTime) {
+      elements.currentTime.dateTime = now.toISOString();
+      text(elements.currentTime, new Intl.DateTimeFormat('th-TH', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: clockTimeZone
+      }).format(now));
+    }
+    text(elements.currentDate, new Intl.DateTimeFormat('th-TH', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: clockTimeZone
+    }).format(now));
   };
 
   const hasNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
@@ -320,6 +344,8 @@
   };
 
   const bind = () => {
+    renderClock();
+    window.setInterval(renderClock, 1000);
     store.subscribe(render);
     elements.credentialForm?.addEventListener('submit', event => {
       event.preventDefault();
