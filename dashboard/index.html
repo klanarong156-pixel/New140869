@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="dashboard.css?v=11">
   <title>สวนลุงนะ · Smart Farm Dashboard</title>
 </head>
-<body>
+<body class="dashboard-page">
   <div class="app-shell">
     <aside class="sidebar" aria-label="เมนูหลัก">
       <a class="sidebar-brand" href="?page=dashboard" aria-label="หน้าหลักสวนลุงนะ">
@@ -37,6 +37,10 @@
           <time data-current-time datetime="">กำลังโหลดเวลา...</time>
           <span data-current-date>กำลังโหลดวันที่...</span>
         </div>
+        <div class="topbar-farm-context" aria-label="ตำแหน่งและสภาพอากาศสวน">
+          <span>สวนลุงนะ · 7.798754, 99.990505</span>
+          <b data-weather-current>ยังไม่มีข้อมูล</b>
+        </div>
         <div class="topbar-status" aria-label="สถานะระบบ">
           <span class="header-status" data-mqtt-shell data-tone="warn"><i></i><b>MQTT</b><small data-mqtt-status>ออฟไลน์</small></span>
           <span class="header-status" data-esp-shell data-tone="bad"><i></i><b>ESP8266</b><small data-esp-status>ออฟไลน์</small></span>
@@ -55,23 +59,30 @@
         </section>
 
         <section class="route-page" data-page-section="dashboard">
-          <section class="farm-hero">
+          <section class="farm-hero reference-hero">
             <img src="../assets/farm-background.jpg" alt="บรรยากาศสวนลุงนะ Smart Farm">
-            <div class="farm-hero-overlay"><img src="../assets/logo-suanlungna-transparent.png" alt=""><div><h2>สวนลุงนะ</h2><p>Smart Farm Dashboard</p></div></div>
+            <div class="farm-hero-overlay">
+              <img src="../assets/logo-suanlungna-transparent.png" alt="โลโก้สวนลุงนะ">
+              <div class="hero-copy"><span class="hero-kicker">SMART FARM · SUAN LUNG NA</span><h2>สวนลุงนะ</h2><p>ระบบดูแลสวนแบบเรียลไทม์</p><div class="hero-status-row"><span class="hero-status-chip" data-tone="warn"><i></i><b>MQTT</b><small data-mqtt-badge>ออฟไลน์</small></span><span class="hero-status-chip" data-tone="bad"><i></i><b>ESP8266</b><small data-esp-badge>ออฟไลน์</small></span></div></div>
+            </div>
           </section>
-          <section class="metric-grid" aria-label="ภาพรวม">
-            <article class="ref-card metric-ref" data-metric="temperature"><span class="ref-icon blue" aria-hidden="true">♨</span><div><small>อุณหภูมิ (DHT11)</small><strong data-temperature aria-live="polite">ยังไม่มีข้อมูล</strong></div></article>
-            <article class="ref-card metric-ref" data-metric="humidity"><span class="ref-icon cyan" aria-hidden="true">◈</span><div><small>ความชื้น (DHT11)</small><strong data-humidity aria-live="polite">ยังไม่มีข้อมูล</strong></div></article>
-            <article class="ref-card device-ref"><span class="ref-icon green">▣</span><div><b>ESP8266</b><strong class="inline-status" data-esp-badge data-tone="bad">ออฟไลน์</strong><small>RSSI <em data-rssi>—</em></small><small>Firmware <em data-firmware>—</em></small></div></article>
-            <article class="ref-card water-ref"><span class="ref-icon leaf">♧</span><div><b>ระบบน้ำ</b><small>ปั๊มน้ำ <em data-relay-summary="pump">ยังไม่มีข้อมูล</em></small><small>โซน 1 <em data-relay-summary="zone1">ยังไม่มีข้อมูล</em></small><small>ไฟบ้าน <em data-relay-summary="lighthome">ยังไม่มีข้อมูล</em></small><small>ไฟศาลา <em data-relay-summary="lightsala">ยังไม่มีข้อมูล</em></small></div></article>
+          <section class="metric-grid reference-sensor-grid" aria-label="เซนเซอร์และสภาพแวดล้อม">
+            <article class="ref-card metric-ref sensor-tile" data-metric="temperature"><span class="ref-icon blue" aria-hidden="true">♨</span><div><small>อุณหภูมิ (DHT11)</small><strong data-temperature aria-live="polite">ยังไม่มีข้อมูล</strong><em>ข้อมูลจากอุปกรณ์จริง</em></div></article>
+            <article class="ref-card metric-ref sensor-tile" data-metric="humidity"><span class="ref-icon cyan" aria-hidden="true">◈</span><div><small>ความชื้น (DHT11)</small><strong data-humidity aria-live="polite">ยังไม่มีข้อมูล</strong><em>ข้อมูลจากอุปกรณ์จริง</em></div></article>
+            <article class="ref-card metric-ref sensor-tile soil-tile"><span class="ref-icon soil" aria-hidden="true">♧</span><div><small>สภาพดิน</small><strong>ไม่ได้ติดตั้ง</strong><em>รออุปกรณ์</em></div></article>
+            <article class="ref-card metric-ref sensor-tile weather-tile"><span class="ref-icon yellow" aria-hidden="true">☀</span><div><small>สภาพอากาศจริง</small><strong data-weather-current>ยังไม่มีข้อมูล</strong><em data-weather-status>กำลังโหลดข้อมูล...</em></div></article>
           </section>
-          <section class="section-block"><h2>สถานะระบบน้ำ</h2><div class="relay-grid compact-relays">
+          <section class="section-block water-section"><div class="section-title-row"><div><span class="section-kicker">SMART IRRIGATION</span><h2>ระบบน้ำ</h2></div><div class="mode-actions" role="group" aria-label="เลือกโหมดการทำงาน"><button class="button mode-button" data-mode="AUTO" type="button">AUTO</button><button class="button mode-button" data-mode="MANUAL" type="button">MANUAL</button></div></div><div class="relay-grid compact-relays">
             <article class="relay-card" data-relay-card="pump"><span class="relay-icon blue" aria-hidden="true">♨</span><div><b>ปั๊มน้ำ</b><strong data-relay-state aria-live="polite">ยังไม่มีข้อมูล</strong></div><div class="relay-actions"><button class="button button-on" data-relay-on type="button" aria-label="เปิดปั๊มน้ำ">เปิด</button><button class="button button-off" data-relay-off type="button" aria-label="ปิดปั๊มน้ำ">ปิด</button></div></article>
             <article class="relay-card" data-relay-card="zone1"><span class="relay-icon green" aria-hidden="true">♧</span><div><b>โซน 1</b><strong data-relay-state aria-live="polite">ยังไม่มีข้อมูล</strong></div><div class="relay-actions"><button class="button button-on" data-relay-on type="button" aria-label="เปิดโซน 1">เปิด</button><button class="button button-off" data-relay-off type="button" aria-label="ปิดโซน 1">ปิด</button></div></article>
             <article class="relay-card" data-relay-card="lighthome"><span class="relay-icon yellow" aria-hidden="true">✦</span><div><b>ไฟบ้าน</b><strong data-relay-state aria-live="polite">ยังไม่มีข้อมูล</strong></div><div class="relay-actions"><button class="button button-on" data-relay-on type="button" aria-label="เปิดไฟบ้าน">เปิด</button><button class="button button-off" data-relay-off type="button" aria-label="ปิดไฟบ้าน">ปิด</button></div></article>
             <article class="relay-card" data-relay-card="lightsala"><span class="relay-icon blue" aria-hidden="true">⌂</span><div><b>ไฟศาลา</b><strong data-relay-state aria-live="polite">ยังไม่มีข้อมูล</strong></div><div class="relay-actions"><button class="button button-on" data-relay-on type="button" aria-label="เปิดไฟศาลา">เปิด</button><button class="button button-off" data-relay-off type="button" aria-label="ปิดไฟศาลา">ปิด</button></div></article>
           </div></section>
-          <div class="dashboard-lower"><section class="ref-card mode-card"><h2>โหมดการทำงาน</h2><div class="mode-actions" role="group" aria-label="เลือกโหมดการทำงาน"><button class="button mode-button" data-mode="AUTO" type="button">AUTO</button><button class="button mode-button" data-mode="MANUAL" type="button">MANUAL</button></div></section><section class="ref-card system-card"><h2>ระบบ</h2><div class="system-row"><span>WiFi</span><b>เชื่อมต่อ</b><span>MQTT</span><b data-diagnostic-mqtt>ออฟไลน์</b><span>ESP</span><b data-diagnostic-esp>ออฟไลน์</b></div><a class="outline-link" href="?page=connection">ดูรายละเอียด <span aria-hidden="true">›</span></a></section></div>
+          <div class="dashboard-reference-grid">
+            <section class="ref-card device-summary-card"><div class="section-title-row"><div><span class="section-kicker">LIVE STATUS</span><h2>สถานะอุปกรณ์</h2></div><a class="card-link" href="?page=devices">ดูทั้งหมด <span aria-hidden="true">›</span></a></div><div class="device-summary-list"><div><span class="summary-icon">▣</span><span><b>ESP8266</b><small data-esp-badge>ออฟไลน์</small></span><em data-esp-ip>ยังไม่มีข้อมูล</em></div><div><span class="summary-icon">⌁</span><span><b>MQTT</b><small data-diagnostic-mqtt>ออฟไลน์</small></span><em data-esp-last-seen>ยังไม่มี heartbeat</em></div><div><span class="summary-icon">◷</span><span><b>Last update</b><small data-esp-status-detail>รอข้อมูลจากอุปกรณ์จริง</small></span><em data-esp-firmware>—</em></div></div></section>
+            <section class="ref-card finance-summary-card"><div class="section-title-row"><div><span class="section-kicker">FARM OVERVIEW</span><h2>สรุปข้อมูลฟาร์ม</h2></div><a class="card-link" href="../finance.html">การเงิน <span aria-hidden="true">›</span></a></div><div class="empty-summary"><span class="summary-icon">฿</span><div><strong>ข้อมูลการเงินจริงอยู่ที่หน้าการเงิน</strong><small>เปิดหน้า Finance เพื่อดูรายการและยอดคำนวณจากบัญชี</small></div></div></section>
+          </div>
+          <section class="ref-card quick-actions-card"><div class="section-title-row"><div><span class="section-kicker">QUICK ACCESS</span><h2>ทางลัด</h2></div></div><div class="quick-actions-grid"><a class="quick-action" href="../finance.html"><span>฿</span><b>บันทึกการเงิน</b><small>รายการรายรับ/รายจ่าย</small></a><a class="quick-action" href="?page=devices"><span>▣</span><b>ตรวจสอบอุปกรณ์</b><small>สถานะ ESP8266 และ Relay</small></a><a class="quick-action" href="?page=weather"><span>☀</span><b>พยากรณ์อากาศ</b><small>ข้อมูลจาก Weather API</small></a></div></section>
           <div class="farm-strip"><img src="../assets/farm-background.jpg" alt="ภาพสวนลุงนะ"></div>
         </section>
 

@@ -400,3 +400,118 @@ main { animation: sf-page-in .42s var(--sf-ease) both; }
   .header-status { min-width: 0; grid-template-columns: auto minmax(0, 1fr); }
   .header-status small { font-size: .48rem; line-height: 1.05; white-space: normal; overflow-wrap: anywhere; }
 }
+
+/* Design 4 — Cute & Modern Premium Smart Farm reference layer. */
+body.dashboard-page {
+  --ref-green: #087b50;
+  --ref-deep: #07533d;
+  --ref-mint: #e7f7ed;
+  --ref-line: rgba(255,255,255,.52);
+  min-width: 320px;
+  color: #143a2d;
+  background: linear-gradient(180deg, rgba(246,253,248,.92), rgba(232,247,237,.96)), url('../assets/farm-background.jpg') center/cover fixed;
+}
+body.dashboard-page .app-content { background: transparent; }
+body.dashboard-page .topbar {
+  background: rgba(255,255,255,.72);
+  border-bottom: 1px solid rgba(134,184,151,.24);
+  backdrop-filter: blur(18px);
+}
+body.dashboard-page main { max-width: 1500px; margin-inline: auto; }
+body.dashboard-page .page-heading { padding-top: 24px; }
+body.dashboard-page .page-heading h1 { color: var(--ref-deep); }
+body.dashboard-page .page-heading p { color: #5d7c6c; }
+body.dashboard-page .route-page[data-page-section="dashboard"] { padding-bottom: 42px; }
+body.dashboard-page .reference-hero {
+  min-height: 282px;
+  border: 1px solid rgba(255,255,255,.68);
+  border-radius: 30px;
+  box-shadow: 0 18px 38px rgba(21,84,48,.18), inset 0 1px 0 rgba(255,255,255,.64);
+}
+body.dashboard-page .reference-hero::after {
+  background: linear-gradient(110deg, rgba(4,64,41,.88), rgba(7,83,54,.55) 48%, rgba(9,83,53,.10)), linear-gradient(0deg, rgba(2,48,31,.34), transparent 60%);
+}
+body.dashboard-page .reference-hero .farm-hero-overlay { justify-content: flex-start; gap: 18px; padding: 30px 34px; }
+body.dashboard-page .reference-hero .farm-hero-overlay > img { width: 82px; height: 82px; filter: drop-shadow(0 8px 12px rgba(0,0,0,.24)); }
+body.dashboard-page .hero-copy { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.22); }
+body.dashboard-page .hero-kicker, body.dashboard-page .section-kicker { display: block; color: #bcebd0; font-size: .62rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+body.dashboard-page .hero-copy h2 { margin: 7px 0 2px; font-size: clamp(2rem, 5vw, 3.35rem); letter-spacing: -.06em; }
+body.dashboard-page .hero-copy p { margin: 0; color: rgba(255,255,255,.84); font-size: .86rem; }
+body.dashboard-page .hero-status-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+body.dashboard-page .hero-status-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 6px 11px; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; color: #fff; background: rgba(7,55,39,.48); backdrop-filter: blur(9px); font-size: .64rem; }
+body.dashboard-page .hero-status-chip i { width: 7px; height: 7px; border-radius: 50%; background: #efc45a; }
+body.dashboard-page .hero-status-chip[data-tone="good"] i { background: #73e49c; }
+body.dashboard-page .hero-status-chip[data-tone="bad"] i { background: #ef8d91; }
+body.dashboard-page .hero-status-chip small { color: rgba(255,255,255,.82); }
+body.dashboard-page .reference-sensor-grid { gap: 12px; margin-top: 14px; }
+body.dashboard-page .reference-sensor-grid .sensor-tile { min-height: 126px; padding: 17px; border-radius: 22px; background: rgba(255,255,255,.84); backdrop-filter: blur(12px); }
+body.dashboard-page .reference-sensor-grid .sensor-tile strong { font-size: clamp(1.15rem, 2.5vw, 1.65rem); }
+body.dashboard-page .reference-sensor-grid .sensor-tile em { display: block; margin-top: 7px; color: #779083; font-size: .62rem; font-style: normal; }
+body.dashboard-page .reference-sensor-grid .soil-tile strong { color: #a8792d; font-size: 1rem; }
+body.dashboard-page .reference-sensor-grid .weather-tile strong { color: #9b752a; }
+body.dashboard-page .water-section { margin-top: 18px; padding: 18px; border: 1px solid rgba(255,255,255,.72); border-radius: 24px; background: rgba(255,255,255,.66); box-shadow: 0 12px 28px rgba(27,95,53,.09); backdrop-filter: blur(13px); }
+body.dashboard-page .water-section .section-title-row, body.dashboard-page .section-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+body.dashboard-page .water-section .section-title-row h2, body.dashboard-page .section-title-row h2 { margin: 3px 0 12px; color: var(--ref-deep); font-size: 1.08rem; }
+body.dashboard-page .water-section .section-kicker, body.dashboard-page .section-kicker { color: #5f9c77; }
+body.dashboard-page .water-section .mode-actions { min-width: 190px; }
+body.dashboard-page .water-section .relay-grid { gap: 10px; }
+body.dashboard-page .water-section .relay-card { min-height: 154px; padding: 14px; border-radius: 20px; background: rgba(255,255,255,.82); }
+body.dashboard-page .water-section .relay-card strong { font-size: .72rem; }
+body.dashboard-page .dashboard-reference-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+body.dashboard-page .device-summary-card, body.dashboard-page .finance-summary-card, body.dashboard-page .quick-actions-card { padding: 18px; border-radius: 24px; background: rgba(255,255,255,.82); backdrop-filter: blur(12px); }
+body.dashboard-page .card-link { color: var(--ref-green); font-size: .7rem; font-weight: 800; }
+body.dashboard-page .device-summary-list { display: grid; gap: 4px; }
+body.dashboard-page .device-summary-list > div { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 9px; min-height: 50px; border-bottom: 1px solid rgba(121,169,137,.18); }
+body.dashboard-page .device-summary-list > div:last-child { border-bottom: 0; }
+body.dashboard-page .device-summary-list span:nth-child(2) { display: grid; gap: 2px; min-width: 0; }
+body.dashboard-page .device-summary-list b { font-size: .76rem; }
+body.dashboard-page .device-summary-list small, body.dashboard-page .device-summary-list em { color: #71897c; font-size: .62rem; font-style: normal; }
+body.dashboard-page .device-summary-list small[data-tone="good"] { color: var(--ref-green); }
+body.dashboard-page .device-summary-list em { text-align: right; }
+body.dashboard-page .summary-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; color: var(--ref-green); background: var(--ref-mint); font-size: .9rem; font-style: normal; }
+body.dashboard-page .empty-summary { display: flex; align-items: center; gap: 11px; min-height: 145px; color: #617c6d; }
+body.dashboard-page .empty-summary strong, body.dashboard-page .empty-summary small { display: block; }
+body.dashboard-page .empty-summary strong { color: var(--ref-deep); font-size: .78rem; }
+body.dashboard-page .empty-summary small { margin-top: 5px; font-size: .65rem; line-height: 1.5; }
+body.dashboard-page .quick-actions-card { margin-top: 14px; }
+body.dashboard-page .quick-actions-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+body.dashboard-page .quick-action { display: grid; grid-template-columns: 34px 1fr; align-items: center; column-gap: 9px; min-height: 72px; padding: 11px; border: 1px solid rgba(105,166,124,.24); border-radius: 17px; color: var(--ref-deep); background: rgba(239,251,243,.8); }
+body.dashboard-page .quick-action:hover { border-color: #7bc092; transform: translateY(-2px); }
+body.dashboard-page .quick-action > span { grid-row: 1 / span 2; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; color: #fff; background: var(--ref-green); font-weight: 800; }
+body.dashboard-page .quick-action b { font-size: .72rem; }
+body.dashboard-page .quick-action small { color: #769083; font-size: .58rem; }
+body.dashboard-page .farm-strip { opacity: .78; border: 1px solid rgba(255,255,255,.5); border-radius: 18px; }
+@media (max-width: 760px) {
+  body.dashboard-page { background-attachment: scroll; }
+  body.dashboard-page .reference-hero { min-height: 260px; }
+  body.dashboard-page .reference-hero .farm-hero-overlay { padding: 24px; }
+  body.dashboard-page .reference-hero .farm-hero-overlay > img { width: 65px; height: 65px; }
+  body.dashboard-page .hero-status-row { margin-top: 16px; }
+  body.dashboard-page .water-section .section-title-row { align-items: flex-start; flex-direction: column; }
+  body.dashboard-page .water-section .mode-actions { width: 100%; min-width: 0; }
+  body.dashboard-page .dashboard-reference-grid { grid-template-columns: 1fr; }
+  body.dashboard-page .empty-summary { min-height: 92px; }
+}
+@media (max-width: 520px) {
+  body.dashboard-page .reference-sensor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.dashboard-page .reference-sensor-grid .sensor-tile { min-height: 122px; padding: 12px; border-radius: 18px; }
+  body.dashboard-page .reference-sensor-grid .sensor-tile strong { font-size: 1rem; }
+  body.dashboard-page .reference-sensor-grid .sensor-tile small { font-size: .57rem; }
+  body.dashboard-page .quick-actions-grid { grid-template-columns: 1fr; }
+  body.dashboard-page .quick-action { min-height: 58px; }
+  body.dashboard-page .water-section { padding: 12px; }
+  body.dashboard-page .water-section .relay-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.dashboard-page .water-section .relay-card { min-height: 142px; padding: 10px; }
+  body.dashboard-page .hero-copy h2 { font-size: 2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.dashboard-page .quick-action:hover { transform: none; }
+}
+
+body.dashboard-page[data-page="dashboard"] .page-heading,
+body.dashboard-page[data-page="dashboard"] .status-banner { display: none; }
+body.dashboard-page .topbar-farm-context { display: grid; gap: 2px; margin-right: 14px; padding: 7px 11px; border: 1px solid rgba(112,167,128,.24); border-radius: 12px; color: #5f7e6d; background: rgba(255,255,255,.64); font-size: .59rem; line-height: 1.2; }
+body.dashboard-page .topbar-farm-context b { color: #9b752a; font-size: .72rem; }
+@media (max-width: 760px) { body.dashboard-page .topbar-farm-context { display: none; } }
+
+body.dashboard-page .sidebar-brand img { filter: none; }

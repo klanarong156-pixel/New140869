@@ -20,6 +20,7 @@
     const requested = new URLSearchParams(window.location.search).get('page');
     const page = Object.prototype.hasOwnProperty.call(pageMeta, requested) ? requested : 'dashboard';
     const [title, subtitle] = pageMeta[page];
+    document.body.dataset.page = page;
     text(document.querySelector('[data-page-title]'), title);
     text(document.querySelector('[data-page-subtitle]'), subtitle);
     $$('[data-page-section]').forEach(section => {
@@ -276,24 +277,24 @@
   const renderWeather = weather => {
     if (!elements.weatherStatus) return;
     if (weather.status === 'loading') {
-      text(elements.weatherStatus, 'กำลังโหลดข้อมูล...');
+      textAll('[data-weather-status]', 'กำลังโหลดข้อมูล...');
       return;
     }
     if (weather.status === 'error') {
-      text(elements.weatherStatus, 'ไม่สามารถเชื่อมต่อข้อมูลได้');
-      text(elements.weatherCurrent, 'ยังไม่มีข้อมูล');
-      text(elements.weatherRain, 'ยังไม่มีข้อมูล');
-      text(elements.weatherUpdated, weather.error || 'ลองใหม่ภายหลัง');
+      textAll('[data-weather-status]', 'ไม่สามารถเชื่อมต่อข้อมูลได้');
+      textAll('[data-weather-current]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-rain]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-updated]', weather.error || 'ลองใหม่ภายหลัง');
       return;
     }
     const current = weather.current || {};
-    text(elements.weatherStatus, weatherCode(current.weather_code));
-    text(elements.weatherCurrent, hasNumber(current.temperature_2m) ? `${formatNumber(current.temperature_2m, 1)} °C` : 'ยังไม่มีข้อมูล');
-    text(elements.weatherRain, hasNumber(current.rain) ? `${formatNumber(current.rain, 1)} mm` : 'ยังไม่มีข้อมูล');
+    textAll('[data-weather-status]', weatherCode(current.weather_code));
+    textAll('[data-weather-current]', hasNumber(current.temperature_2m) ? `${formatNumber(current.temperature_2m, 1)} °C` : 'ยังไม่มีข้อมูล');
+    textAll('[data-weather-rain]', hasNumber(current.rain) ? `${formatNumber(current.rain, 1)} mm` : 'ยังไม่มีข้อมูล');
     text($('[data-weather-humidity]'), hasNumber(current.relative_humidity_2m) ? `${formatNumber(current.relative_humidity_2m, 0)} %` : 'ยังไม่มีข้อมูล');
     text($('[data-weather-wind]'), hasNumber(current.wind_speed_10m) ? `${formatNumber(current.wind_speed_10m, 1)} km/h` : 'ยังไม่มีข้อมูล');
     text($('[data-weather-wind-direction]'), hasNumber(current.wind_direction_10m) ? `${formatNumber(current.wind_direction_10m, 0)}°` : 'ยังไม่มีข้อมูล');
-    text(elements.weatherUpdated, weather.updatedAt ? `อัปเดต ${elapsed(weather.updatedAt)}` : 'ข้อมูลล่าสุดจากอินเทอร์เน็ต');
+    textAll('[data-weather-updated]', weather.updatedAt ? `อัปเดต ${elapsed(weather.updatedAt)}` : 'ข้อมูลล่าสุดจากอินเทอร์เน็ต');
     if (elements.forecast) {
       elements.forecast.replaceChildren(...weather.forecast.slice(0, 3).map(day => {
         const item = document.createElement('li');
