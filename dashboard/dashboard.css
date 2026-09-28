@@ -515,3 +515,48 @@ body.dashboard-page .topbar-farm-context b { color: #9b752a; font-size: .72rem; 
 @media (max-width: 760px) { body.dashboard-page .topbar-farm-context { display: none; } }
 
 body.dashboard-page .sidebar-brand img { filter: none; }
+
+/* Design 4 data surfaces */
+body.dashboard-page .finance-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+body.dashboard-page .finance-summary-grid > div { display: flex; align-items: center; gap: 8px; min-height: 58px; padding: 9px; border: 1px solid rgba(105,166,124,.18); border-radius: 15px; background: rgba(239,251,243,.62); }
+body.dashboard-page .finance-summary-grid > div > span:last-child { display: grid; gap: 2px; min-width: 0; }
+body.dashboard-page .finance-summary-grid small { color: #71897c; font-size: .58rem; }
+body.dashboard-page .finance-summary-grid strong { color: var(--ref-deep); font-size: .78rem; }
+body.dashboard-page .summary-status { display: block; margin-top: 10px; color: #789084; font-size: .6rem; }
+body.dashboard-page .dashboard-lower-reference { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 14px; margin-top: 14px; }
+body.dashboard-page .crop-card { display: grid; grid-template-columns: minmax(145px, .8fr) 1.2fr; overflow: hidden; padding: 0; border-radius: 24px; background: rgba(255,255,255,.82); }
+body.dashboard-page .crop-card-image { position: relative; min-height: 210px; overflow: hidden; }
+body.dashboard-page .crop-card-image::after { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(4,64,41,.68), transparent 68%); content: ''; }
+body.dashboard-page .crop-card-image img { width: 100%; height: 100%; object-fit: cover; }
+body.dashboard-page .crop-card-image span { position: absolute; z-index: 1; right: 12px; bottom: 12px; left: 12px; color: #d8f5df; font-size: .58rem; font-weight: 800; letter-spacing: .12em; }
+body.dashboard-page .crop-card-copy { padding: 20px; }
+body.dashboard-page .crop-card-copy h2 { margin: 5px 0 2px; color: var(--ref-deep); font-size: 1.15rem; }
+body.dashboard-page .crop-card-copy p { margin: 0 0 17px; color: #759083; font-size: .66rem; }
+body.dashboard-page .crop-card-copy dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; }
+body.dashboard-page .crop-card-copy dl div { padding-top: 9px; border-top: 1px solid rgba(105,166,124,.2); }
+body.dashboard-page .crop-card-copy dt { color: #779083; font-size: .57rem; }
+body.dashboard-page .crop-card-copy dd { margin: 4px 0 0; color: var(--ref-deep); font-size: .68rem; font-weight: 800; }
+body.dashboard-page .forecast-preview-card { padding: 18px; border-radius: 24px; background: rgba(255,255,255,.82); }
+body.dashboard-page .forecast-preview-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+body.dashboard-page .forecast-preview-list li { display: grid; grid-template-columns: 1fr auto; gap: 3px 7px; align-items: center; min-height: 48px; padding: 7px 10px; border: 1px solid rgba(105,166,124,.18); border-radius: 13px; background: rgba(239,251,243,.62); }
+body.dashboard-page .forecast-preview-list li span { color: #5f7e6d; font-size: .62rem; }
+body.dashboard-page .forecast-preview-list li strong { color: var(--ref-deep); font-size: .72rem; }
+body.dashboard-page .forecast-preview-list li small { grid-column: 1 / -1; color: #789084; font-size: .57rem; }
+body.dashboard-page .quick-actions-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 760px) {
+  body.dashboard-page .dashboard-lower-reference { grid-template-columns: 1fr; }
+  body.dashboard-page .crop-card { grid-template-columns: 145px 1fr; }
+}
+@media (max-width: 520px) {
+  body.dashboard-page .quick-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.dashboard-page .crop-card { grid-template-columns: 1fr; }
+  body.dashboard-page .crop-card-image { min-height: 135px; }
+  body.dashboard-page .crop-card-copy { padding: 14px; }
+  body.dashboard-page .crop-card-copy dl { gap: 5px; }
+  body.dashboard-page .crop-card-copy dd { font-size: .6rem; }
+}
+@media (max-width: 760px) {
+  body.dashboard-page .topbar-farm-context { display: grid; margin-right: 4px; padding: 4px 7px; min-width: 58px; max-width: 75px; }
+  body.dashboard-page .topbar-farm-context span { display: none; }
+  body.dashboard-page .topbar-farm-context b { overflow: hidden; white-space: nowrap; font-size: .62rem; text-overflow: ellipsis; }
+}

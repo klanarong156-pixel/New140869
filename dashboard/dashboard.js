@@ -295,14 +295,16 @@
     text($('[data-weather-wind]'), hasNumber(current.wind_speed_10m) ? `${formatNumber(current.wind_speed_10m, 1)} km/h` : 'ยังไม่มีข้อมูล');
     text($('[data-weather-wind-direction]'), hasNumber(current.wind_direction_10m) ? `${formatNumber(current.wind_direction_10m, 0)}°` : 'ยังไม่มีข้อมูล');
     textAll('[data-weather-updated]', weather.updatedAt ? `อัปเดต ${elapsed(weather.updatedAt)}` : 'ข้อมูลล่าสุดจากอินเทอร์เน็ต');
-    if (elements.forecast) {
-      elements.forecast.replaceChildren(...weather.forecast.slice(0, 3).map(day => {
+    const forecastNodes = $$('[data-forecast]');
+    if (forecastNodes.length) {
+      forecastNodes.forEach(forecast => forecast.replaceChildren(...(weather.forecast || []).slice(0, 3).map(day => {
         const item = document.createElement('li');
         const max = hasNumber(day.max) ? `${formatNumber(day.max, 0)}°` : 'ยังไม่มีข้อมูล';
         const min = hasNumber(day.min) ? `${formatNumber(day.min, 0)}°` : 'ยังไม่มีข้อมูล';
-        item.innerHTML = `<span>${formatDate(day.date)}</span><strong>${max} / ${min}</strong><small>${weatherCode(day.code)}</small>`;
+        const rain = hasNumber(day.rainChance) ? `ฝน ${formatNumber(day.rainChance, 0)}%` : 'ฝน —';
+        item.innerHTML = `<span>${formatDate(day.date)}</span><strong>${max} / ${min}</strong><small>${weatherCode(day.code)} · ${rain}</small>`;
         return item;
-      }));
+      })));
     }
   };
 
@@ -329,7 +331,7 @@
       latitude: String(config.weather.latitude),
       longitude: String(config.weather.longitude),
       current: 'temperature_2m,weather_code,rain,relative_humidity_2m,wind_speed_10m,wind_direction_10m',
-      daily: 'weather_code,temperature_2m_max,temperature_2m_min',
+      daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
       timezone: config.weather.timezone,
       forecast_days: '3'
     });
@@ -345,12 +347,54 @@
           date,
           code: daily.weather_code?.[index],
           max: daily.temperature_2m_max?.[index],
-          min: daily.temperature_2m_min?.[index]
+          min: daily.temperature_2m_min?.[index],
+          rainChance: daily.precipitation_probability_max?.[index]
         }))
       });
     } catch (error) {
       store.setWeather({ status: 'error', error: `Weather API: ${error.message}` });
     }
+  };
+
+  const money = value => `฿${Number(value || 0).toLocaleString('th-TH', { maximumFractionDigits: 2 })}`;
+  const setDashboardText = (id, value) => text(document.getElementById(id), value);
+  const todayKey = () => {
+    const parts = new Intl.DateTimeFormat('en-GB', { timeZone: config.weather.timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    const values = Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+    return `${values.year}-${values.month}-${values.day}`;
+  };
+  const loadDashboardData = async () => {
+    const summary = document.getElementById('financeSummary');
+    if (!summary) return;
+    let income = 0, expense = 0, pending = 0, totalKg = 0;
+    const today = todayKey();
+    if (window.FirebaseAuth?.user && typeof window.loadFinanceItems === 'function') {
+      try {
+        const items = await window.loadFinanceItems();
+        items.filter(item => String(item.createdAt || item.date || '').slice(0, 10) === today).forEach(item => {
+          const amount = Number(item.amount || 0);
+          if (item.type === 'income') income += amount;
+          if (item.type === 'expense') expense += amount;
+          if (item.type === 'pending') pending += amount;
+        });
+        summary.dataset.loaded = 'true';
+        setDashboardText('financeSummaryStatus', `อัปเดตจาก Finance วันนี้ · ${items.length} รายการ`);
+      } catch (_) {
+        setDashboardText('financeSummaryStatus', 'ยังโหลดข้อมูล Finance ไม่สำเร็จ');
+      }
+    } else {
+      setDashboardText('financeSummaryStatus', 'ยังไม่มีข้อมูลบัญชี Finance สำหรับผู้ใช้ปัจจุบัน');
+    }
+    if (window.FirebaseAuth?.user && window.CucumberSales?.load) {
+      try {
+        const sales = await window.CucumberSales.load();
+        totalKg = sales.reduce((sum, item) => sum + Number(window.CucumberSales.calculate(item)?.totalKg || 0), 0);
+      } catch (_) { totalKg = 0; }
+    }
+    setDashboardText('dashboardFinanceIncomeToday', money(income));
+    setDashboardText('dashboardFinanceExpenseToday', money(expense));
+    setDashboardText('dashboardFinancePendingToday', money(pending));
+    setDashboardText('dashboardCropTotalKg', `${totalKg.toLocaleString('th-TH', { maximumFractionDigits: 2 })} กก.`);
   };
 
   const fillCredentials = () => {
@@ -421,5 +465,6 @@
   fillCredentials();
   bind();
   loadWeather();
+  loadDashboardData();
   mqtt.bootstrap();
 })();
