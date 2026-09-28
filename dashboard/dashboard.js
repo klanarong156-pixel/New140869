@@ -22,7 +22,16 @@
     const [title, subtitle] = pageMeta[page];
     text(document.querySelector('[data-page-title]'), title);
     text(document.querySelector('[data-page-subtitle]'), subtitle);
-    $$('[data-page-section]').forEach(section => { section.hidden = section.dataset.pageSection !== page; });
+    $$('[data-page-section]').forEach(section => {
+      const active = section.dataset.pageSection === page;
+      section.hidden = !active;
+      section.classList.toggle('page-enter', active);
+      if (active) {
+        section.classList.remove('page-enter');
+        void section.offsetWidth;
+        section.classList.add('page-enter');
+      }
+    });
     $$('[data-route]').forEach(link => {
       const active = link.dataset.route === page;
       link.classList.toggle('active', active);
@@ -161,6 +170,8 @@
   const render = state => {
     const mqttStatus = state.mqtt.status;
     const espOnline = state.esp.online;
+    document.documentElement.dataset.mqttState = mqttStatus;
+    document.documentElement.dataset.espOnline = espOnline ? 'true' : 'false';
     const mqttText = `MQTT · ${mqttLabel(mqttStatus)}`;
     const espText = `ESP8266 · ${espOnline ? 'ออนไลน์' : 'ออฟไลน์'}`;
 
@@ -225,16 +236,20 @@
     textAll('[data-reconnect-count]', String(state.mqtt.reconnectCount));
 
     config.relays.forEach(relay => {
-      const card = document.querySelector(`[data-relay-card="${relay.id}"]`);
-      if (!card) return;
       const value = state.relays[relay.id];
-      const label = card.querySelector('[data-relay-state]');
-      const onButton = card.querySelector('[data-relay-on]');
-      const offButton = card.querySelector('[data-relay-off]');
-      text(label, value === null ? 'ยังไม่มีข้อมูล' : value ? 'เปิด' : 'ปิด');
-      card.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
-      if (onButton) onButton.disabled = !mqtt.client?.connected || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
-      if (offButton) offButton.disabled = !mqtt.client?.connected;
+      const label = value === null ? 'ยังไม่มีข้อมูล' : value ? 'เปิด' : 'ปิด';
+      $$(`[data-relay-card="${relay.id}"]`).forEach(card => {
+        text(card.querySelector('[data-relay-state]'), label);
+        card.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
+        const onButton = card.querySelector('[data-relay-on]');
+        const offButton = card.querySelector('[data-relay-off]');
+        if (onButton) onButton.disabled = !mqtt.client?.connected || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
+        if (offButton) offButton.disabled = !mqtt.client?.connected;
+      });
+      $$(`[data-relay-summary="${relay.id}"]`).forEach(element => {
+        text(element, label);
+        element.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
+      });
     });
 
     renderWeather(state.weather);

@@ -358,3 +358,45 @@ main { animation: sf-page-in .42s var(--sf-ease) both; }
 .topbar-datetime span{color:var(--muted);font-size:.61rem;font-weight:700;line-height:1.2}
 @media(max-width:650px){.topbar{flex-wrap:wrap;gap:7px}.topbar-datetime{order:3;flex:1 0 100%;margin:0;padding:6px 9px}.topbar-datetime time{font-size:.88rem}.topbar-datetime span{font-size:.57rem}}
 @media(max-width:390px){.topbar-datetime{padding:5px 8px}.topbar-datetime time{font-size:.82rem}.topbar-datetime span{font-size:.53rem}}
+
+/* Final UI state layer: state-driven live indicator, glass surfaces and mobile fit. */
+:root {
+  --sf-bg: #f3f8f5;
+  --sf-surface: #ffffff;
+  --sf-surface-glass: rgba(255,255,255,.78);
+  --sf-border: rgba(92,145,116,.24);
+  --sf-primary: #087b50;
+  --sf-text: #12392d;
+  --sf-muted: #647b70;
+  --sf-shadow: 0 10px 24px rgba(18,70,48,.10);
+  --sf-radius: 20px;
+}
+
+/* Do not animate a static Live pill. Both transport and device must be online. */
+.live-pill i { animation: none; }
+[data-mqtt-state="connected"][data-esp-online="true"] .live-pill i { animation: sf-online-pulse 2.6s ease-out infinite; }
+[data-mqtt-state]:not([data-mqtt-state="connected"]) .live-pill { color: var(--sf-muted); border-color: var(--sf-border); }
+[data-mqtt-state="connected"][data-esp-online="false"] .live-pill { color: #b17a24; border-color: #efd49b; }
+
+/* Explicit state styling for unknown relays; unknown is not OFF. */
+[data-relay-summary][data-state="unknown"], [data-relay-card][data-state="unknown"] [data-relay-state] { color: var(--sf-muted) !important; }
+[data-relay-summary][data-state="on"] { color: var(--sf-primary) !important; }
+[data-relay-summary][data-state="off"] { color: var(--sf-muted) !important; }
+
+.ref-card, .relay-card { border-radius: var(--sf-radius); background: var(--sf-surface-glass); border-color: var(--sf-border); box-shadow: var(--sf-shadow); }
+.page-enter { animation: sf-page-in .24s var(--sf-ease) both; }
+
+@media (max-width: 650px) {
+  .bottom-nav { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0; overflow: hidden; padding: 4px 3px env(safe-area-inset-bottom); }
+  .bottom-nav a { min-width: 0; width: auto; padding: 3px 1px; font-size: clamp(.36rem, 1.7vw, .48rem); line-height: 1.1; white-space: nowrap; }
+  .bottom-nav a span { font-size: clamp(.78rem, 3.8vw, 1rem); line-height: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-enter, [data-mqtt-state="connected"][data-esp-online="true"] .live-pill i { animation: none !important; }
+}
+
+@media (max-width: 390px) {
+  .topbar-status { flex: 1; min-width: 0; }
+  .header-status { min-width: 0; grid-template-columns: auto minmax(0, 1fr); }
+  .header-status small { font-size: .48rem; line-height: 1.05; white-space: normal; overflow-wrap: anywhere; }
+}
