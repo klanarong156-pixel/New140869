@@ -578,3 +578,93 @@ body.dashboard-page .route-page[data-page-section="dashboard"]>*:not(.style4-mob
   body.compact-ui .style4-shared-mobile-nav,
   body.control-room-page .style4-shared-mobile-nav{display:none !important}
 }
+
+
+/* ============================================================
+   FINAL GLOBAL MOBILE NAV — one position and one contract
+   ============================================================ */
+@media (max-width:650px){
+  body.dashboard-page .style4-shared-mobile-nav,
+  body.compact-ui .style4-shared-mobile-nav,
+  body.control-room-page .style4-shared-mobile-nav{
+    position:fixed !important;
+    left:7px !important;
+    right:7px !important;
+    bottom:72px !important;
+    width:auto !important;
+    height:67px !important;
+    z-index:1000 !important;
+    display:grid !important;
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+    padding:5px 4px !important;
+    box-sizing:border-box !important;
+    border:1px solid #d5e8dc !important;
+    border-radius:19px !important;
+    background:rgba(255,255,255,.96) !important;
+    box-shadow:0 8px 24px rgba(10,55,39,.16) !important;
+    backdrop-filter:blur(12px);
+  }
+
+  body.dashboard-page .style4-shared-mobile-nav a,
+  body.compact-ui .style4-shared-mobile-nav a,
+  body.control-room-page .style4-shared-mobile-nav a{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:3px !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    color:#759084 !important;
+    text-decoration:none !important;
+    border-radius:13px !important;
+  }
+
+  body.dashboard-page .style4-shared-mobile-nav a.active,
+  body.compact-ui .style4-shared-mobile-nav a.active,
+  body.control-room-page .style4-shared-mobile-nav a.active{
+    color:#2d8658 !important;
+    background:#e1f2e7 !important;
+  }
+
+  body.dashboard-page .style4-shared-mobile-nav .sf-icon,
+  body.compact-ui .style4-shared-mobile-nav .sf-icon,
+  body.control-room-page .style4-shared-mobile-nav .sf-icon{
+    display:block !important;
+    width:19px !important;
+    height:19px !important;
+    margin:0 auto 3px !important;
+  }
+
+  body.dashboard-page .style4-shared-mobile-nav small,
+  body.compact-ui .style4-shared-mobile-nav small,
+  body.control-room-page .style4-shared-mobile-nav small{
+    font-size:.58rem !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+    font-weight:800 !important;
+  }
+
+  body.dashboard-page .route-page{
+    padding-bottom:145px !important;
+  }
+  body.compact-ui .app-main{
+    padding-bottom:150px !important;
+  }
+  body.control-room-page .main{
+    padding-bottom:150px !important;
+  }
+
+  /* Replace the dashboard's former home-only navigation. */
+  body.dashboard-page .style4-mobile-bottom-nav{
+    display:none !important;
+  }
+}
+
+@media (min-width:651px){
+  body.dashboard-page .style4-shared-mobile-nav,
+  body.compact-ui .style4-shared-mobile-nav,
+  body.control-room-page .style4-shared-mobile-nav{
+    display:none !important;
+  }
+}
