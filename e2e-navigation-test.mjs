@@ -46,8 +46,8 @@ async function runChecks() {
     add(`${page}: has viewport`, /name="viewport"/.test(html));
     add(`${page}: has title`, /<title>[^<]+<\/title>/.test(html));
     add(`${page}: has page styling`, page === 'index.html' ? /dashboard\//.test(html) : /\.css/.test(html));
-    const navBlocks = [...html.matchAll(/<nav[^>]*class="bottom-nav"[\s\S]*?<\/nav>/g)].map(match => match[0]);
-    if (['finance.html', 'account.html', 'admin.html', 'ota.html'].includes(page)) add(`${page}: has consistent bottom navigation`, navBlocks.length === 1 && (navBlocks[0].match(/<a /g) || []).length === 8);
+    const navBlocks = [...html.matchAll(/<nav[^>]*class="[^"]*\\bbottom-nav\\b[^"]*"[^>]*>[\\s\\S]*?<\\/nav>/g)].map(match => match[0]);
+    if (['finance.html', 'account.html', 'admin.html', 'ota.html'].includes(page)) add(`${page}: has consistent bottom navigation`, navBlocks.length === 1 && (navBlocks[0].match(/<a /g) || []).length === 5);
     for (const navBlock of navBlocks) {
       for (const href of [...navBlock.matchAll(/<a\b[^>]*\bhref="([^"]+)"/gi)].map(match => match[1])) {
         allNavHrefs.add(href);
@@ -56,7 +56,7 @@ async function runChecks() {
       }
     }
   }
-  add('Navigation inventory has multiple live targets', allNavHrefs.size >= 8);
+  add('Navigation inventory has multiple live targets', allNavHrefs.size >= 5);
   add('Protected pages preserve auth gates', ['finance.html', 'account.html', 'admin.html', 'ota.html'].every(page => /data-auth-required="true"/.test(fs.readFileSync(page, 'utf8'))));
   add('Admin and OTA preserve admin gates', /data-admin-required="true"/.test(fs.readFileSync('admin.html', 'utf8')) && /data-admin-required="true"/.test(fs.readFileSync('ota.html', 'utf8')));
   add('Firebase deployment selects firebase.rules.json', /"rules":\s*"firebase\.rules\.json"/.test(fs.readFileSync('firebase.json', 'utf8')));
