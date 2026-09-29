@@ -60,6 +60,80 @@
         </section>
 
         <section class="route-page" data-page-section="dashboard">
+<section class="style4-mobile-home" aria-label="สวนลุงนะ Smart Farm">
+  <header class="style4-mobile-top">
+    <a href="?page=dashboard" class="style4-mobile-brand">
+      <img src="../assets/logo-suanlungna-transparent.png" alt="โลโก้สวนลุงนะ">
+      <span><b>สวนลุงนะ</b><small>SMART FARM</small></span>
+    </a>
+    <div class="style4-mobile-weather-pill"><svg class="sf-icon" aria-hidden="true"><use href="../assets/style4-icons.svg#sun"></use></svg><b data-weather-current>ยังไม่มีข้อมูล</b></div>
+  </header>
+  <div class="style4-mobile-date">
+    <strong data-current-time>--:--:--</strong>
+    <span data-current-date>กำลังโหลดวันที่...</span>
+  </div>
+
+  <section class="style4-mobile-hero">
+    <img class="style4-mobile-hero-bg" src="../assets/farm-hero-style4.png" alt="">
+    <div class="style4-mobile-hero-shade"></div>
+    <div class="style4-mobile-hero-copy">
+      <span class="style4-mobile-kicker">SMART FARM · SUAN LUNG NA</span>
+      <h1>สวนลุงนะ</h1>
+      <p>ระบบดูแลสวนแบบเรียลไทม์</p>
+      <div class="style4-speech">เกษตรอัจฉริยะ<br><b>เริ่มต้นได้ที่นี่</b></div>
+    </div>
+    <img class="style4-mobile-hero-logo" src="../assets/logo-suanlungna-transparent.png" alt="สวนลุงนะ">
+    <div class="style4-mobile-status-row">
+      <span class="style4-mobile-status" data-tone="good"><i></i><b>MQTT</b><small data-mqtt-badge>ออฟไลน์</small></span>
+      <span class="style4-mobile-status" data-tone="good"><i></i><b>ESP8266</b><small data-esp-badge>ออฟไลน์</small></span>
+    </div>
+  </section>
+
+  <section class="style4-mobile-summary">
+    <article class="style4-mobile-card weather">
+      <div class="style4-card-icon sun"><svg class="sf-icon"><use href="../assets/style4-icons.svg#sun"></use></svg></div>
+      <small>สภาพอากาศ</small>
+      <strong data-weather-current>ยังไม่มีข้อมูล</strong>
+      <span data-weather-status>กำลังโหลดข้อมูล...</span>
+    </article>
+    <article class="style4-mobile-card dht">
+      <div class="style4-card-icon water"><svg class="sf-icon"><use href="../assets/style4-icons.svg#water"></use></svg></div>
+      <small>อุณหภูมิ &amp; ความชื้น</small>
+      <div class="style4-dual-value"><b><span data-temperature>ยังไม่มีข้อมูล</span></b><b><span data-humidity>ยังไม่มีข้อมูล</span></b></div>
+      <span>ข้อมูลจาก DHT11 จริง</span>
+    </article>
+    <article class="style4-mobile-card irrigation">
+      <div class="style4-card-icon leaf"><svg class="sf-icon"><use href="../assets/style4-icons.svg#leaf"></use></svg></div>
+      <small>ระบบน้ำ</small>
+      <div class="style4-mini-status"><span>ปั๊มน้ำ <b data-mobile-relay-state="pump">ยังไม่มีข้อมูล</b></span><span>โซน 1 <b data-mobile-relay-state="zone1">ยังไม่มีข้อมูล</b></span><span>ไฟบ้าน <b data-mobile-relay-state="lighthome">ยังไม่มีข้อมูล</b></span><span>ไฟศาลา <b data-mobile-relay-state="lightsala">ยังไม่มีข้อมูล</b></span></div>
+    </article>
+  </section>
+
+  <section class="style4-mobile-controls">
+    <div class="style4-mobile-relays">
+      <button type="button" class="style4-relay-tile" data-mobile-relay="pump"><span class="relay-round pump"><svg class="sf-icon"><use href="../assets/style4-icons.svg#pump"></use></svg></span><b>ปั๊มน้ำ</b><small data-mobile-relay-state="pump">ยังไม่มีข้อมูล</small></button>
+      <button type="button" class="style4-relay-tile" data-mobile-relay="zone1"><span class="relay-round zone"><svg class="sf-icon"><use href="../assets/style4-icons.svg#leaf"></use></svg></span><b>โซน 1</b><small data-mobile-relay-state="zone1">ยังไม่มีข้อมูล</small></button>
+      <button type="button" class="style4-relay-tile" data-mobile-relay="lighthome"><span class="relay-round home"><svg class="sf-icon"><use href="../assets/style4-icons.svg#home"></use></svg></span><b>ไฟบ้าน</b><small data-mobile-relay-state="lighthome">ยังไม่มีข้อมูล</small></button>
+      <button type="button" class="style4-relay-tile" data-mobile-relay="lightsala"><span class="relay-round shed"><svg class="sf-icon"><use href="../assets/style4-icons#shed"></use></svg></span><b>ไฟศาลา</b><small data-mobile-relay-state="lightsala">ยังไม่มีข้อมูล</small></button>
+    </div>
+    <div class="style4-mobile-mode">
+      <div><small>โหมดการทำงาน</small><strong data-mobile-mode>ยังไม่มีข้อมูล</strong></div>
+      <div class="style4-mode-buttons"><button type="button" data-mode="AUTO">AUTO</button><button type="button" data-mode="MANUAL">MANUAL</button></div>
+    </div>
+  </section>
+
+  <nav class="style4-mobile-bottom-nav" aria-label="เมนูสวนลุงนะ">
+    <a class="active" href="?page=dashboard"><svg class="sf-icon"><use href="../assets/style4-icons.svg#home"></use></svg><small>หน้าหลัก</small></a>
+    <a href="?page=water"><svg class="sf-icon"><use href="../assets/style4-icons.svg#water"></use></svg><small>ระบบน้ำ</small></a>
+    <a href="../finance.html"><svg class="sf-icon"><use href="../assets/style4-icons.svg#money"></use></svg><small>การเงิน</small></a>
+    <a href="?page=devices"><svg class="sf-icon"><use href="../assets/style4-icons.svg#device"></use></svg><small>อุปกรณ์</small></a>
+    <a href="?page=connection"><svg class="sf-icon"><use href="../assets/style4-icons.svg#link"></use></svg><small>เชื่อมต่อ</small></a>
+    <a href="?page=weather"><svg class="sf-icon"><use href="../assets/style4-icons.svg#sun"></use></svg><small>อากาศ</small></a>
+    <a href="?page=settings"><svg class="sf-icon"><use href="../assets/style4-icons.svg#settings"></use></svg><small>ตั้งค่า</small></a>
+    <a href="?page=info"><svg class="sf-icon"><use href="../assets/style4-icons.svg#info"></use></svg><small>ข้อมูล</small></a>
+  </nav>
+</section>
+
           <section class="farm-hero reference-hero">
             <img src="../assets/farm-hero-style4.png" alt="บรรยากาศสวนลุงนะ Smart Farm">
             <div class="farm-hero-overlay">
