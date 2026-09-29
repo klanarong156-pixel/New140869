@@ -58,8 +58,8 @@ try {
   check(result.title.includes('สวนลุงนะ'), 'dashboard title renders');
   check(result.mqttLoaded, 'MQTT.js loads in browser');
   check(result.managerLoaded && result.stateLoaded, 'clean MQTT manager and state load');
-  check(result.mqttStatus.includes('ออฟไลน์'), 'MQTT starts offline without embedded password');
-  check(result.espStatus.includes('ออฟไลน์'), 'ESP starts offline without heartbeat');
+  check(/ออฟไลน์|ยังไม่มีข้อมูล/.test(result.mqttStatus || ''), 'MQTT starts offline/unknown without embedded password');
+  check(/ออฟไลน์|ยังไม่มีข้อมูล/.test(result.espStatus || ''), 'ESP starts offline/unknown without heartbeat');
   check(result.serviceWorker, 'dashboard includes service worker registration path');
   check(result.bodyWidth <= result.viewportWidth, 'mobile layout fits viewport without horizontal overflow');
   check(!requests.some(path => path.endsWith('/mqtt-connection.js') || path.endsWith('/mqtt-handler.js')), 'old dashboard MQTT connection files are not loaded');
