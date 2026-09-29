@@ -33,8 +33,14 @@
         section.classList.add('page-enter');
       }
     });
-    $$('[data-route]').forEach(link => {
+    $('[data-route]').forEach(link => {
       const active = link.dataset.route === page;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    $('[data-shared-route]').forEach(link => {
+      const active = link.dataset.sharedRoute === page;
       link.classList.toggle('active', active);
       if (active) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
