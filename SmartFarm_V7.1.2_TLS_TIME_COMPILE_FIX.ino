@@ -23,7 +23,7 @@
 
 struct ScheduleSlot;
 
-#define SMARTFARM_VERSION "V7.1.1-TLS-TIME-FIX"
+#define SMARTFARM_VERSION "V7.1.2-TLS-TIME-FIX"
 #define MQTT_SERVER "25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud"
 #define MQTT_PORT 8883
 #define MQTT_BASE "smartfarm"
