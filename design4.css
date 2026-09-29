@@ -1029,3 +1029,81 @@ body .auth-card .field input{
     border-radius:22px;
   }
 }
+
+
+/* ============================================================
+   TOP EDGE BALANCE — all primary pages
+   Gives every mobile route the same breathing room below the
+   iOS/browser top chrome while preserving existing content flow.
+   Presentation only.
+   ============================================================ */
+body.dashboard-page .route-page{
+  padding-top:16px;
+}
+body.compact-ui .app-main{
+  padding-top:24px;
+}
+body.control-room-page .main{
+  padding-top:12px;
+}
+body.control-room-page .topbar{
+  margin-top:0;
+}
+
+/* Keep the first visual block aligned with the same 12–16px rhythm. */
+body.dashboard-page .style4-mobile-home{
+  padding-top:4px;
+}
+body.compact-ui .page-heading{
+  margin-top:0;
+}
+
+/* Mobile: one consistent top breathing space on every route. */
+@media (max-width:650px){
+  body.dashboard-page .route-page{
+    padding-top:12px !important;
+  }
+  body.dashboard-page .style4-mobile-home{
+    padding-top:2px !important;
+  }
+  body.compact-ui .app-main{
+    padding-top:18px !important;
+  }
+  body.control-room-page .main{
+    padding-top:10px !important;
+  }
+
+  /* Prevent a first card/section from touching the viewport edge. */
+  body.compact-ui .app-main > :first-child,
+  body.control-room-page .main > :first-child{
+    margin-top:0 !important;
+  }
+
+  /* Balanced side gutters on narrow phones. */
+  body.compact-ui .app-main{
+    padding-left:14px !important;
+    padding-right:14px !important;
+  }
+  body.control-room-page .topbar,
+  body.control-room-page .hero,
+  body.control-room-page .metrics,
+  body.control-room-page .section-title,
+  body.control-room-page .relay-grid,
+  body.control-room-page .schedule-section,
+  body.control-room-page .lower-grid{
+    width:calc(100% - 28px) !important;
+  }
+}
+
+/* Very small phones: keep the same rhythm without wasting height. */
+@media (max-width:370px){
+  body.dashboard-page .route-page{
+    padding-top:10px !important;
+  }
+  body.compact-ui .app-main{
+    padding-top:15px !important;
+  }
+  body.control-room-page .main{
+    padding-top:8px !important;
+  }
+}
