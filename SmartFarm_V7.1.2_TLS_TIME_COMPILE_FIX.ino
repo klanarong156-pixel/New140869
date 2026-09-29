@@ -23,7 +23,7 @@
 
 struct ScheduleSlot;
 
-#define SMARTFARM_VERSION "V7.1.2-TLS-TIME-FIX"
+#define SMARTFARM_VERSION "V7.2.0-OTA-STABLE"
 #define MQTT_SERVER "25305924f68c41f2a1e089a1836d3287.s1.eu.hivemq.cloud"
 #define MQTT_PORT 8883
 #define MQTT_BASE "smartfarm"
@@ -66,9 +66,12 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 -----END CERTIFICATE-----
 )EOF";
 
-// The current HTTP OTA endpoint sends Basic Authentication over plaintext.
-// Keep it disabled until OTA is placed behind HTTPS/VPN/a trusted gateway.
-#define ENABLE_INSECURE_HTTP_OTA 0
+// HTTP OTA is intended for the trusted local farm LAN only.
+// Do NOT expose port 80 to the public Internet. ArduinoOTA remains available
+// on UDP 8266 and is password protected.
+#define ENABLE_HTTP_OTA 1
+#define OTA_ARDUINO_PORT 8266
+#define OTA_HTTP_PORT 80
 
 #define RTC_SDA D3
 #define RTC_SCL D4
@@ -142,6 +145,11 @@ bool wifiStateKnown = false, lastWifiConnected = false;
 bool wifiResetPressed = false;
 bool wifiResetLatched = false;
 bool otaUpdateInProgress = false;
+uint8_t otaProgressPercent = 0;
+uint32_t otaStartedAt = 0;
+uint32_t otaLastProgressAt = 0;
+bool otaReady = false;
+char otaHostname[48] = "";
 uint32_t wifiResetStartedAt = 0;
 bool mqttTlsReady = false;
 bool readRtcNow(DateTime &value);
@@ -598,16 +606,28 @@ void relaySetRaw(uint8_t i, bool on) {
 
 void enterOtaSafeState() {
   otaUpdateInProgress = true;
+  otaProgressPercent = 0;
+  otaStartedAt = millis();
+  otaLastProgressAt = millis();
+
+  // OTA gets priority over MQTT/Telegram and all physical loads are forced
+  // OFF before flash writing begins.
+  mqtt.disconnect();
+  tls.stop();
+
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     digitalWrite(relayPins[i], RELAY_OFF);
   }
   pumpStartedAt = 0;
   pumpSafetyLatched = false;
-  Serial.println(F("OTA: all relays forced OFF for firmware update"));
+  Serial.println(F("OTA: SAFE STATE - all relays OFF, MQTT disconnected"));
 }
 
 void leaveOtaSafeState() {
   otaUpdateInProgress = false;
+  otaProgressPercent = 0;
+  otaStartedAt = 0;
+  otaLastProgressAt = 0;
   pumpSafetyLatched = false;
   Serial.println(F("OTA: safe state released after failed/aborted update"));
 }
@@ -1924,19 +1944,19 @@ void otaHttpUpload() {
     otaUploadCompleted = false;
     otaUploadBytes = 0;
     otaHttpRestartPending = false;
-    Serial.printf("OTA HTTP: START %s, heap=%u\n", upload.filename.c_str(),
-                  ESP.getFreeHeap());
-    // Stop MQTT/TLS before opening the flash writer. The OTA request is the
-    // priority path, and retaining a live TLS session wastes scarce ESP8266
-    // heap while the multipart stream is being received.
-    mqtt.disconnect();
-    tls.stop();
-    // Do not make a second HTTPS request to Telegram while the firmware
-    // stream is being received. That extra TLS allocation can starve the
-    // ESP8266 heap and interrupt a large multipart upload.
+    otaProgressPercent = 0;
+    otaStartedAt = millis();
+    otaLastProgressAt = millis();
+
+    Serial.printf("OTA HTTP: START %s, heap=%u, freeSketch=%u\n",
+                  upload.filename.c_str(), ESP.getFreeHeap(),
+                  ESP.getFreeSketchSpace());
+
+    // Keep only the OTA path alive while flash is being written.
+    enterOtaSafeState();
+
     uint32_t maxSketchSpace =
         (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
-    enterOtaSafeState();
     if (!Update.begin(maxSketchSpace, U_FLASH)) {
       otaUploadFailed = true;
       Update.printError(Serial);
@@ -1950,6 +1970,16 @@ void otaHttpUpload() {
         Update.printError(Serial);
       } else {
         otaUploadBytes += written;
+        if (upload.totalSize > 0) {
+          uint8_t percent = (uint8_t)((otaUploadBytes * 100UL) / upload.totalSize);
+          if (percent != otaProgressPercent) {
+            otaProgressPercent = percent;
+            otaLastProgressAt = millis();
+            if (percent % 10 == 0 || percent == 100)
+              Serial.printf("OTA HTTP: progress %u%% heap=%u\n",
+                            percent, ESP.getFreeHeap());
+          }
+        }
       }
     }
   } else if (upload.status == UPLOAD_FILE_END) {
@@ -2027,11 +2057,18 @@ void setupOtaHttpServer() {
   otaServer.on("/api/status", HTTP_GET, []() {
     if (!otaHttpAuthorized())
       return;
-    StaticJsonDocument<256> d;
+    StaticJsonDocument<384> d;
     d["device"] = deviceName;
     d["firmware"] = SMARTFARM_VERSION;
     d["ip"] = WiFi.localIP().toString();
     d["rssi"] = WiFi.RSSI();
+    d["otaReady"] = otaReady;
+    d["otaInProgress"] = otaUpdateInProgress;
+    d["otaProgress"] = otaProgressPercent;
+    d["otaPort"] = OTA_ARDUINO_PORT;
+    d["httpOtaPort"] = OTA_HTTP_PORT;
+    d["freeHeap"] = ESP.getFreeHeap();
+    d["freeSketchSpace"] = ESP.getFreeSketchSpace();
     String out;
     serializeJson(d, out);
     otaServer.send(200, "application/json", out);
@@ -2052,10 +2089,10 @@ void setupOtaHttpServer() {
     otaHttpCors();
     otaServer.send(404, "text/plain", "Not found");
   });
-  otaServer.begin();
+  otaServer.begin(OTA_HTTP_PORT);
   Serial.print(F("OTA HTTP READY: http://"));
   Serial.print(WiFi.localIP());
-  Serial.println(F("/"));
+  Serial.println(F("/  (LAN only, password required)"));
 }
 
 void clearSavedWifiSettings(const __FlashStringHelper *source,
@@ -2231,32 +2268,55 @@ void setup() {
   mqtt.setBufferSize(768);
   uint16_t bootMinutes;
   if (scheduleClockMinutes(bootMinutes)) applyAutoState(bootMinutes);
-  ArduinoOTA.setHostname(deviceName);
+  // Use a stable hostname for discovery and a fixed UDP port for Arduino IDE.
+  snprintf(otaHostname, sizeof(otaHostname), "SmartFarm-%06X", ESP.getChipId());
+  ArduinoOTA.setHostname(otaHostname);
+  ArduinoOTA.setPort(OTA_ARDUINO_PORT);
+
   ArduinoOTA.onStart([]() {
     enterOtaSafeState();
-    Serial.println(F("OTA: START"));
-    queueTelegram(F("เริ่มอัปเดตเฟิร์มแวร์ผ่าน ArduinoOTA"));
+    Serial.println(F("OTA: START - ArduinoOTA"));
   });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    if (!total) return;
+    uint8_t percent = (uint8_t)((progress * 100UL) / total);
+    if (percent != otaProgressPercent) {
+      otaProgressPercent = percent;
+      otaLastProgressAt = millis();
+      if (percent % 10 == 0 || percent == 100) {
+        Serial.printf("OTA: progress %u%% heap=%u\n",
+                      percent, ESP.getFreeHeap());
+      }
+    }
+    yield();
+  });
+
   ArduinoOTA.onEnd([]() {
-    Serial.println(F("OTA: END"));
-    queueTelegram(F("อัปเดตเฟิร์มแวร์ผ่าน ArduinoOTA สำเร็จ"));
+    otaProgressPercent = 100;
+    Serial.println(F("OTA: END - image accepted; rebooting"));
   });
+
   ArduinoOTA.onError([](ota_error_t e) {
     Serial.printf("OTA: ERROR %u\n", e);
     leaveOtaSafeState();
-    queueTelegram(String("ArduinoOTA ล้มเหลว รหัสข้อผิดพลาด ") + e);
   });
+
   if (otaPass[0]) {
     ArduinoOTA.setPassword(otaPass);
     ArduinoOTA.begin();
-    Serial.println(F("OTA: READY (password protected)"));
+    otaReady = true;
+    Serial.printf("OTA: ArduinoOTA READY host=%s port=%u IP=%s\n",
+                  otaHostname, OTA_ARDUINO_PORT, WiFi.localIP().toString().c_str());
   } else {
+    otaReady = false;
     Serial.println(F("OTA: DISABLED - configure ota_pass in SmartFarm_Setup"));
   }
-#if ENABLE_INSECURE_HTTP_OTA
+
+#if ENABLE_HTTP_OTA
   setupOtaHttpServer();
 #else
-  Serial.println(F("OTA HTTP: DISABLED - use ArduinoOTA on a trusted LAN or a secure gateway"));
+  Serial.println(F("OTA HTTP: DISABLED"));
 #endif
   Serial.print(F("MQTT server: "));
   Serial.print(MQTT_SERVER);
@@ -2303,6 +2363,10 @@ void publishHeartbeat() {
   d["wifi"] = WiFi.status() == WL_CONNECTED;
   d["mqtt"] = mqtt.connected();
   d["firmware"] = SMARTFARM_VERSION;
+  d["otaReady"] = otaReady;
+  d["otaPort"] = OTA_ARDUINO_PORT;
+  d["httpOtaPort"] = OTA_HTTP_PORT;
+  d["otaProgress"] = otaProgressPercent;
   d["heap"] = ESP.getFreeHeap();
   d["heapMaxBlock"] = ESP.getMaxFreeBlockSize();
   d["heapFrag"] = ESP.getHeapFragmentation();
@@ -2343,6 +2407,18 @@ void publishHeartbeat() {
 
 void loop() {
   ESP.wdtFeed();
+
+  // OTA must get the highest priority on ESP8266. During a firmware upload
+  // avoid MQTT, Telegram, sensor I/O and scheduling so the flash stream is
+  // not starved by TLS allocations or blocking network work.
+  ArduinoOTA.handle();
+  otaServer.handleClient();
+  if (otaUpdateInProgress) {
+    ESP.wdtFeed();
+    yield();
+    return;
+  }
+
   handleSerialCommands();
   handleWifiResetButton();
   maintainWifi();
@@ -2355,8 +2431,6 @@ void loop() {
     syncRTCFromNTP(false);
   } else {
   }
-  otaServer.handleClient();
-  ArduinoOTA.handle();
   if (otaHttpRestartPending && (int32_t)(millis() - otaHttpRestartAt) >= 0)
     ESP.restart();
   runSafety();
