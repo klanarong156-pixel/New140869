@@ -35,7 +35,7 @@ try {
   page.on('request', request => requests.push(new URL(request.url()).pathname));
 
   await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await page.waitForSelector('[data-mqtt-status]');
+  await page.waitForSelector('[data-mqtt-status]', { state: 'attached' });
   await page.waitForFunction(() => navigator.serviceWorker.getRegistration().then(Boolean), null, { timeout: 5000 }).catch(() => {});
   await wait(250);
 
