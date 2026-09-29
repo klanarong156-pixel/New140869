@@ -249,3 +249,136 @@ body.control-room-page h1, body.control-room-page h2, body.control-room-page h3 
 body.control-room-page .ghost { color: var(--d4-green-deep); border-color: var(--d4-line); background: #fff; }
 body.control-room-page .bottom-nav { display: none; }
 @media (max-width: 650px) { body.control-room-page .rail { display:none; } body.control-room-page .main { margin-left:0; } body.control-room-page .topbar { padding:14px; } }
+
+
+/* ============================================================
+   STYLE 4 FINAL LOCK — Cute & Anime visual layer
+   Presentation only. No MQTT / payload / relay / safety logic.
+   ============================================================ */
+.sf-icon{
+  width:1.35em;
+  height:1.35em;
+  display:inline-block;
+  flex:0 0 auto;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vertical-align:-.28em;
+}
+.sidebar-nav .sf-icon,.bottom-nav .sf-icon{width:1.25em;height:1.25em;vertical-align:-.22em}
+.ref-icon .sf-icon,.relay-icon .sf-icon,.summary-icon .sf-icon,.quick-action .sf-icon{width:1.55em;height:1.55em;vertical-align:-.36em}
+body.dashboard-page{
+  background:
+    linear-gradient(180deg,rgba(238,247,242,.68),rgba(238,247,242,.86)),
+    url('./assets/farm-hero-style4.png') center top/cover fixed !important;
+}
+body.dashboard-page .app-content{background:transparent}
+body.dashboard-page .farm-hero{
+  height:300px;
+  border:4px solid rgba(255,255,255,.82);
+  border-radius:30px;
+  overflow:hidden;
+}
+body.dashboard-page .farm-hero:after{
+  background:linear-gradient(90deg,rgba(40,101,67,.58),rgba(40,101,67,.16) 58%,rgba(255,255,255,.03)) !important;
+}
+body.dashboard-page .farm-hero-overlay{padding:28px 34px}
+body.dashboard-page .farm-hero-overlay img{
+  width:82px;height:82px;border-radius:22px;
+  box-shadow:0 8px 22px rgba(40,94,62,.18);
+}
+body.dashboard-page .hero-copy h2{font-size:clamp(2.1rem,4vw,3rem);text-shadow:0 2px 8px rgba(22,65,42,.18)}
+body.dashboard-page .hero-copy p{font-size:1rem}
+body.dashboard-page .reference-sensor-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+body.dashboard-page .metric-ref{
+  min-height:150px;
+  border:2px solid rgba(207,225,215,.92);
+  background:rgba(255,255,255,.88);
+  border-radius:24px;
+}
+body.dashboard-page .metric-ref:hover,
+body.dashboard-page .smart-relay-card:hover,
+body.dashboard-page .ref-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 16px 34px rgba(46,105,76,.13);
+}
+body.dashboard-page .ref-icon,
+body.dashboard-page .relay-icon,
+body.dashboard-page .summary-icon{
+  display:grid;
+  place-items:center;
+  color:#3d9569;
+}
+body.dashboard-page .relay-icon{
+  width:48px;height:48px;border-radius:16px;
+  background:linear-gradient(145deg,#e5f7ea,#e6f2fa);
+  border:1px solid #c7e4d2;
+}
+body.dashboard-page .water-section{
+  padding:18px;
+  border-radius:26px;
+  background:rgba(255,255,255,.48);
+  border:1px solid rgba(207,225,215,.8);
+}
+body.dashboard-page .water-section .compact-relays{grid-template-columns:repeat(4,minmax(0,1fr))}
+body.dashboard-page .water-section .relay-card{
+  min-height:156px;
+  grid-template-columns:48px 1fr;
+  grid-template-rows:auto auto;
+  position:relative;
+  overflow:hidden;
+}
+body.dashboard-page .water-section .relay-actions{
+  grid-column:1 / -1;
+  grid-row:2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:8px;
+}
+body.dashboard-page .mode-actions{
+  border:1px solid #c7e4d2;
+  background:#edf8f1;
+}
+body.dashboard-page .mode-button[data-active=true]{
+  color:#fff;
+  background:linear-gradient(135deg,#62b87e,#3b9865);
+  box-shadow:0 5px 12px rgba(62,145,92,.18);
+}
+body.dashboard-page .quick-action{
+  background:linear-gradient(145deg,#fbfffc,#eff8f2);
+}
+body.dashboard-page .bottom-nav a .sf-icon{display:block;margin:0 auto 3px}
+body.dashboard-page .sidebar-nav a .sf-icon{margin-right:5px}
+body.compact-ui{
+  background:
+    linear-gradient(180deg,rgba(238,247,242,.76),rgba(238,247,242,.90)),
+    url('./assets/farm-hero-style4.png') center top/cover fixed !important;
+}
+body.compact-ui .card,
+body.compact-ui .section,
+body.compact-ui .panel{
+  border:1px solid rgba(207,225,215,.95) !important;
+  border-radius:22px !important;
+  box-shadow:0 12px 30px rgba(46,105,76,.10) !important;
+}
+body.compact-ui .btn.primary{
+  background:linear-gradient(135deg,#63b97f,#3b9564) !important;
+}
+body.compact-ui .bottom-nav .sf-icon{display:block;margin:0 auto 3px}
+@media(max-width:900px){
+  body.dashboard-page .reference-sensor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.dashboard-page .water-section .compact-relays{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+  body.dashboard-page{background-attachment:scroll !important}
+  body.dashboard-page .farm-hero{height:250px;border-width:3px}
+  body.dashboard-page .farm-hero-overlay{padding:18px}
+  body.dashboard-page .farm-hero-overlay img{width:58px;height:58px}
+  body.dashboard-page .reference-sensor-grid,
+  body.dashboard-page .water-section .compact-relays{grid-template-columns:1fr}
+  body.dashboard-page .water-section{padding:12px}
+  body.dashboard-page .water-section .relay-card{min-height:130px}
+}
