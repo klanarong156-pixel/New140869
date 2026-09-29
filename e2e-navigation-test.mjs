@@ -46,7 +46,7 @@ async function runChecks() {
     add(`${page}: has viewport`, /name="viewport"/.test(html));
     add(`${page}: has title`, /<title>[^<]+<\/title>/.test(html));
     add(`${page}: has page styling`, page === 'index.html' ? /dashboard\//.test(html) : /\.css/.test(html));
-    const navBlocks = [...html.matchAll(/<nav[^>]*class="[^"]*\\bbottom-nav\\b[^"]*"[^>]*>[\\s\\S]*?<\\/nav>/g)].map(match => match[0]);
+    const navBlocks = [...html.matchAll(/<nav[^>]*class="[^"]*\bbottom-nav\b[^"]*"[^>]*>[\s\S]*?<\/nav>/g)].map(match => match[0]);
     if (['finance.html', 'account.html', 'admin.html', 'ota.html'].includes(page)) add(`${page}: has consistent bottom navigation`, navBlocks.length === 1 && (navBlocks[0].match(/<a /g) || []).length === 5);
     for (const navBlock of navBlocks) {
       for (const href of [...navBlock.matchAll(/<a\b[^>]*\bhref="([^"]+)"/gi)].map(match => match[1])) {
