@@ -221,6 +221,7 @@
 
     text(elements.mode, state.mode || '—');
     setTone(elements.mode, state.mode ? 'good' : 'neutral');
+    textAll('[data-mobile-mode]', state.mode || 'ยังไม่มีข้อมูล');
     text(elements.schedule, state.schedule.enabled === null ? '—' : state.schedule.enabled ? 'เปิดใช้งาน' : 'ปิดใช้งาน');
     $$('[data-mode]').forEach(button => {
       button.dataset.active = button.dataset.mode === state.mode ? 'true' : 'false';
@@ -253,6 +254,10 @@
         if (caption) text(caption, label);
       });
       $$(`[data-relay-summary="${relay.id}"]`).forEach(element => {
+        text(element, label);
+        element.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
+      });
+      $$('[data-mobile-relay-state="${relay.id}"]').forEach(element => {
         text(element, label);
         element.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
       });
@@ -447,7 +452,13 @@
       const current = store.get().relays[relay];
       if (typeof current === 'boolean') submitRelay(relay, !current);
     }));
-    $$('[data-mode]').forEach(button => button.addEventListener('click', () => submitMode(button.dataset.mode)));
+ 
+    $$('[data-mobile-relay]').forEach(button => button.addEventListener('click', () => {
+      const relay = button.dataset.mobileRelay;
+      const current = store.get().relays[relay];
+      if (typeof current === 'boolean') submitRelay(relay, !current);
+      else showToast('ยังไม่มีสถานะรีเลย์จาก ESP8266', 'warn');
+    }));   $$('[data-mode]').forEach(button => button.addEventListener('click', () => submitMode(button.dataset.mode)));
     $('[data-emergency-stop]')?.addEventListener('click', () => submitEmergency('STOP'));
     $('[data-emergency-reset]')?.addEventListener('click', () => submitEmergency('RESET'));
     $$('[data-event-filter]').forEach(button => button.addEventListener('click', () => {
