@@ -1,7 +1,7 @@
-const CACHE_NAME = 'smartfarm-v46-balanced-pages';
+const CACHE_NAME = 'smartfarm-v47-top-balance';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
-  './dashboard/dashboard.css?v=13', './design4.css?v=9', './dashboard/dashboard-config.js?v=1',
+  './dashboard/dashboard.css?v=13', './design4.css?v=10', './dashboard/dashboard-config.js?v=1',
   './dashboard/dashboard-state.js?v=2', './dashboard/dashboard-mqtt.js?v=3',
   './dashboard/dashboard.js?v=15', './mqtt.min.js?v=5', './404.html',
   './auth.html', './finance.html', './account.html', './admin.html', './ota.html', './control-room/index.html',
