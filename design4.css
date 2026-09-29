@@ -393,7 +393,7 @@ body.dashboard-page .app-content{width:100%;margin:0;padding:0;background:transp
 body.dashboard-page main{padding:0!important}
 body.dashboard-page .route-page[data-page-section="dashboard"]{padding:0 0 96px!important;margin:0;background:transparent}
 body.dashboard-page .route-page[data-page-section="dashboard"]>*:not(.style4-mobile-home){display:none!important}
-.style4-mobile-home{display:block;width:100%;min-height:100vh;box-sizing:border-box;padding:12px 10px 96px;color:#244c3d;font-family:Kanit,"Noto Sans Thai",system-ui,sans-serif};max-width:100%;overflow-x:hidden
+.style4-mobile-home{display:block;width:100%;min-height:100vh;box-sizing:border-box;padding:12px 10px 96px;color:#244c3d;font-family:Kanit,"Noto Sans Thai",system-ui,sans-serif;max-width:100%;overflow-x:hidden}
 .style4-mobile-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 7px 7px}
 .style4-mobile-brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:#145e45}
 .style4-mobile-brand img{width:48px;height:48px;object-fit:contain;background:#fff;border-radius:11px;padding:3px;box-shadow:0 4px 12px rgba(18,83,61,.16)}
