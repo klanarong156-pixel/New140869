@@ -427,3 +427,86 @@ body.dashboard-page .route-page[data-page-section="dashboard"]>*:not(.style4-mob
 .style4-mobile-bottom-nav a{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#759084;text-decoration:none;border-radius:13px}.style4-mobile-bottom-nav a.active{background:#e1f2e7;color:#2d8658}.style4-mobile-bottom-nav .sf-icon{width:19px;height:19px;vertical-align:0}.style4-mobile-bottom-nav small{font-size:.58rem;line-height:1;white-space:nowrap;font-weight:800}
 }
 @media (max-width:370px){.style4-mobile-home{padding-left:7px;padding-right:7px}.style4-mobile-hero{height:282px}.style4-mobile-summary{gap:5px}.style4-mobile-card{padding:8px 7px}.style4-mobile-card>strong{font-size:.92rem}.style4-mobile-card>small{font-size:.54rem}.style4-mobile-controls{grid-template-columns:1.62fr 1fr}.style4-mobile-bottom-nav{left:4px;right:4px}}
+
+
+/* ============================================================
+   FINAL MOBILE WATER / RELAY FIT FIX
+   Prevent Latin relay labels from breaking one character at a time.
+   Presentation only; MQTT/state/relay contracts are unchanged.
+   ============================================================ */
+@media (max-width: 650px){
+  body.dashboard-page .water-grid .water-control{
+    grid-template-columns:48px minmax(0,1fr) auto !important;
+    grid-template-rows:auto auto !important;
+    align-items:center !important;
+    column-gap:10px !important;
+    row-gap:3px !important;
+    min-width:0 !important;
+    min-height:142px !important;
+    padding:14px !important;
+  }
+  body.dashboard-page .water-grid .water-control > div:nth-child(2){
+    min-width:0 !important;
+    width:auto !important;
+  }
+  body.dashboard-page .water-grid .water-control b,
+  body.dashboard-page .water-grid .water-control strong,
+  body.dashboard-page .water-grid .water-control small{
+    overflow-wrap:normal !important;
+    word-break:normal !important;
+    white-space:normal !important;
+  }
+  body.dashboard-page .water-grid .water-control b{
+    display:block !important;
+    font-size:.72rem !important;
+    line-height:1.2 !important;
+    letter-spacing:0 !important;
+  }
+  body.dashboard-page .water-grid .water-control strong{
+    margin-top:5px !important;
+    font-size:.66rem !important;
+    line-height:1.2 !important;
+  }
+  body.dashboard-page .water-grid .water-control > div:nth-child(2) > small{
+    display:block !important;
+    margin-top:4px !important;
+    font-size:.58rem !important;
+    line-height:1.2 !important;
+  }
+  body.dashboard-page .water-grid .water-control .relay-actions{
+    grid-column:3 !important;
+    grid-row:1 / span 2 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:4px !important;
+    margin:0 !important;
+    min-width:60px !important;
+  }
+  body.dashboard-page .water-grid .water-control .smart-toggle{
+    width:54px !important;
+    height:30px !important;
+  }
+  body.dashboard-page .water-grid .water-control .smart-toggle::after{
+    width:24px !important;
+    height:24px !important;
+  }
+  body.dashboard-page .water-grid .water-control .smart-toggle[aria-pressed=true]::after{
+    transform:translateX(24px) !important;
+  }
+  body.dashboard-page .water-grid .water-control .toggle-caption{
+    margin:0 !important;
+    font-size:.55rem !important;
+    white-space:nowrap !important;
+  }
+}
+@media (max-width:390px){
+  body.dashboard-page .water-grid .water-control{
+    grid-template-columns:42px minmax(0,1fr) 56px !important;
+    min-height:136px !important;
+    padding:11px !important;
+  }
+  body.dashboard-page .water-grid .water-control .relay-actions{min-width:56px !important}
+  body.dashboard-page .water-grid .water-control b{font-size:.67rem !important}
+}
