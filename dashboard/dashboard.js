@@ -164,7 +164,8 @@
   const mqttLabel = status => ({
     connected: 'เชื่อมต่อแล้ว',
     connecting: 'กำลังเชื่อมต่อ',
-    offline: 'ออฟไลน์',
+    offline: 'ยังไม่มีข้อมูล',
+    unknown: 'ยังไม่มีข้อมูล',
     error: 'เกิดข้อผิดพลาด'
   }[status] || 'ออฟไลน์');
 
@@ -172,28 +173,28 @@
     const mqttStatus = state.mqtt.status;
     const espOnline = state.esp.online;
     document.documentElement.dataset.mqttState = mqttStatus;
-    document.documentElement.dataset.espOnline = espOnline ? 'true' : 'false';
+    document.documentElement.dataset.espOnline = espOnline === null ? 'unknown' : espOnline ? 'true' : 'false';
     const mqttText = `MQTT · ${mqttLabel(mqttStatus)}`;
-    const espText = `ESP8266 · ${espOnline ? 'ออนไลน์' : 'ออฟไลน์'}`;
+    const espText = `ESP8266 · ${espOnline === null ? 'ยังไม่มีข้อมูล' : espOnline ? 'ออนไลน์' : 'ออฟไลน์'}`;
 
     text(elements.mqttStatus, mqttText);
     textAll('[data-esp-status]', espText);
     textAll('[data-mqtt-badge]', mqttLabel(mqttStatus));
-    textAll('[data-esp-badge]', espOnline ? 'ออนไลน์' : 'ออฟไลน์');
+    textAll('[data-esp-badge]', espOnline === null ? 'ยังไม่มีข้อมูล' : espOnline ? 'ออนไลน์' : 'ออฟไลน์');
     setTone(elements.mqttStatus, mqttStatus === 'connected' ? 'good' : mqttStatus === 'error' ? 'bad' : 'warn');
-    toneAll('[data-esp-status]', espOnline ? 'good' : 'bad');
+    toneAll('[data-esp-status]', espOnline === null ? 'warn' : espOnline ? 'good' : 'bad');
     toneAll('[data-mqtt-shell]', mqttStatus === 'connected' ? 'good' : mqttStatus === 'error' ? 'bad' : 'warn');
-    toneAll('[data-esp-shell]', espOnline ? 'good' : 'bad');
+    toneAll('[data-esp-shell]', espOnline === null ? 'warn' : espOnline ? 'good' : 'bad');
     toneAll('[data-mqtt-badge]', mqttStatus === 'connected' ? 'good' : mqttStatus === 'error' ? 'bad' : 'warn');
-    toneAll('[data-esp-badge]', espOnline ? 'good' : 'bad');
-    toneAll('[data-esp-orb]', espOnline ? 'good' : 'bad');
+    toneAll('[data-esp-badge]', espOnline === null ? 'warn' : espOnline ? 'good' : 'bad');
+    toneAll('[data-esp-orb]', espOnline === null ? 'warn' : espOnline ? 'good' : 'bad');
 
     if (elements.credentialPanel) elements.credentialPanel.hidden = mqttStatus === 'connected';
     if (elements.connectButton) elements.connectButton.disabled = mqttStatus === 'connecting';
     if (elements.disconnectButton) elements.disconnectButton.disabled = mqttStatus === 'offline' && !mqtt.client;
 
-    text(elements.espOnline, espOnline ? 'ONLINE' : 'OFFLINE');
-    setTone(elements.espOnline, espOnline ? 'good' : 'bad');
+    text(elements.espOnline, espOnline === null ? 'UNKNOWN' : espOnline ? 'ONLINE' : 'OFFLINE');
+    setTone(elements.espOnline, espOnline === null ? 'warn' : espOnline ? 'good' : 'bad');
     text(elements.deviceId, state.esp.deviceId || 'ยังไม่มีข้อมูล');
     textAll('[data-rssi]', state.esp.rssi === null ? '—' : `${state.esp.rssi} dBm`);
     textAll('[data-firmware]', state.esp.firmware || '—');
@@ -231,7 +232,7 @@
     if (emergencyReset) emergencyReset.disabled = !mqtt.client?.connected || !state.esp.emergencyLock;
 
     textAll('[data-diagnostic-mqtt]', mqttLabel(mqttStatus));
-    textAll('[data-diagnostic-esp]', espOnline ? 'ONLINE' : 'OFFLINE');
+    textAll('[data-diagnostic-esp]', espOnline === null ? 'ยังไม่มีข้อมูล' : espOnline ? 'ONLINE' : 'OFFLINE');
     textAll('[data-diagnostic-reason]', state.diagnostic.connectionReason || '—');
     textAll('[data-diagnostic-error]', state.diagnostic.lastError || state.mqtt.error || 'ไม่มี');
     textAll('[data-reconnect-count]', String(state.mqtt.reconnectCount));
@@ -242,10 +243,14 @@
       $$(`[data-relay-card="${relay.id}"]`).forEach(card => {
         text(card.querySelector('[data-relay-state]'), label);
         card.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
-        const onButton = card.querySelector('[data-relay-on]');
-        const offButton = card.querySelector('[data-relay-off]');
-        if (onButton) onButton.disabled = !mqtt.client?.connected || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
-        if (offButton) offButton.disabled = !mqtt.client?.connected;
+        const toggle = card.querySelector('[data-relay-toggle]');
+        const caption = card.querySelector('[data-relay-caption]');
+        if (toggle) {
+          toggle.setAttribute('aria-pressed', value === null ? 'mixed' : String(value));
+          toggle.disabled = value === null || !mqtt.client?.connected || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
+          toggle.setAttribute('aria-label', `สลับ${relay.name} · ${label}`);
+        }
+        if (caption) text(caption, label);
       });
       $$(`[data-relay-summary="${relay.id}"]`).forEach(element => {
         text(element, label);
@@ -356,7 +361,7 @@
     }
   };
 
-  const money = value => `฿${Number(value || 0).toLocaleString('th-TH', { maximumFractionDigits: 2 })}`;
+  const money = value => hasNumber(value) ? `฿${Number(value).toLocaleString('th-TH', { maximumFractionDigits: 2 })}` : 'ยังไม่มีข้อมูล';
   const setDashboardText = (id, value) => text(document.getElementById(id), value);
   const todayKey = () => {
     const parts = new Intl.DateTimeFormat('en-GB', { timeZone: config.weather.timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -366,13 +371,16 @@
   const loadDashboardData = async () => {
     const summary = document.getElementById('financeSummary');
     if (!summary) return;
-    let income = 0, expense = 0, pending = 0, totalKg = 0;
+    let income = null, expense = null, pending = null, totalKg = null;
     const today = todayKey();
     if (window.FirebaseAuth?.user && typeof window.loadFinanceItems === 'function') {
       try {
         const items = await window.loadFinanceItems();
         items.filter(item => String(item.createdAt || item.date || '').slice(0, 10) === today).forEach(item => {
           const amount = Number(item.amount || 0);
+          if (income === null) income = 0;
+          if (expense === null) expense = 0;
+          if (pending === null) pending = 0;
           if (item.type === 'income') income += amount;
           if (item.type === 'expense') expense += amount;
           if (item.type === 'pending') pending += amount;
@@ -388,13 +396,13 @@
     if (window.FirebaseAuth?.user && window.CucumberSales?.load) {
       try {
         const sales = await window.CucumberSales.load();
-        totalKg = sales.reduce((sum, item) => sum + Number(window.CucumberSales.calculate(item)?.totalKg || 0), 0);
-      } catch (_) { totalKg = 0; }
+        totalKg = sales.length ? sales.reduce((sum, item) => sum + Number(window.CucumberSales.calculate(item)?.totalKg || 0), 0) : null;
+      } catch (_) { totalKg = null; }
     }
     setDashboardText('dashboardFinanceIncomeToday', money(income));
     setDashboardText('dashboardFinanceExpenseToday', money(expense));
     setDashboardText('dashboardFinancePendingToday', money(pending));
-    setDashboardText('dashboardCropTotalKg', `${totalKg.toLocaleString('th-TH', { maximumFractionDigits: 2 })} กก.`);
+    setDashboardText('dashboardCropTotalKg', hasNumber(totalKg) ? `${totalKg.toLocaleString('th-TH', { maximumFractionDigits: 2 })} กก.` : 'ยังไม่มีข้อมูล');
   };
 
   const fillCredentials = () => {
@@ -434,8 +442,11 @@
       fillCredentials();
       showToast('ล้าง MQTT credentials จากเครื่องนี้แล้ว', 'info');
     });
-    $$('[data-relay-on]').forEach(button => button.addEventListener('click', () => submitRelay(button.closest('[data-relay-card]').dataset.relayCard, true)));
-    $$('[data-relay-off]').forEach(button => button.addEventListener('click', () => submitRelay(button.closest('[data-relay-card]').dataset.relayCard, false)));
+    $$('[data-relay-toggle]').forEach(button => button.addEventListener('click', () => {
+      const relay = button.closest('[data-relay-card]').dataset.relayCard;
+      const current = store.get().relays[relay];
+      if (typeof current === 'boolean') submitRelay(relay, !current);
+    }));
     $$('[data-mode]').forEach(button => button.addEventListener('click', () => submitMode(button.dataset.mode)));
     $('[data-emergency-stop]')?.addEventListener('click', () => submitEmergency('STOP'));
     $('[data-emergency-reset]')?.addEventListener('click', () => submitEmergency('RESET'));

@@ -1,7 +1,7 @@
-const CACHE_NAME = 'smartfarm-v27-finance-recovery';
+const CACHE_NAME = 'smartfarm-v28-design4-relays';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
-  './dashboard/dashboard.css?v=11', './dashboard/dashboard-config.js?v=1',
+  './dashboard/dashboard.css?v=12', './design4.css?v=1', './dashboard/dashboard-config.js?v=1',
   './dashboard/dashboard-state.js?v=2', './dashboard/dashboard-mqtt.js?v=3',
   './dashboard/dashboard.js?v=5', './mqtt.min.js?v=5', './404.html',
   './auth.html', './finance.html', './account.html', './admin.html', './ota.html',

@@ -14,7 +14,7 @@
       lastChangeAt: Date.now()
     },
     esp: {
-      online: false,
+      online: null,
       lastHeartbeatAt: 0,
       lastHeartbeatWasRetained: false,
       heartbeatCount: 0,
