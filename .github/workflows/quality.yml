@@ -46,6 +46,7 @@ jobs:
             refs=$(grep -oE '(src|href)="[^"]+"' "$file" || true)
             while IFS= read -r ref; do
               [[ -z "$ref" ]] && continue
+              [[ "$ref" == *.svg#* ]] && continue
               local_ref="${ref%%\?*}"
               local_ref="${local_ref%%\#*}"
               test -e "$local_ref" || { echo "$file -> $ref (MISSING)"; exit 1; }
@@ -55,6 +56,7 @@ jobs:
             refs=$(grep -oE '(src|href)="[^"]+"' "$file" || true)
             while IFS= read -r ref; do
               [[ -z "$ref" ]] && continue
+              [[ "$ref" == *.svg#* ]] && continue
               local_ref="${ref%%\?*}"
               local_ref="${local_ref%%\#*}"
               local_ref="dashboard/${local_ref#../}" # resolve dashboard-relative files below
