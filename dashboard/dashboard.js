@@ -353,8 +353,16 @@
       timezone: config.weather.timezone,
       forecast_days: '3'
     });
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10000);
     try {
-      const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+      const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-store',
+        signal: controller.signal,
+        headers: { Accept: 'application/json' }
+      });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       const daily = data.daily || {};
@@ -370,7 +378,12 @@
         }))
       });
     } catch (error) {
-      store.setWeather({ status: 'error', error: `Weather API: ${error.message}` });
+      const message = error?.name === 'AbortError'
+        ? 'Weather API: หมดเวลารอข้อมูล 10 วินาที'
+        : `Weather API: ${error?.message || 'เชื่อมต่อไม่ได้'}`;
+      store.setWeather({ status: 'error', error: message });
+    } finally {
+      window.clearTimeout(timeout);
     }
   };
 
