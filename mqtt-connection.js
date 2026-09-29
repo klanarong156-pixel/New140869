@@ -1,6 +1,6 @@
 /* SmartFarm MQTT Connection V2
  * Single connection owner for the browser.
- * Contract is derived from SmartFarm_V7.1.1-TLS-TIME-FIX firmware.
+ * Contract is derived from SmartFarm_V7.1.2-TLS-TIME-FIX firmware.
  * No SharedWorker. No second reconnect loop.
  */
 (() => {
