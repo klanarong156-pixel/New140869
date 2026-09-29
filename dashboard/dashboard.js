@@ -90,23 +90,25 @@
   const renderClock = () => {
     const now = new Date();
     const clockTimeZone = config.weather?.timezone || 'Asia/Bangkok';
-    if (elements.currentTime) {
-      elements.currentTime.dateTime = now.toISOString();
-      text(elements.currentTime, new Intl.DateTimeFormat('th-TH', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-        timeZone: clockTimeZone
-      }).format(now));
-    }
-    text(elements.currentDate, new Intl.DateTimeFormat('th-TH', {
+    const formattedTime = new Intl.DateTimeFormat('th-TH', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: clockTimeZone
+    }).format(now);
+    $('[data-current-time]').forEach(element => {
+      element.dateTime = now.toISOString();
+      text(element, formattedTime);
+    });
+    const formattedDate = new Intl.DateTimeFormat('th-TH', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
       year: 'numeric',
       timeZone: clockTimeZone
-    }).format(now));
+    }).format(now);
+    textAll('[data-current-date]', formattedDate);
   };
 
   const hasNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
