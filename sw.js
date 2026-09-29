@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartfarm-v35-style4-functional';
+const CACHE_NAME = 'smartfarm-v36-functional-fix';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
   './dashboard/dashboard.css?v=12', './design4.css?v=4', './dashboard/dashboard-config.js?v=1',
