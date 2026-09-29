@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartfarm-v38-final-ui-audit';
+const CACHE_NAME = 'smartfarm-v39-nav-consistency';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
   './dashboard/dashboard.css?v=13', './design4.css?v=5', './dashboard/dashboard-config.js?v=1',
