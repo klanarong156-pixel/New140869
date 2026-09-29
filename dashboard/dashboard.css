@@ -560,3 +560,30 @@ body.dashboard-page .quick-actions-grid { grid-template-columns: repeat(4, minma
   body.dashboard-page .topbar-farm-context span { display: none; }
   body.dashboard-page .topbar-farm-context b { overflow: hidden; white-space: nowrap; font-size: .62rem; text-overflow: ellipsis; }
 }
+
+
+/* Final mobile water-card geometry: preserve readable relay names at 320–650px. */
+@media (max-width:650px){
+  body.dashboard-page .water-grid .water-control{
+    grid-template-columns:48px minmax(0,1fr) auto;
+    grid-template-rows:auto auto;
+    min-width:0;
+  }
+  body.dashboard-page .water-grid .water-control > div:nth-child(2){
+    min-width:0;
+  }
+  body.dashboard-page .water-grid .water-control b{
+    overflow-wrap:normal;
+    word-break:normal;
+    white-space:normal;
+  }
+  body.dashboard-page .water-grid .water-control .relay-actions{
+    grid-column:3;
+    grid-row:1 / span 2;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-width:56px;
+    margin-top:0;
+  }
+}
