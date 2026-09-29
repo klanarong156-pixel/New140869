@@ -60,7 +60,10 @@ jobs:
               local_ref="${ref%%\?*}"
               local_ref="${local_ref%%\#*}"
               local_ref="dashboard/${local_ref#../}" # resolve dashboard-relative files below
-              [[ "$ref" == *"../"* ]] && local_ref="${ref%%\?*}"
+              if [[ "$ref" == *"../"* ]]; then
+                local_ref="${ref%%\?*}"
+                local_ref="${local_ref%%\#*}"
+              fi
               test -e "dashboard/$local_ref" || test -e "$local_ref" || { echo "$file -> $ref (MISSING)"; exit 1; }
             done < <(printf '%s\n' "$refs" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' | grep -vE '\.svg#' || true)
           done < <(find dashboard -maxdepth 1 -name '*.html' -print)
