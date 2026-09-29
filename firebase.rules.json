@@ -12,11 +12,6 @@
           ".write": false,
           ".validate": false
         }
-      },
-      "$other": {
-        ".read": false,
-        ".write": false,
-        ".validate": false
       }
     },
     "userManagementAudit": {
@@ -44,12 +39,7 @@
             }
           },
           ".read": "auth != null && auth.uid === $uid",
-          ".write": "auth != null && auth.uid === $uid",
-          "$other": {
-            ".read": false,
-            ".write": false,
-            ".validate": false
-          }
+          ".write": "auth != null && auth.uid === $uid"
         },
         "profile": {
           ".validate": "newData.hasChildren(['displayName', 'farmName']) && newData.child('displayName').isString() && newData.child('displayName').val().length > 0 && newData.child('displayName').val().length <= 80 && newData.child('farmName').isString() && newData.child('farmName').val().length > 0 && newData.child('farmName').val().length <= 120 && (!newData.hasChild('updatedAt') || (newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40)) && (!newData.hasChild('createdAt') || (newData.child('createdAt').isString() && newData.child('createdAt').val().length <= 40))",
@@ -73,12 +63,7 @@
             }
           },
           ".read": "auth != null && auth.uid === $uid",
-          ".write": false,
-          "$other": {
-            ".read": false,
-            ".write": false,
-            ".validate": false
-          }
+          ".write": false
         },
         "cucumberSales": {
           "$item": {
@@ -92,12 +77,7 @@
             }
           },
           ".read": "auth != null && auth.uid === $uid",
-          ".write": false,
-          "$other": {
-            ".read": false,
-            ".write": false,
-            ".validate": false
-          }
+          ".write": false
         },
         "farm": {
           "cropCycle": {
@@ -122,12 +102,7 @@
               }
             },
             ".read": "auth != null && auth.uid === $uid",
-            ".write": "auth != null && auth.uid === $uid",
-            "$other": {
-              ".read": false,
-              ".write": false,
-              ".validate": false
-            }
+            ".write": "auth != null && auth.uid === $uid"
           },
           "cropReminders": {
             ".validate": "newData.hasChildren(['enabled', 'repeatDaily', 'quietStart', 'quietEnd', 'leadDays', 'hour', 'minute', 'items']) && newData.child('enabled').isBoolean() && newData.child('repeatDaily').isBoolean() && newData.child('quietStart').isString() && newData.child('quietStart').val().length === 5 && newData.child('quietEnd').isString() && newData.child('quietEnd').val().length === 5 && newData.child('leadDays').isNumber() && newData.child('leadDays').val() >= 0 && newData.child('leadDays').val() <= 7 && newData.child('hour').isNumber() && newData.child('hour').val() >= 0 && newData.child('hour').val() <= 23 && newData.child('minute').isNumber() && newData.child('minute').val() >= 0 && newData.child('minute').val() <= 59",
@@ -143,12 +118,7 @@
                 }
               },
               ".read": "auth != null && auth.uid === $uid",
-              ".write": "auth != null && auth.uid === $uid",
-              "$other": {
-                ".read": false,
-                ".write": false,
-                ".validate": false
-              }
+              ".write": "auth != null && auth.uid === $uid"
             },
             ".read": "auth != null && auth.uid === $uid",
             ".write": "auth != null && auth.uid === $uid",
@@ -175,12 +145,7 @@
                     }
                   },
                   ".read": "auth != null && auth.uid === $uid",
-                  ".write": "auth != null && auth.uid === $uid",
-                  "$other": {
-                    ".read": false,
-                    ".write": false,
-                    ".validate": false
-                  }
+                  ".write": "auth != null && auth.uid === $uid"
                 },
                 ".read": "auth != null && auth.uid === $uid",
                 ".write": "auth != null && auth.uid === $uid",
@@ -191,12 +156,7 @@
                 }
               },
               ".read": "auth != null && auth.uid === $uid",
-              ".write": "auth != null && auth.uid === $uid",
-              "$other": {
-                ".read": false,
-                ".write": false,
-                ".validate": false
-              }
+              ".write": "auth != null && auth.uid === $uid"
             },
             ".read": "auth != null && auth.uid === $uid",
             ".write": "auth != null && auth.uid === $uid",
@@ -220,12 +180,7 @@
                 }
               },
               ".read": "auth != null && auth.uid === $uid",
-              ".write": "auth != null && auth.uid === $uid",
-              "$other": {
-                ".read": false,
-                ".write": false,
-                ".validate": false
-              }
+              ".write": "auth != null && auth.uid === $uid"
             },
             "relayEvents": {
               "$index": {
@@ -239,12 +194,7 @@
                 }
               },
               ".read": "auth != null && auth.uid === $uid",
-              ".write": "auth != null && auth.uid === $uid",
-              "$other": {
-                ".read": false,
-                ".write": false,
-                ".validate": false
-              }
+              ".write": "auth != null && auth.uid === $uid"
             },
             "deviceEvents": {
               "$index": {
@@ -258,12 +208,7 @@
                 }
               },
               ".read": "auth != null && auth.uid === $uid",
-              ".write": "auth != null && auth.uid === $uid",
-              "$other": {
-                ".read": false,
-                ".write": false,
-                ".validate": false
-              }
+              ".write": "auth != null && auth.uid === $uid"
             },
             "lastSeenAt": {
               ".validate": "newData.isNumber() && newData.val() >= 0",
