@@ -121,14 +121,6 @@
       <div class="style4-mode-buttons"><button type="button" data-mode="AUTO">AUTO</button><button type="button" data-mode="MANUAL">MANUAL</button></div>
     </div>
   </section>
-
-  <nav class="style4-mobile-bottom-nav" aria-label="เมนูสวนลุงนะ">
-    <a class="active" href="?page=dashboard"><svg class="sf-icon"><use href="../assets/style4-icons.svg#home"></use></svg><small>หน้าหลัก</small></a>
-    <a href="?page=water"><svg class="sf-icon"><use href="../assets/style4-icons.svg#water"></use></svg><small>ระบบน้ำ</small></a>
-    <a href="../finance.html"><svg class="sf-icon"><use href="../assets/style4-icons.svg#money"></use></svg><small>การเงิน</small></a>
-    <a href="?page=devices"><svg class="sf-icon"><use href="../assets/style4-icons.svg#device"></use></svg><small>อุปกรณ์</small></a>
-    <a href="?page=weather"><svg class="sf-icon"><use href="../assets/style4-icons.svg#sun"></use></svg><small>อากาศ</small></a>
-  </nav>
 </section>
 
           <section class="farm-hero reference-hero">
@@ -219,8 +211,12 @@
       <footer class="site-footer"><span>สวนลุงนะ • Smart Farm</span><span>อัปเดตล่าสุด · <span data-last-heartbeat>ยังไม่มี heartbeat</span></span></footer>
     </div>
   </div>
-  <nav class="bottom-nav" aria-label="เมนูบนมือถือ">
-    <a href="?page=dashboard" data-route="dashboard"><span><svg class="sf-icon sf-icon-home" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#home"></use></svg></span>หน้าหลัก</a><a href="?page=water" data-route="water"><span><svg class="sf-icon sf-icon-water" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#water"></use></svg></span>ระบบน้ำ</a><a href="../finance.html" data-route="finance"><span><svg class="sf-icon sf-icon-money" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#money"></use></svg></span>การเงิน</a><a href="?page=devices" data-route="devices"><span><svg class="sf-icon sf-icon-device" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#device"></use></svg></span>อุปกรณ์</a><a href="?page=weather" data-route="weather"><span><svg class="sf-icon sf-icon-sun" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#sun"></use></svg></span>อากาศ</a>
+  <nav class="bottom-nav style4-shared-mobile-nav" style="--nav-items:5" aria-label="เมนูสวนลุงนะ">
+    <a data-shared-route="dashboard" href="?page=dashboard"><span><svg class="sf-icon sf-icon-home" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#home"></use></svg></span><small>หน้าหลัก</small></a>
+    <a data-shared-route="water" href="?page=water"><span><svg class="sf-icon sf-icon-water" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#water"></use></svg></span><small>ระบบน้ำ</small></a>
+    <a data-shared-route="finance" href="../finance.html"><span><svg class="sf-icon sf-icon-money" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#money"></use></svg></span><small>การเงิน</small></a>
+    <a data-shared-route="devices" href="?page=devices"><span><svg class="sf-icon sf-icon-device" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#device"></use></svg></span><small>อุปกรณ์</small></a>
+    <a data-shared-route="weather" href="?page=weather"><span><svg class="sf-icon sf-icon-sun" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#sun"></use></svg></span><small>อากาศ</small></a>
   </nav>
   <div class="toast" data-toast hidden role="status" aria-live="polite"></div>
   <script src="../firebase.js?v=10"></script><script src="../finance-core.js?v=6"></script><script src="../finance-firebase.js?v=10"></script><script src="../crop-cycle.js?v=1"></script><script src="../crop-dashboard.js?v=1"></script><script src="../cucumber-sales.js?v=4"></script><script src="../mqtt.min.js?v=5"></script><script src="dashboard-config.js?v=1"></script><script src="dashboard-state.js?v=2"></script><script src="dashboard-mqtt.js?v=3"></script><script src="dashboard.js?v=10"></script>
