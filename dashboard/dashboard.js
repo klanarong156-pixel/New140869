@@ -259,7 +259,7 @@
         text(element, label);
         element.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
       });
-      $$('[data-mobile-relay-state="${relay.id}"]').forEach(element => {
+      $(`[data-mobile-relay-state="${relay.id}"]`).forEach(element => {
         text(element, label);
         element.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
       });
