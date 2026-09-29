@@ -97,7 +97,7 @@
       hour12: false,
       timeZone: clockTimeZone
     }).format(now);
-    $('[data-current-time]').forEach(element => {
+    $$('[data-current-time]').forEach(element => {
       element.dateTime = now.toISOString();
       text(element, formattedTime);
     });
@@ -259,7 +259,7 @@
         text(element, label);
         element.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
       });
-      $(`[data-mobile-relay-state="${relay.id}"]`).forEach(element => {
+      $$(`[data-mobile-relay-state="${relay.id}"]`).forEach(element => {
         text(element, label);
         element.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
       });
