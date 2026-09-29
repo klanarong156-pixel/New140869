@@ -9,7 +9,7 @@
   <link rel="icon" href="../icon-192.png">
   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
   <link rel="stylesheet" href="dashboard.css?v=12">
-  <link rel="stylesheet" href="../design4.css?v=1">
+  <link rel="stylesheet" href="../design4.css?v=2">
   <title>สวนลุงนะ · Smart Farm Dashboard</title>
 </head>
 <body class="dashboard-page">
@@ -61,7 +61,7 @@
 
         <section class="route-page" data-page-section="dashboard">
           <section class="farm-hero reference-hero">
-            <img src="../assets/farm-background.jpg" alt="บรรยากาศสวนลุงนะ Smart Farm">
+            <img src="../assets/farm-hero-style4.png" alt="บรรยากาศสวนลุงนะ Smart Farm">
             <div class="farm-hero-overlay">
               <img src="../assets/logo-suanlungna-transparent.png" alt="โลโก้สวนลุงนะ">
               <div class="hero-copy"><span class="hero-kicker">SMART FARM · SUAN LUNG NA</span><h2>สวนลุงนะ</h2><p>ระบบดูแลสวนแบบเรียลไทม์</p><div class="hero-status-row"><span class="hero-status-chip" data-tone="warn"><i></i><b>MQTT</b><small data-mqtt-badge>ออฟไลน์</small></span><span class="hero-status-chip" data-tone="bad"><i></i><b>ESP8266</b><small data-esp-badge>ออฟไลน์</small></span></div></div>
@@ -100,8 +100,8 @@
             <section class="ref-card finance-summary-card" id="financeSummary"><div class="section-title-row"><div><span class="section-kicker">FARM OVERVIEW</span><h2>สรุปข้อมูลฟาร์ม</h2></div><a class="card-link" href="../finance.html">การเงิน <span aria-hidden="true">›</span></a></div><div class="finance-summary-grid"><div><span class="summary-icon">↗</span><span><small>รายรับวันนี้</small><strong id="dashboardFinanceIncomeToday">ยังไม่มีข้อมูล</strong></span></div><div><span class="summary-icon">↘</span><span><small>รายจ่ายวันนี้</small><strong id="dashboardFinanceExpenseToday">ยังไม่มีข้อมูล</strong></span></div><div><span class="summary-icon">◌</span><span><small>ลูกหนี้/ค้างรายการ</small><strong id="dashboardFinancePendingToday">ยังไม่มีข้อมูล</strong></span></div><div><span class="summary-icon">🥒</span><span><small>ผลผลิตรวม</small><strong id="dashboardCropTotalKg">ยังไม่มีข้อมูล</strong></span></div></div><small class="summary-status" id="financeSummaryStatus">กำลังตรวจสอบข้อมูลบัญชี</small></section>
           </div>
           <section class="ref-card quick-actions-card"><div class="section-title-row"><div><span class="section-kicker">QUICK ACCESS</span><h2>ทางลัด</h2></div></div><div class="quick-actions-grid"><a class="quick-action" href="../finance.html#cucumberSalesForm"><span>🥒</span><b>บันทึกการเก็บเกี่ยว</b><small>ผลผลิตแตงกวา</small></a><a class="quick-action" href="../finance.html"><span>฿</span><b>บันทึกการเงิน</b><small>รายรับ/รายจ่าย</small></a><a class="quick-action" href="?page=devices"><span>▣</span><b>ตรวจสอบอุปกรณ์</b><small>ESP8266 และ Relay</small></a><a class="quick-action" href="?page=weather"><span>☀</span><b>พยากรณ์อากาศ</b><small>ข้อมูลจาก Weather API</small></a></div></section>
-          <section class="dashboard-lower-reference"><article class="ref-card crop-card"><div class="crop-card-image"><img src="../assets/farm-background.jpg" alt="แปลงแตงกวาสวนลุงนะ"><span>FARM CROP</span></div><div class="crop-card-copy"><span class="section-kicker">CROP PROFILE</span><h2 id="dashboardCropName">ยังไม่มีข้อมูลรอบปลูก</h2><p id="dashboardCropStatus">รอข้อมูลจากระบบจัดการแปลง</p><dl><div><dt>พื้นที่ปลูก</dt><dd id="dashboardCropArea">ยังไม่มีข้อมูล</dd></div><div><dt>เริ่มปลูก</dt><dd id="dashboardCropDate">ยังไม่มีข้อมูล</dd></div><div><dt>อายุแปลง</dt><dd id="dashboardCropAge">—</dd></div></dl></div></article><section class="ref-card forecast-preview-card"><div class="section-title-row"><div><span class="section-kicker">WEATHER API</span><h2>พยากรณ์อากาศ 3 วัน</h2></div><a class="card-link" href="?page=weather">ดูรายละเอียด <span aria-hidden="true">›</span></a></div><ul class="forecast-preview-list" data-forecast></ul><small class="summary-status" data-weather-updated>ข้อมูลจาก Open-Meteo</small></section></section>
-          <div class="farm-strip"><img src="../assets/farm-background.jpg" alt="ภาพสวนลุงนะ"></div>
+          <section class="dashboard-lower-reference"><article class="ref-card crop-card"><div class="crop-card-image"><img src="../assets/farm-hero-style4.png" alt="แปลงแตงกวาสวนลุงนะ"><span>FARM CROP</span></div><div class="crop-card-copy"><span class="section-kicker">CROP PROFILE</span><h2 id="dashboardCropName">ยังไม่มีข้อมูลรอบปลูก</h2><p id="dashboardCropStatus">รอข้อมูลจากระบบจัดการแปลง</p><dl><div><dt>พื้นที่ปลูก</dt><dd id="dashboardCropArea">ยังไม่มีข้อมูล</dd></div><div><dt>เริ่มปลูก</dt><dd id="dashboardCropDate">ยังไม่มีข้อมูล</dd></div><div><dt>อายุแปลง</dt><dd id="dashboardCropAge">—</dd></div></dl></div></article><section class="ref-card forecast-preview-card"><div class="section-title-row"><div><span class="section-kicker">WEATHER API</span><h2>พยากรณ์อากาศ 3 วัน</h2></div><a class="card-link" href="?page=weather">ดูรายละเอียด <span aria-hidden="true">›</span></a></div><ul class="forecast-preview-list" data-forecast></ul><small class="summary-status" data-weather-updated>ข้อมูลจาก Open-Meteo</small></section></section>
+          <div class="farm-strip"><img src="../assets/farm-hero-style4.png" alt="ภาพสวนลุงนะ"></div>
         </section>
 
         <section class="route-page" data-page-section="water" hidden>

@@ -19,7 +19,7 @@ body.dashboard-page,
 body.compact-ui {
   background:
     linear-gradient(180deg, rgba(238,247,242,.84), rgba(238,247,242,.96)),
-    url('./assets/farm-background.jpg') center top / cover fixed;
+    url('./assets/farm-hero-style4.png') center top / cover fixed;
   color: var(--d4-ink);
 }
 body.dashboard-page::before,
@@ -205,3 +205,47 @@ body.dashboard-page .smart-relay-card b { overflow-wrap: anywhere; }
   body.dashboard-page .app-content,
   body.compact-ui .app-content { width: 100%; margin-left: 0; }
 }
+
+/* Style 4 global surface for real auxiliary pages. */
+body.compact-ui {
+  --bg: var(--d4-bg); --bg-soft: #f6fbf8; --surface: rgba(255,255,255,.94); --surface-strong: #ffffff;
+  --surface-muted: #f4faf6; --line: var(--d4-line); --line-strong: #a6cfb5; --text: var(--d4-ink); --muted: var(--d4-muted);
+  --primary: var(--d4-green); --primary-strong: var(--d4-green-deep); --primary-ink: #fff; --shadow: var(--d4-shadow);
+  color-scheme: light;
+}
+body.compact-ui::before { background: linear-gradient(180deg, rgba(255,255,255,.25), transparent 38%); }
+body.compact-ui .topbar { color: var(--d4-ink); }
+body.compact-ui .desktop-nav { background: rgba(255,255,255,.72); border-color: var(--d4-line); }
+body.compact-ui .desktop-nav a { color: var(--d4-muted); }
+body.compact-ui .desktop-nav a:hover, body.compact-ui .desktop-nav a.active { color: var(--d4-green-deep); background: var(--d4-mint); }
+body.compact-ui h1, body.compact-ui h2, body.compact-ui h3 { color: var(--d4-green-deep); text-shadow: none; }
+body.compact-ui .kicker { color: var(--d4-green); text-shadow: none; }
+body.compact-ui .subtitle, body.compact-ui .helper, body.compact-ui .muted, body.compact-ui footer { color: var(--d4-muted); }
+body.compact-ui .card, body.compact-ui .section, body.compact-ui .notice, body.compact-ui .connection-card { background: rgba(255,255,255,.92); color: var(--d4-muted); }
+body.compact-ui .notice strong, body.compact-ui .connection-card h2 { color: var(--d4-green-deep); }
+body.compact-ui .tag { color: var(--d4-green-deep); background: var(--d4-mint); border-color: var(--d4-line); }
+body.compact-ui input, body.compact-ui select, body.compact-ui textarea { color: var(--d4-ink); background: #fff; border-color: var(--d4-line); }
+body.compact-ui input::placeholder, body.compact-ui textarea::placeholder { color: #9aae9f; }
+body.compact-ui .btn.primary { color: #fff; background: linear-gradient(135deg,#56ad7b,#2f8058); }
+body.compact-ui .btn.secondary { color: var(--d4-green-deep); border-color: var(--d4-line); background: #fff; }
+body.compact-ui .btn.danger { color: #a44d55; background: #fff1ef; border-color: #ebc3bf; }
+body.compact-ui .bottom-nav { background: rgba(255,255,255,.95); border-color: var(--d4-line); box-shadow: 0 12px 32px rgba(46,105,76,.14); }
+body.compact-ui .bottom-nav a { color: var(--d4-muted); }
+body.compact-ui .bottom-nav a.active { color: var(--d4-green-deep); background: var(--d4-mint); }
+body.compact-ui .table-wrap { background: #fff; border-color: var(--d4-line); }
+
+/* Control Room is a real route; retain its controls but bring its shell into Style 4. */
+body.control-room-page { min-width: 320px; color: var(--d4-ink); background: var(--d4-bg); font-family: Kanit, "Noto Sans Thai", system-ui, sans-serif; }
+body.control-room-page .shell { background: linear-gradient(180deg,#eff9f3,#e7f3ed); }
+body.control-room-page .rail { background: linear-gradient(180deg,#4f946f,#2f6f50); border-right: 0; }
+body.control-room-page .rail a, body.control-room-page .rail-note, body.control-room-page .rail small { color: #f3fff6; }
+body.control-room-page .main { background: transparent; }
+body.control-room-page .topbar { color: var(--d4-ink); }
+body.control-room-page .hero { border-radius: 28px; box-shadow: var(--d4-shadow); }
+body.control-room-page .hero img { object-fit: cover; }
+body.control-room-page .panel, body.control-room-page .relay-card, body.control-room-page .metrics article, body.control-room-page .schedule-section, body.control-room-page .lower-grid article { border-radius: 22px; box-shadow: var(--d4-shadow); }
+body.control-room-page .panel, body.control-room-page .metrics article { background: rgba(255,255,255,.94); color: var(--d4-ink); }
+body.control-room-page h1, body.control-room-page h2, body.control-room-page h3 { color: var(--d4-green-deep); }
+body.control-room-page .ghost { color: var(--d4-green-deep); border-color: var(--d4-line); background: #fff; }
+body.control-room-page .bottom-nav { display: none; }
+@media (max-width: 650px) { body.control-room-page .rail { display:none; } body.control-room-page .main { margin-left:0; } body.control-room-page .topbar { padding:14px; } }
