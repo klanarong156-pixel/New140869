@@ -122,14 +122,28 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install esp8266:esp8266@3.1.2
       - name: Install libraries
+        shell: bash
         run: |
-          arduino-cli lib install 'WiFiManager@2.0.17'
-          arduino-cli lib install 'PubSubClient@2.8'
-          arduino-cli lib install 'ArduinoJson@7.4.3'
-          arduino-cli lib install 'NTPClient@3.2.1'
-          arduino-cli lib install 'RTClib@2.1.4'
-          arduino-cli lib install 'DHT sensor library@1.4.7'
-          arduino-cli lib install 'Adafruit Unified Sensor'
+          set -euo pipefail
+          install_lib() {
+            local spec="$1"
+            for attempt in 1 2 3 4; do
+              if arduino-cli lib install "$spec"; then
+                return 0
+              fi
+              echo "Library install failed: $spec (attempt $attempt/4); retrying..."
+              sleep $((attempt * 5))
+            done
+            echo "Library install failed permanently: $spec"
+            return 1
+          }
+          install_lib 'WiFiManager@2.0.17'
+          install_lib 'PubSubClient@2.8'
+          install_lib 'ArduinoJson@7.4.3'
+          install_lib 'NTPClient@3.2.1'
+          install_lib 'RTClib@2.1.4'
+          install_lib 'DHT sensor library@1.4.7'
+          install_lib 'Adafruit Unified Sensor'
       - name: Compile current firmware
         run: |
           set -euo pipefail
