@@ -713,3 +713,25 @@ body.dashboard-page .route-page[data-page-section="dashboard"]>*:not(.style4-mob
     text-overflow:ellipsis !important;
   }
 }
+
+
+/* FINAL MOBILE NAV POSITION — flush to the bottom edge */
+@media (max-width:650px){
+  body.dashboard-page .style4-shared-mobile-nav,
+  body.compact-ui .style4-shared-mobile-nav,
+  body.control-room-page .style4-shared-mobile-nav{
+    left:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    width:100% !important;
+    max-width:none !important;
+    height:calc(67px + env(safe-area-inset-bottom, 0px)) !important;
+    padding:5px 6px env(safe-area-inset-bottom, 0px) !important;
+    border-radius:18px 18px 0 0 !important;
+    transform:none !important;
+    box-sizing:border-box !important;
+  }
+  body.dashboard-page .route-page{ padding-bottom:90px !important; }
+  body.compact-ui .app-main{ padding-bottom:90px !important; }
+  body.control-room-page .main{ padding-bottom:90px !important; }
+}
