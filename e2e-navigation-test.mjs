@@ -49,7 +49,7 @@ async function runChecks() {
     const navBlocks = [...html.matchAll(/<nav[^>]*class="bottom-nav"[\s\S]*?<\/nav>/g)].map(match => match[0]);
     if (['finance.html', 'account.html', 'admin.html', 'ota.html'].includes(page)) add(`${page}: has consistent bottom navigation`, navBlocks.length === 1 && (navBlocks[0].match(/<a /g) || []).length === 8);
     for (const navBlock of navBlocks) {
-      for (const href of [...navBlock.matchAll(/<a\\b[^>]*\\bhref="([^"]+)"/gi)].map(match => match[1])) {
+      for (const href of [...navBlock.matchAll(/<a\b[^>]*\\bhref="([^"]+)"/gi)].map(match => match[1])) {
         allNavHrefs.add(href);
         const path = href.split('?')[0];
         add(`${page}: nav target ${href} exists`, href.startsWith('?') || path.startsWith('dashboard/') || fs.existsSync(path) || (page === 'dashboard/index.html' && path === '../finance.html'));
