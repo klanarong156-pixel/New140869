@@ -49,7 +49,7 @@ jobs:
               local_ref="${ref%%\?*}"
               local_ref="${local_ref%%\#*}"
               test -e "$local_ref" || { echo "$file -> $ref (MISSING)"; exit 1; }
-            done < <(printf '%s\n' "$refs" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' | grep -vE '\\.svg#' || true)
+            done < <(printf '%s\n' "$refs" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' | grep -vE '\.svg#' || true)
           done < <(find . -maxdepth 1 -name '*.html' -print)
           while IFS= read -r file; do
             refs=$(grep -oE '(src|href)="[^"]+"' "$file" || true)
@@ -60,7 +60,7 @@ jobs:
               local_ref="dashboard/${local_ref#../}" # resolve dashboard-relative files below
               [[ "$ref" == *"../"* ]] && local_ref="${ref%%\?*}"
               test -e "dashboard/$local_ref" || test -e "$local_ref" || { echo "$file -> $ref (MISSING)"; exit 1; }
-            done < <(printf '%s\n' "$refs" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' | grep -vE '\\.svg#' || true)
+            done < <(printf '%s\n' "$refs" | cut -d'"' -f2 | grep -vE '^(https?:|#|data:|mailto:|/)' | grep -vE '\.svg#' || true)
           done < <(find dashboard -maxdepth 1 -name '*.html' -print)
           test -f icon-512.png
           test "$(file icon-512.png | grep -c '512 x 512')" -eq 1
