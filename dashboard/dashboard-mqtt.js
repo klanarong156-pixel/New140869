@@ -26,15 +26,22 @@
 
     readCredentials() {
       try {
-        const username = localStorage.getItem(mqttConfig.storageUsername)
+        const sessionUsername = sessionStorage.getItem(mqttConfig.storageUsername)
+          || sessionStorage.getItem(legacyStorageUsername);
+        const sessionPassword = sessionStorage.getItem(mqttConfig.storagePassword)
+          || sessionStorage.getItem(legacyStoragePassword);
+        const username = sessionUsername
+          || localStorage.getItem(mqttConfig.storageUsername)
           || localStorage.getItem(legacyStorageUsername)
           || mqttConfig.defaultUsername;
-        const password = localStorage.getItem(mqttConfig.storagePassword)
+        const password = sessionPassword
+          || localStorage.getItem(mqttConfig.storagePassword)
           || localStorage.getItem(legacyStoragePassword)
           || '';
         return {
           username,
-          password
+          password,
+          remember: !sessionPassword && Boolean(localStorage.getItem(mqttConfig.storagePassword) || localStorage.getItem(legacyStoragePassword))
         };
       } catch (_) {
         return { username: mqttConfig.defaultUsername, password: '' };
@@ -46,22 +53,38 @@
       return Boolean(credentials.username && credentials.password);
     },
 
-    saveCredentials(username, password) {
+    saveCredentials(username, password, remember = false) {
       const user = String(username || '').trim();
       const pass = String(password || '');
       if (!user || !pass) throw new Error('กรุณากรอก MQTT Username และ Password ให้ครบ');
-      localStorage.setItem(mqttConfig.storageUsername, user);
-      localStorage.setItem(mqttConfig.storagePassword, pass);
-      // Keep the legacy dashboard and the unified dashboard on one credential source.
-      localStorage.setItem(legacyStorageUsername, user);
-      localStorage.setItem(legacyStoragePassword, pass);
+      const destination = remember ? localStorage : sessionStorage;
+      const other = remember ? sessionStorage : localStorage;
+      try {
+        other.removeItem(mqttConfig.storageUsername);
+        other.removeItem(mqttConfig.storagePassword);
+        other.removeItem(legacyStorageUsername);
+        other.removeItem(legacyStoragePassword);
+        destination.setItem(mqttConfig.storageUsername, user);
+        destination.setItem(mqttConfig.storagePassword, pass);
+        // Preserve legacy key names in the same storage scope, never persist a
+        // session-only password into localStorage as a side effect.
+        destination.setItem(legacyStorageUsername, user);
+        destination.setItem(legacyStoragePassword, pass);
+      } catch (_) {
+        throw new Error('ไม่สามารถบันทึก MQTT credentials ในเบราว์เซอร์ได้');
+      }
       this.authFailed = false;
-      this.dispatch('credentials-saved', { username: user });
+      this.dispatch('credentials-saved', { username: user, remember: Boolean(remember) });
       return this.connect(true);
     },
 
     clearCredentials() {
-      try { credentialEvents.forEach(key => localStorage.removeItem(key)); } catch (_) {}
+      try {
+        credentialEvents.forEach(key => {
+          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
+        });
+      } catch (_) {}
       this.disconnect('ล้าง MQTT credentials แล้ว');
       this.dispatch('credentials-cleared');
     },

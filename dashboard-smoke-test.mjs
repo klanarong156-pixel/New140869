@@ -28,7 +28,7 @@ const cleanDashboardJs = read('dashboard/dashboard.js');
 const finance = read('finance.html');
 const financeJs = read('finance.js');
 const dashboardCss = read('dashboard/dashboard.css');
-const firmware = read('SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino');
+const firmware = read('SmartFarm_V7.2.0_OTA_STABLE.ino');
 const sw = read('sw.js');
 
 const checks = [
@@ -37,7 +37,7 @@ const checks = [
   ['Browser uses HiveMQ WSS 8884 /mqtt', /protocol: 'wss:'/.test(cfg) && /port: 8884/.test(cfg) && /path: '\/mqtt'/.test(cfg)],
   ['Broker host is allowlisted', /MQTT_ALLOWED_BROKER_HOSTS/.test(cfg) && /25305924f68c41f2a1e089a1836d3287\.s1\.eu\.hivemq\.cloud/.test(cfg)],
   ['MQTT.js is the only browser connection owner', /mqtt\.connect\(this\.config\.url/.test(mqtt) && /reconnectPeriod: 3000/.test(mqtt) && !/new SharedWorker/.test(mqtt)],
-  ['MQTT credentials persist locally', /localStorage\.setItem\(this\.storageUser/.test(mqtt) && /localStorage\.getItem\(this\.storagePass/.test(mqtt)],
+  ['Unified MQTT credentials default to session storage', /remember = false/.test(cleanDashboardMqtt) && /const destination = remember \? localStorage : sessionStorage/.test(cleanDashboardMqtt)],
   ['Canonical dashboard connection route has credential inputs', /data-mqtt-username/.test(cleanDashboard) && /data-mqtt-password/.test(cleanDashboard) && /data-credential-form/.test(cleanDashboard)],
   ['Root routes to isolated clean dashboard', /dashboard\//.test(index) && !/mqtt-handler\.js/.test(index)],
   ['Clean dashboard has one MQTT owner', /mqtt\.connect\(mqttConfig\.url/.test(cleanDashboardMqtt) && /reconnectPeriod: 3000/.test(cleanDashboardMqtt) && !/mqtt-connection\.js|mqtt-handler\.js/.test(cleanDashboard)],

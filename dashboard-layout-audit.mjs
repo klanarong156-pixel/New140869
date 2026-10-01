@@ -21,6 +21,7 @@ add('All protected relay IDs remain intact', expectedRelays.every(id => relays.i
 add('Each relay card keeps explicit on/off control hooks', expectedRelays.every(id => new RegExp(`data-relay-card="${id}"[\\s\\S]*data-relay-toggle="${id}"`).test(html)));
 add('Dashboard keeps the real-device sensor truth', /Soil Sensor[\s\S]*ไม่ได้ติดตั้ง/.test(html) && /data-temperature/.test(html) && /data-humidity/.test(html));
 add('Weather surface is separate from DHT11 bindings', /data-weather-current/.test(html) && /data-weather-status/.test(html) && /data-temperature/.test(html));
+add('Weather failure offers a user-triggered retry control', /data-weather-retry/.test(html) && /\[data-weather-retry\].*loadWeather/.test(js));
 add('Connection page keeps credential form and diagnostics', /data-credential-form/.test(html) && /data-diagnostic-error/.test(html));
 add('Dashboard uses canonical MQTT manager only', /dashboard-mqtt\.js/.test(html) && !/mqtt-connection\.js|mqtt-handler\.js/.test(html));
 add('Dashboard registers scoped service worker', /navigator\.serviceWorker\.register\(swUrl, \{ scope: swScope \}\)/.test(html));

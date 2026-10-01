@@ -7,6 +7,17 @@ const storage = new Map([
   ['smartfarm.dashboard.username', 'smartfarm'],
   ['smartfarm.dashboard.password', 'test-password']
 ]);
+const session = new Map();
+const localStorage = {
+  getItem(key) { return storage.get(key) || null; },
+  setItem(key, value) { storage.set(key, String(value)); },
+  removeItem(key) { storage.delete(key); }
+};
+const sessionStorage = {
+  getItem(key) { return session.get(key) || null; },
+  setItem(key, value) { session.set(key, String(value)); },
+  removeItem(key) { session.delete(key); }
+};
 
 class FakeClient {
   constructor() {
@@ -48,18 +59,16 @@ const context = {
     clearInterval() {},
     setTimeout,
     clearTimeout,
-    localStorage: {
-      getItem(key) { return storage.get(key) || null; },
-      setItem(key, value) { storage.set(key, String(value)); },
-      removeItem(key) { storage.delete(key); }
-    },
+    localStorage,
+    sessionStorage,
     mqtt: {
       connect() { fakeClient = new FakeClient(); return fakeClient; }
     }
   }
 };
 context.CustomEvent = context.window.CustomEvent;
-context.localStorage = context.window.localStorage;
+context.localStorage = localStorage;
+context.sessionStorage = sessionStorage;
 context.globalThis = context;
 vm.createContext(context);
 for (const file of ['dashboard/dashboard-config.js', 'dashboard/dashboard-state.js', 'dashboard/dashboard-mqtt.js']) {
@@ -69,13 +78,23 @@ for (const file of ['dashboard/dashboard-config.js', 'dashboard/dashboard-state.
 const config = context.window.SmartFarmDashboardConfig;
 const store = context.window.SmartFarmDashboardState;
 const manager = context.window.SmartFarmDashboardMqtt;
+const controlRoomHtml = fs.readFileSync('control-room/index.html', 'utf8');
+const controlRoomJs = fs.readFileSync('control-room/control-room.js', 'utf8');
+const controlRoomScheduleJs = fs.readFileSync('control-room/control-room-schedule.js', 'utf8');
 const check = (condition, message) => {
   if (!condition) throw new Error(`FAIL: ${message}`);
   console.log(`PASS: ${message}`);
 };
 
+check(store.get().esp.emergencyLock === null && store.get().esp.pumpSafeLock === null, 'safety states remain unknown until firmware reports them');
+check(controlRoomHtml.includes('../dashboard/dashboard-mqtt.js') && controlRoomHtml.includes('../dashboard/dashboard-config.js'), 'Control Room loads the canonical Dashboard MQTT config and manager');
+check(!controlRoomJs.includes('mqtt.connect(') && controlRoomJs.includes('mqtt.publish(topic, payload)') && controlRoomJs.includes('publishCommand(config.topics.relaySet(relay)'), 'Control Room publishes through the shared manager without a second MQTT connection');
+check(controlRoomJs.includes('config.topics.modeSet') && controlRoomJs.includes('config.topics.emergencySet'), 'Control Room uses canonical mode and emergency topics');
+check(controlRoomScheduleJs.includes('data-id="${escapeHtml(item.id)}"'), 'Firebase schedule IDs are escaped before HTML attribute rendering');
+
 manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 10, rssi: -60 }), { retain: true });
 check(store.get().esp.online === true, 'retained heartbeat marks ESP online from real firmware state');
+check(store.get().esp.pumpRuntimeSec === null, 'missing pump runtime remains unavailable instead of becoming zero');
 check(store.get().esp.lastHeartbeatWasRetained === true, 'retained heartbeat is recorded as retained');
 
 manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 20, rssi: -61 }), { retain: true });
@@ -130,5 +149,12 @@ check(fakeClient.subscriptions.some(item => item.topic === 'smartfarm/emergency/
 check(fakeClient.subscriptions.some(item => item.topic === 'smartfarm/config/telegram/status'), 'dashboard subscribes to Telegram status');
 check(config.topics.emergencySet === 'smartfarm/emergency/set', 'dashboard emergency command matches firmware topic');
 check(events.filter(event => event.type === 'smartfarm:mqtt:connected').length === 1, 'one MQTT connected event is emitted');
+
+manager.saveCredentials('session-user', 'session-secret', false);
+check(session.get('smartfarm.dashboard.password') === 'session-secret' && !storage.has('smartfarm.dashboard.password'), 'MQTT password is session-scoped by default');
+manager.saveCredentials('remember-user', 'remember-secret', true);
+check(storage.get('smartfarm.dashboard.password') === 'remember-secret' && !session.has('smartfarm.dashboard.password'), 'MQTT password persists only after explicit remember choice');
+manager.clearCredentials();
+check(!storage.has('smartfarm.dashboard.password') && !session.has('smartfarm.dashboard.password'), 'clear credentials removes both persistent and session values');
 
 console.log('\nClean dashboard MQTT contract tests passed.');

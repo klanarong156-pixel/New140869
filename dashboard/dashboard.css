@@ -587,3 +587,5 @@ body.dashboard-page .quick-actions-grid { grid-template-columns: repeat(4, minma
     margin-top:0;
   }
 }
+
+.credential-form label.remember-mqtt{display:flex;grid-template-columns:none;align-items:center;gap:8px;color:var(--ink);font-size:.68rem}.credential-form .remember-mqtt input{width:16px;height:16px;margin:0;accent-color:var(--green)}

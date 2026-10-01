@@ -33,13 +33,13 @@
       mqttConnects: null,
       mqttFailures: null,
       otaReady: null,
-      otaInProgress: false,
+      otaInProgress: null,
       otaProgress: null,
       otaStatus: '',
-      pumpSafeLock: false,
-      emergencyLock: false,
+      pumpSafeLock: null,
+      emergencyLock: null,
       emergencySource: '',
-      pumpRuntimeSec: 0,
+      pumpRuntimeSec: null,
       clockValid: false,
       rtc: false,
       ntp: false,
@@ -132,14 +132,15 @@
     current.esp.mqttConnects = Number.isFinite(Number(device.mqttConnects)) ? Number(device.mqttConnects) : null;
     current.esp.mqttFailures = Number.isFinite(Number(device.mqttFailures)) ? Number(device.mqttFailures) : null;
     current.esp.otaReady = typeof device.otaReady === 'boolean' ? device.otaReady : null;
-    current.esp.otaInProgress = device.otaInProgress === true;
+    current.esp.otaInProgress = typeof device.otaInProgress === 'boolean' ? device.otaInProgress : null;
     current.esp.otaProgress = device.otaProgress === null || device.otaProgress === undefined || device.otaProgress === ''
       ? null : Number.isFinite(Number(device.otaProgress)) ? Number(device.otaProgress) : null;
     current.esp.otaStatus = String(device.otaStatus || '');
-    current.esp.pumpSafeLock = device.pumpSafeLock === true;
-    current.esp.emergencyLock = device.emergencyLock === true;
+    current.esp.pumpSafeLock = typeof device.pumpSafeLock === 'boolean' ? device.pumpSafeLock : null;
+    current.esp.emergencyLock = typeof device.emergencyLock === 'boolean' ? device.emergencyLock : null;
     current.esp.emergencySource = String(device.emergencySource || '');
-    current.esp.pumpRuntimeSec = Number.isFinite(Number(device.pumpRuntimeSec)) ? Number(device.pumpRuntimeSec) : 0;
+    current.esp.pumpRuntimeSec = device.pumpRuntimeSec === null || device.pumpRuntimeSec === undefined || device.pumpRuntimeSec === ''
+      ? null : Number.isFinite(Number(device.pumpRuntimeSec)) ? Number(device.pumpRuntimeSec) : null;
     current.esp.clockValid = device.clockValid === true;
     current.esp.rtc = device.rtc === true;
     current.esp.ntp = device.ntp === true;
@@ -212,7 +213,8 @@
   }, 'system:error');
 
   const setEmergency = emergency => update(current => {
-    current.esp.emergencyLock = emergency?.active === true;
+    if (typeof emergency?.active !== 'boolean') return;
+    current.esp.emergencyLock = emergency.active;
     current.esp.emergencySource = String(emergency?.source || '');
     if (emergency?.time) current.esp.time = String(emergency.time);
   }, 'emergency:status');

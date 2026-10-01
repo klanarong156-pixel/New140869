@@ -57,6 +57,7 @@
     credentialForm: $('[data-credential-form]'),
     username: $('[data-mqtt-username]'),
     password: $('[data-mqtt-password]'),
+    rememberCredentials: $('[data-remember-mqtt]'),
     credentialError: $('[data-credential-error]'),
     connectButton: $('[data-connect]'),
     disconnectButton: $('[data-disconnect]'),
@@ -219,9 +220,9 @@
     textAll('[data-esp-ota-progress]', state.esp.otaProgress === null ? '—' : `${state.esp.otaProgress}%`);
     textAll('[data-esp-reset-reason]', state.esp.resetReason || '—');
     textAll('[data-esp-clock]', state.esp.clockValid ? `${state.esp.clockSource.toUpperCase()} · ${state.esp.time || 'valid'}` : 'ยังไม่ valid');
-    textAll('[data-emergency-status]', state.esp.emergencyLock ? `หยุดฉุกเฉินทำงาน${state.esp.emergencySource ? ` · ${state.esp.emergencySource}` : ''}` : 'ปกติ');
-    textAll('[data-pump-safety-status]', state.esp.pumpSafeLock ? 'ล็อกปั๊มเพื่อความปลอดภัย' : 'พร้อมตามคำสั่ง/ตาราง');
-    toneAll('[data-emergency-status]', state.esp.emergencyLock ? 'bad' : 'good');
+    textAll('[data-emergency-status]', state.esp.emergencyLock === null ? 'ยังไม่มีข้อมูล' : state.esp.emergencyLock ? `หยุดฉุกเฉินทำงาน${state.esp.emergencySource ? ` · ${state.esp.emergencySource}` : ''}` : 'ปกติ');
+    textAll('[data-pump-safety-status]', state.esp.pumpSafeLock === null ? 'ยังไม่มีข้อมูล' : state.esp.pumpSafeLock ? 'ล็อกปั๊มเพื่อความปลอดภัย' : 'พร้อมตามคำสั่ง/ตาราง');
+    toneAll('[data-emergency-status]', state.esp.emergencyLock === null ? 'neutral' : state.esp.emergencyLock ? 'bad' : 'good');
     const lwtOffline = state.diagnostic.connectionReason === 'status/online=false';
     textAll('[data-esp-status-detail]', espOnline ? `ออนไลน์ · heartbeat ${elapsed(state.esp.lastHeartbeatAt)}` : lwtOffline ? `LWT · ESP/WiFi หลุด · ล่าสุด ${elapsed(state.esp.lastHeartbeatAt)}` : state.mqtt.status !== 'connected' ? 'รอการเชื่อมต่อ MQTT' : state.esp.lastHeartbeatAt ? `ไม่พบ heartbeat ใหม่ · ${elapsed(state.esp.lastHeartbeatAt)}` : 'ยังไม่ได้รับ heartbeat จากอุปกรณ์จริง');
 
@@ -240,8 +241,8 @@
     });
     const emergencyStop = $('[data-emergency-stop]');
     const emergencyReset = $('[data-emergency-reset]');
-    if (emergencyStop) emergencyStop.disabled = !mqtt.client?.connected || state.esp.online !== true || state.esp.emergencyLock;
-    if (emergencyReset) emergencyReset.disabled = !mqtt.client?.connected || state.esp.online !== true || !state.esp.emergencyLock;
+    if (emergencyStop) emergencyStop.disabled = !mqtt.client?.connected || state.esp.online !== true || state.esp.emergencyLock !== false;
+    if (emergencyReset) emergencyReset.disabled = !mqtt.client?.connected || state.esp.online !== true || state.esp.emergencyLock !== true;
 
     textAll('[data-diagnostic-mqtt]', mqttLabel(mqttStatus));
     textAll('[data-diagnostic-esp]', espOnline === null ? 'ยังไม่มีข้อมูล' : espOnline ? 'ONLINE' : 'OFFLINE');
@@ -259,7 +260,7 @@
         const caption = card.querySelector('[data-relay-caption]');
         if (toggle) {
           toggle.setAttribute('aria-pressed', value === null ? 'mixed' : String(value));
-          toggle.disabled = value === null || !mqtt.client?.connected || state.esp.online !== true || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
+          toggle.disabled = value === null || !mqtt.client?.connected || state.esp.online !== true || state.esp.emergencyLock === true || (relay.id === 'pump' && state.esp.pumpSafeLock !== false);
           toggle.setAttribute('aria-label', `สลับ${relay.name} · ${label}`);
         }
         if (caption) text(caption, label);
@@ -273,7 +274,7 @@
         element.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
       });
       $$(`[data-mobile-relay="${relay.id}"]`).forEach(button => {
-        button.disabled = value === null || state.esp.online !== true || !mqtt.client?.connected || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
+        button.disabled = value === null || state.esp.online !== true || !mqtt.client?.connected || state.esp.emergencyLock === true || (relay.id === 'pump' && state.esp.pumpSafeLock !== false);
       });
     });
 
@@ -300,17 +301,32 @@
 
   const renderWeather = weather => {
     if (!elements.weatherStatus) return;
+    const retryButton = $('[data-weather-retry]');
     if (weather.status === 'loading') {
       textAll('[data-weather-status]', 'กำลังโหลดข้อมูล...');
+      textAll('[data-weather-current]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-rain]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-humidity]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-wind]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-wind-direction]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-updated]', 'กำลังโหลดข้อมูลจาก Weather API…');
+      $$('[data-forecast]').forEach(node => node.replaceChildren());
+      if (retryButton) { retryButton.hidden = true; retryButton.disabled = true; }
       return;
     }
     if (weather.status === 'error') {
-      textAll('[data-weather-status]', 'ไม่สามารถเชื่อมต่อข้อมูลได้');
+      textAll('[data-weather-status]', 'ไม่สามารถเชื่อมต่อข้อมูลสภาพอากาศได้');
       textAll('[data-weather-current]', 'ยังไม่มีข้อมูล');
       textAll('[data-weather-rain]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-humidity]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-wind]', 'ยังไม่มีข้อมูล');
+      textAll('[data-weather-wind-direction]', 'ยังไม่มีข้อมูล');
+      $$('[data-forecast]').forEach(node => node.replaceChildren());
       textAll('[data-weather-updated]', weather.error || 'ลองใหม่ภายหลัง');
+      if (retryButton) { retryButton.hidden = false; retryButton.disabled = false; }
       return;
     }
+    if (retryButton) { retryButton.hidden = true; retryButton.disabled = false; }
     const current = weather.current || {};
     textAll('[data-weather-status]', weatherCode(current.weather_code));
     textAll('[data-weather-current]', hasNumber(current.temperature_2m) ? `${formatNumber(current.temperature_2m, 1)} °C` : 'ยังไม่มีข้อมูล');
@@ -356,7 +372,14 @@
     else showToast('ยังส่งคำสั่งฉุกเฉินไม่ได้ · MQTT ยังไม่เชื่อมต่อ', 'warn');
   };
 
+  let weatherRequestSequence = 0;
+  let weatherRequestController = null;
   const loadWeather = async () => {
+    const requestSequence = ++weatherRequestSequence;
+    weatherRequestController?.abort();
+    const controller = new AbortController();
+    weatherRequestController = controller;
+    store.setWeather({ status: 'loading', current: null, forecast: [], error: '' });
     const params = new URLSearchParams({
       latitude: String(config.weather.latitude),
       longitude: String(config.weather.longitude),
@@ -365,7 +388,6 @@
       timezone: config.weather.timezone,
       forecast_days: '3'
     });
-    const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
     try {
       const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
@@ -377,6 +399,7 @@
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
+      if (requestSequence !== weatherRequestSequence) return;
       const daily = data.daily || {};
       store.setWeather({
         status: 'ready',
@@ -390,12 +413,14 @@
         }))
       });
     } catch (error) {
+      if (requestSequence !== weatherRequestSequence) return;
       const message = error?.name === 'AbortError'
         ? 'Weather API: หมดเวลารอข้อมูล 10 วินาที'
         : `Weather API: ${error?.message || 'เชื่อมต่อไม่ได้'}`;
       store.setWeather({ status: 'error', error: message });
     } finally {
       window.clearTimeout(timeout);
+      if (weatherRequestController === controller) weatherRequestController = null;
     }
   };
 
@@ -447,6 +472,7 @@
     const credentials = mqtt.readCredentials();
     if (elements.username) elements.username.value = credentials.username || config.mqtt.defaultUsername;
     if (elements.password) elements.password.value = '';
+    if (elements.rememberCredentials) elements.rememberCredentials.checked = credentials.remember === true;
   };
 
   const bind = () => {
@@ -456,7 +482,7 @@
     elements.credentialForm?.addEventListener('submit', event => {
       event.preventDefault();
       try {
-        mqtt.saveCredentials(elements.username.value, elements.password.value);
+        mqtt.saveCredentials(elements.username.value, elements.password.value, elements.rememberCredentials?.checked === true);
         if (elements.credentialError) elements.credentialError.hidden = true;
         elements.password.value = '';
         showToast('บันทึก credentials แล้ว · กำลังเชื่อมต่อ', 'info');
@@ -480,6 +506,7 @@
       fillCredentials();
       showToast('ล้าง MQTT credentials จากเครื่องนี้แล้ว', 'info');
     });
+    $('[data-weather-retry]')?.addEventListener('click', () => loadWeather());
     $$('[data-relay-toggle]').forEach(button => button.addEventListener('click', () => {
       const relay = button.closest('[data-relay-card]').dataset.relayCard;
       const current = store.get().relays[relay];
