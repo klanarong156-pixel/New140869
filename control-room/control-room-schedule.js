@@ -12,13 +12,15 @@
   let schedules = [];
   let toastTimer;
   let persistence = 'loading';
-  const localCache = () => { try { const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); return Array.isArray(value) ? value : []; } catch (_) { return []; } };
-  const writeCache = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules)); } catch (_) {} };
   const user = () => window.FirebaseAuth?.user?.localId || '';
+  const cacheKey = () => `${STORAGE_KEY}.${encodeURIComponent(user() || 'guest')}`;
+  const localCache = () => { try { const value = JSON.parse(localStorage.getItem(cacheKey()) || '[]'); return Array.isArray(value) ? value : []; } catch (_) { return []; } };
+  const writeCache = () => { try { localStorage.setItem(cacheKey(), JSON.stringify(schedules)); } catch (_) {} };
   const isFirebaseReady = () => Boolean(window.FirebaseDB && window.FirebaseAuth && user() && window.FirebaseAuth.token);
   const toast = message => { const node = document.querySelector('.toast'); if (!node) return; node.textContent = message; node.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => node.classList.remove('show'), 2800); };
   const setStatus = (kind, message) => { persistence = kind; if (status) { status.dataset.tone = kind; status.textContent = message; } };
   const days = value => (value || []).map(day => dayLabels[day] || day).join(' ') || 'ไม่เลือกวัน';
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
   const normalize = item => ({ id: String(item?.id || ''), relay: String(item?.relay || ''), onTime: String(item?.onTime || ''), offTime: String(item?.offTime || ''), days: Array.isArray(item?.days) ? item.days.filter(day => dayLabels[day]) : [], enabled: item?.enabled === true, updatedAt: String(item?.updatedAt || new Date().toISOString()) });
   const valid = item => item.id && allowedRelays.has(item.relay) && /^([01]\d|2[0-3]):[0-5]\d$/.test(item.onTime) && /^([01]\d|2[0-3]):[0-5]\d$/.test(item.offTime) && item.onTime !== item.offTime && item.days.length > 0;
   async function loadFirebase() {
@@ -54,7 +56,7 @@
   function render() {
     count.textContent = `${schedules.length} รายการ`;
     if (!schedules.length) { list.innerHTML = '<div class="schedule-empty">ยังไม่มีตารางเวลา<br><small>สร้างรายการแรกจากแบบฟอร์มด้านซ้าย</small></div>'; return; }
-    list.innerHTML = schedules.map(item => `<article class="schedule-item ${item.enabled ? '' : 'disabled'}" data-id="${item.id}"><div class="schedule-item-top"><div><span class="schedule-relay">${labels[item.relay] || item.relay}</span><strong>${item.onTime} <i>→</i> ${item.offTime}</strong></div><label class="mini-switch"><input type="checkbox" data-action="toggle" ${item.enabled ? 'checked' : ''}><span></span></label></div><div class="schedule-meta"><span>● ${days(item.days)}</span><span>${item.enabled ? 'กำลังใช้งาน' : 'ปิดใช้งาน'}</span></div><div class="schedule-actions"><button type="button" data-action="edit">แก้ไข</button><button type="button" data-action="delete">ลบ</button></div></article>`).join('');
+    list.innerHTML = schedules.map(item => `<article class="schedule-item ${item.enabled ? '' : 'disabled'}" data-id="${escapeHtml(item.id)}"><div class="schedule-item-top"><div><span class="schedule-relay">${labels[item.relay] || item.relay}</span><strong>${item.onTime} <i>→</i> ${item.offTime}</strong></div><label class="mini-switch"><input type="checkbox" data-action="toggle" ${item.enabled ? 'checked' : ''}><span></span></label></div><div class="schedule-meta"><span>● ${days(item.days)}</span><span>${item.enabled ? 'กำลังใช้งาน' : 'ปิดใช้งาน'}</span></div><div class="schedule-actions"><button type="button" data-action="edit">แก้ไข</button><button type="button" data-action="delete">ลบ</button></div></article>`).join('');
   }
   function clearForm() { form.reset(); form.querySelectorAll('[name="day"]').forEach(input => { input.checked = true; }); form.elements.onTime.value = '06:00'; form.elements.offTime.value = '18:00'; form.elements.enabled.checked = true; delete form.dataset.editing; }
   function fill(item) { form.elements.relay.value = item.relay; form.elements.onTime.value = item.onTime; form.elements.offTime.value = item.offTime; form.elements.enabled.checked = item.enabled; form.querySelectorAll('[name="day"]').forEach(input => { input.checked = item.days.includes(input.value); }); form.dataset.editing = item.id; form.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
