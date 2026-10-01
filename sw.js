@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartfarm-v47-top-balance';
+const CACHE_NAME = 'smartfarm-v48-dashboard-cache-align';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
   './dashboard/dashboard.css?v=13', './design4.css?v=10', './dashboard/dashboard-config.js?v=1',
