@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in *.js *.mjs dashboard/*.js; do node --check "$file"; done
+          for file in *.js *.mjs dashboard/*.js control-room/*.js tools/*.mjs; do node --check "$file"; done
           for file in *.json; do node -e "JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'))" "$file"; done
       - name: Run Smart Farm contract checks
         run: |
