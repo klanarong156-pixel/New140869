@@ -87,10 +87,16 @@ async function main() {
       unifiedPass: localStorage.getItem('smartfarm.dashboard.password'),
       legacyUser: localStorage.getItem('smartfarm.mqtt.username'),
       legacyPass: localStorage.getItem('smartfarm.mqtt.password'),
+      sessionUnifiedUser: sessionStorage.getItem('smartfarm.dashboard.username'),
+      sessionUnifiedPass: sessionStorage.getItem('smartfarm.dashboard.password'),
+      sessionLegacyUser: sessionStorage.getItem('smartfarm.mqtt.username'),
+      sessionLegacyPass: sessionStorage.getItem('smartfarm.mqtt.password'),
       connected: window.SmartFarmDashboardMqtt.client?.connected === true
     }));
-    check(storage.unifiedUser === TEST_USER && storage.unifiedPass === TEST_PASS, 'Unified dashboard credentials are saved in localStorage');
-    check(storage.legacyUser === TEST_USER && storage.legacyPass === TEST_PASS, 'Legacy dashboard credentials stay synchronized');
+    check(storage.sessionUnifiedUser === TEST_USER && storage.sessionUnifiedPass === TEST_PASS
+      && storage.unifiedUser === null && storage.unifiedPass === null, 'MQTT credentials use sessionStorage by default, not localStorage');
+    check(storage.sessionLegacyUser === TEST_USER && storage.sessionLegacyPass === TEST_PASS
+      && storage.legacyUser === null && storage.legacyPass === null, 'Legacy credential keys remain synchronized within the session scope');
     check(storage.connected === true, 'Primary MQTT client reports connected');
 
     const publish = await page.evaluate(() => {
@@ -104,11 +110,26 @@ async function main() {
       && publish.published[0]?.options?.retain === false, 'Critical relay command uses QoS 1 without retain');
     await context.close();
 
+    const remembered = await openConnectionPage(browser);
+    await remembered.page.locator('[data-mqtt-username]').fill(TEST_USER);
+    await remembered.page.locator('[data-mqtt-password]').fill(TEST_PASS);
+    await remembered.page.locator('[data-remember-mqtt]').check();
+    await remembered.page.locator('[data-credential-form] button[type="submit"]').click();
+    await remembered.page.waitForFunction(() => window.SmartFarmDashboardState?.get()?.mqtt?.status === 'connected');
+    const rememberedStorage = await remembered.page.evaluate(() => ({
+      user: localStorage.getItem('smartfarm.dashboard.username'),
+      password: localStorage.getItem('smartfarm.dashboard.password'),
+      sessionPassword: sessionStorage.getItem('smartfarm.dashboard.password')
+    }));
+    check(rememberedStorage.user === TEST_USER && rememberedStorage.password === TEST_PASS
+      && rememberedStorage.sessionPassword === null, 'Remember this device explicitly opts into localStorage persistence');
+    await remembered.context.close();
+
     const incomplete = await openConnectionPage(browser);
     await incomplete.page.locator('[data-mqtt-username]').fill(TEST_USER);
     await incomplete.page.locator('[data-credential-form]').evaluate(form => form.requestSubmit());
     await new Promise(resolve => setTimeout(resolve, 50));
-    check(await incomplete.page.evaluate(() => !localStorage.getItem('smartfarm.dashboard.password')), 'Incomplete credentials are not saved');
+    check(await incomplete.page.evaluate(() => !localStorage.getItem('smartfarm.dashboard.password') && !sessionStorage.getItem('smartfarm.dashboard.password')), 'Incomplete credentials are not saved');
     await incomplete.context.close();
 
     console.log('E2E RESULT: Canonical Settings + MQTT integration passed');
