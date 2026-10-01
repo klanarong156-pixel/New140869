@@ -1,5 +1,5 @@
 name: Smart Farm quality
-# Current architecture: mqtt-connection.js + SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino
+# Current architecture: mqtt-connection.js + SmartFarm_V7.2.0_OTA_STABLE.ino
 
 on:
   push:
@@ -32,6 +32,8 @@ jobs:
         run: |
           node dashboard-smoke-test.mjs
           node dashboard-contract-test.mjs
+          node firmware-v720-contract-test.mjs
+          node dashboard-layout-audit.mjs
           node schedule-regression-test.mjs
           node firmware-logic-regression-test.mjs
           node ai-advisor-regression-test.mjs
@@ -144,17 +146,17 @@ jobs:
           }
           install_lib 'WiFiManager@2.0.17'
           install_lib 'PubSubClient@2.8'
-          install_lib 'ArduinoJson@7.4.3'
+          install_lib 'ArduinoJson@6.21.5'
           install_lib 'NTPClient@3.2.1'
           install_lib 'RTClib@2.1.4'
-          install_lib 'DHT sensor library@1.4.7'
+          install_lib 'DHT sensor library@1.4.6'
           install_lib 'Adafruit Unified Sensor'
       - name: Compile current firmware
         run: |
           set -euo pipefail
           rm -rf build
           mkdir -p /tmp/smartfarm-sketch build
-          cp SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino /tmp/smartfarm-sketch/smartfarm-sketch.ino
+          cp SmartFarm_V7.2.0_OTA_STABLE.ino /tmp/smartfarm-sketch/smartfarm-sketch.ino
           arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 --output-dir build /tmp/smartfarm-sketch
           test -s build/smartfarm-sketch.ino.bin
           (cd build && sha256sum *.bin | tee SHA256SUMS.txt)

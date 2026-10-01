@@ -214,6 +214,9 @@
     textAll('[data-esp-last-seen]', elapsed(state.esp.lastHeartbeatAt));
     textAll('[data-esp-heap]', state.esp.heap === null ? '—' : `${state.esp.heap} B`);
     textAll('[data-esp-heap-frag]', state.esp.heapFrag === null ? '—' : `${state.esp.heapFrag}%`);
+    const otaLabel = state.esp.otaStatus || (state.esp.otaReady === true ? 'READY' : state.esp.otaReady === false ? 'DISABLED' : 'ยังไม่มีข้อมูล');
+    textAll('[data-esp-ota-status]', otaLabel);
+    textAll('[data-esp-ota-progress]', state.esp.otaProgress === null ? '—' : `${state.esp.otaProgress}%`);
     textAll('[data-esp-reset-reason]', state.esp.resetReason || '—');
     textAll('[data-esp-clock]', state.esp.clockValid ? `${state.esp.clockSource.toUpperCase()} · ${state.esp.time || 'valid'}` : 'ยังไม่ valid');
     textAll('[data-emergency-status]', state.esp.emergencyLock ? `หยุดฉุกเฉินทำงาน${state.esp.emergencySource ? ` · ${state.esp.emergencySource}` : ''}` : 'ปกติ');
@@ -233,12 +236,12 @@
     text(elements.schedule, state.schedule.enabled === null ? '—' : state.schedule.enabled ? 'เปิดใช้งาน' : 'ปิดใช้งาน');
     $$('[data-mode]').forEach(button => {
       button.dataset.active = button.dataset.mode === state.mode ? 'true' : 'false';
-      button.disabled = !mqtt.client?.connected;
+      button.disabled = !mqtt.client?.connected || state.esp.online !== true;
     });
     const emergencyStop = $('[data-emergency-stop]');
     const emergencyReset = $('[data-emergency-reset]');
-    if (emergencyStop) emergencyStop.disabled = !mqtt.client?.connected || state.esp.emergencyLock;
-    if (emergencyReset) emergencyReset.disabled = !mqtt.client?.connected || !state.esp.emergencyLock;
+    if (emergencyStop) emergencyStop.disabled = !mqtt.client?.connected || state.esp.online !== true || state.esp.emergencyLock;
+    if (emergencyReset) emergencyReset.disabled = !mqtt.client?.connected || state.esp.online !== true || !state.esp.emergencyLock;
 
     textAll('[data-diagnostic-mqtt]', mqttLabel(mqttStatus));
     textAll('[data-diagnostic-esp]', espOnline === null ? 'ยังไม่มีข้อมูล' : espOnline ? 'ONLINE' : 'OFFLINE');
@@ -256,7 +259,7 @@
         const caption = card.querySelector('[data-relay-caption]');
         if (toggle) {
           toggle.setAttribute('aria-pressed', value === null ? 'mixed' : String(value));
-          toggle.disabled = value === null || !mqtt.client?.connected || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
+          toggle.disabled = value === null || !mqtt.client?.connected || state.esp.online !== true || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
           toggle.setAttribute('aria-label', `สลับ${relay.name} · ${label}`);
         }
         if (caption) text(caption, label);
@@ -268,6 +271,9 @@
       $$(`[data-mobile-relay-state="${relay.id}"]`).forEach(element => {
         text(element, label);
         element.dataset.state = value === null ? 'unknown' : value ? 'on' : 'off';
+      });
+      $$(`[data-mobile-relay="${relay.id}"]`).forEach(button => {
+        button.disabled = value === null || state.esp.online !== true || !mqtt.client?.connected || state.esp.emergencyLock || (relay.id === 'pump' && state.esp.pumpSafeLock);
       });
     });
 
@@ -327,8 +333,10 @@
   };
 
   const submitRelay = (relay, desired) => {
+    const relayName = config.relays.find(item => item.id === relay)?.name || relay;
+    if (!window.confirm(`ยืนยัน${desired ? 'เปิด' : 'ปิด'}${relayName}? Dashboard จะรอ status ยืนยันจาก ESP8266`)) return;
     const sent = mqtt.publish(config.topics.relaySet(relay), desired ? 'ON' : 'OFF');
-    if (sent) showToast(`${config.relays.find(item => item.id === relay)?.name || relay}: ส่งคำสั่งแล้ว · รอ status จาก ESP8266`, 'info');
+    if (sent) showToast(`${relayName}: ส่งคำสั่งแล้ว · รอ status จาก ESP8266`, 'info');
     else showToast('ยังส่งคำสั่งไม่ได้ · ตรวจสอบ MQTT Connected และ credentials', 'warn');
   };
 
@@ -339,6 +347,10 @@
   };
 
   const submitEmergency = command => {
+    const message = command === 'STOP'
+      ? 'ยืนยัน Emergency Stop? รีเลย์ทั้งหมดจะถูกสั่งปิดและล็อกการเปิด'
+      : 'ยืนยันปลด Emergency Stop? ระบบ AUTO/Schedule อาจกลับมาควบคุมรีเลย์';
+    if (!window.confirm(message)) return;
     const sent = mqtt.publish(config.topics.emergencySet, command);
     if (sent) showToast(command === 'STOP' ? 'ส่งคำสั่งหยุดฉุกเฉินแล้ว' : 'ส่งคำสั่งปลดหยุดฉุกเฉินแล้ว · รอ status จาก ESP8266', command === 'STOP' ? 'warn' : 'info');
     else showToast('ยังส่งคำสั่งฉุกเฉินไม่ได้ · MQTT ยังไม่เชื่อมต่อ', 'warn');

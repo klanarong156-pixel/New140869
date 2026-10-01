@@ -92,6 +92,8 @@ check(store.get().esp.online === false, 'heartbeat older than 25 seconds marks E
 
 manager.handleMessage(config.topics.dht11, JSON.stringify({ temperature: 31.25, humidity: 68 }), { retain: false });
 check(store.get().sensor.temperature === 31.25 && store.get().sensor.humidity === 68, 'DHT11 JSON is parsed into sensor state');
+manager.handleMessage(config.topics.dht11, JSON.stringify({ temperature: null, humidity: null }), { retain: false });
+check(store.get().sensor.temperature === null && store.get().sensor.humidity === null, 'null DHT11 values remain unavailable instead of becoming zero');
 
 manager.handleMessage(config.topics.modeStatus, 'AUTO', { retain: true });
 check(store.get().mode === 'AUTO', 'mode status is accepted');
@@ -103,6 +105,10 @@ check(store.get().esp.time === '2026-09-27T01:00:00' && store.get().esp.clockVal
 
 manager.handleMessage(config.topics.relayStatus('pump'), 'OFF', { retain: true });
 check(store.get().relays.pump === false, 'relay OFF status is accepted');
+store.setRelay('pump', null);
+check(store.get().relays.pump === null, 'null relay status remains unknown instead of becoming OFF');
+manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.2.0-OTA-STABLE', uptimeSec: 35, otaReady: true, otaStatus: 'READY', otaProgress: 0, rssi: -60 }), { retain: false });
+check(store.get().esp.firmware === 'V7.2.0-OTA-STABLE' && store.get().esp.otaReady === true && store.get().esp.otaStatus === 'READY', 'V7.2.0 firmware and OTA diagnostics are accepted from heartbeat');
 
 check(manager.connect() === true && fakeClient, 'MQTT connect starts the single browser client');
 fakeClient.emit('connect');

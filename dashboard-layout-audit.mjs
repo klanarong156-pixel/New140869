@@ -7,7 +7,7 @@ const checks = [];
 const add = (name, ok) => checks.push({ name, ok });
 
 const routeSections = [...html.matchAll(/data-page-section="([^"]+)"/g)].map(match => match[1]);
-const nav = html.match(/<nav class="bottom-nav"[\s\S]*?<\/nav>/)?.[0] || '';
+const nav = html.match(/<nav class="[^"]*\bbottom-nav\b[^"]*"[\s\S]*?<\/nav>/)?.[0] || '';
 const relays = [...html.matchAll(/data-relay-card="([^"]+)"/g)].map(match => match[1]);
 const expectedRoutes = ['dashboard', 'water', 'devices', 'connection', 'weather', 'settings', 'info'];
 const expectedRelays = ['pump', 'zone1', 'lighthome', 'lightsala'];

@@ -133,14 +133,18 @@ MQTT username/password ของ Dashboard ต้องกรอกโดยผ�
 
 เป้าหมาย Arduino คือ NodeMCU 1.0 (ESP-12E Module): `esp8266:esp8266:nodemcuv2` โดยใช้ PlatformIO environment ชื่อ `nodemcuv2` จาก `platformio.ini`
 
-หลังแก้ firmware ให้ compile ก่อน upload ทุกครั้ง และใช้ Serial Monitor ที่ 115200 baud การ build สำเร็จยืนยันเฉพาะการ compile เท่านั้น ต้องทดสอบ Wi-Fi, MQTT, DHT11, DS3231, รีเลย์ และปั้มกับ NodeMCU จริงแยกต่างหาก
+Firmware release ปัจจุบันคือ `SmartFarm_V7.2.0_OTA_STABLE.ino` ใช้ `espressif8266@4.2.0` ซึ่งติดตั้ง Arduino ESP8266 Core 3.1.2, NodeMCU 1.0 / ESP-12E, CPU 80 MHz, Flash 4 MB และ upload speed 115200 baud หลังแก้ firmware ให้ compile ก่อน upload ทุกครั้ง การ build สำเร็จยืนยันเฉพาะการ compile เท่านั้น ต้องทดสอบ Wi-Fi, MQTT, DHT11, DS3231, รีเลย์ และ OTA กับ NodeMCU จริงแยกต่างหาก
 
 คำสั่งตรวจสอบหลัก:
 ```bash
 mkdir -p src
-cp SmartFarm_V6_PRODUCTION1.ino src/main.ino
+cp SmartFarm_V7.2.0_OTA_STABLE.ino src/main.ino
 pio run -e nodemcuv2
-cp .pio/build/nodemcuv2/firmware.bin SmartFarm_V6_PRODUCTION1.bin
+cp .pio/build/nodemcuv2/firmware.bin SmartFarm_V7.2.0_OTA_STABLE.bin
+node firmware-v720-contract-test.mjs
+node dashboard-contract-test.mjs
+node dashboard-layout-audit.mjs
+node dashboard-browser-smoke.mjs
 node --check app.js
 node --check farm-analytics.js
 node dashboard-smoke-test.mjs
@@ -153,9 +157,8 @@ npm --prefix functions run lint
 git diff --check
 ```
 
-ไฟล์ firmware ที่สร้างจาก source ล่าสุดคือ `.pio/build/nodemcuv2/firmware.bin` และไฟล์สำหรับแจกจ่ายคือ `SmartFarm_V6_PRODUCTION1.bin` หลังคัดลอกด้วยคำสั่งด้านบน ไฟล์ `.bin` เป็น artifact สำหรับอัปโหลด OTA/แฟลชอุปกรณ์เท่านั้น ไม่ควรใช้แทนการทดสอบกับ NodeMCU จริง การ build จะติดตั้งและใช้ไลบรารีตาม `platformio.ini` และใช้ baud rate 115200
-
-Artifact ที่ตรงกับ source commit นี้มีขนาดประมาณ **588 KB** และ SHA-256 คือ `13012d75c163bbbcedeec4a20d3bb495c096ab60a6a8f915a196b901c20e1ec1`
+ไฟล์ `.bin` สร้างโดย ESP8266 Core จาก eboot และ application image สำหรับ flash ผ่าน serial หรือ OTA ใช้ artifact นี้กับ NodeMCU ที่มี flash/partition layout ตรงกับ build และทดสอบกับอุปกรณ์จริงก่อนใช้งาน
+ไฟล์ release มีขนาด **610,176 bytes**; SHA-256 คือ `a5a10f5330f946748e51219fdd2fe409a89f924bcac0894db778d0febcc7d469` ผล build ล่าสุดใช้ RAM 42,268/81,920 bytes (51.6%) และ Flash 606,016/1,044,464 bytes (58.0%) จึงเหลือ build-time flash headroom 438,448 bytes ภายใต้ NodeMCU partition ที่ build ใช้ ค่า free heap และ free sketch space จริงยังต้องอ่านจากอุปกรณ์ที่เปิดทำงาน
 
 GitHub Actions รันชุดตรวจสอบเดียวกันทุก push และ pull request รวมถึง simulated
 browser integration สำหรับหน้า Settings/MQTT. งาน browser test ใช้ Chrome ที่

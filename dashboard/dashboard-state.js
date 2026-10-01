@@ -32,6 +32,10 @@
       wifiReconnects: null,
       mqttConnects: null,
       mqttFailures: null,
+      otaReady: null,
+      otaInProgress: false,
+      otaProgress: null,
+      otaStatus: '',
       pumpSafeLock: false,
       emergencyLock: false,
       emergencySource: '',
@@ -127,6 +131,11 @@
     current.esp.wifiReconnects = Number.isFinite(Number(device.wifiReconnects)) ? Number(device.wifiReconnects) : null;
     current.esp.mqttConnects = Number.isFinite(Number(device.mqttConnects)) ? Number(device.mqttConnects) : null;
     current.esp.mqttFailures = Number.isFinite(Number(device.mqttFailures)) ? Number(device.mqttFailures) : null;
+    current.esp.otaReady = typeof device.otaReady === 'boolean' ? device.otaReady : null;
+    current.esp.otaInProgress = device.otaInProgress === true;
+    current.esp.otaProgress = device.otaProgress === null || device.otaProgress === undefined || device.otaProgress === ''
+      ? null : Number.isFinite(Number(device.otaProgress)) ? Number(device.otaProgress) : null;
+    current.esp.otaStatus = String(device.otaStatus || '');
     current.esp.pumpSafeLock = device.pumpSafeLock === true;
     current.esp.emergencyLock = device.emergencyLock === true;
     current.esp.emergencySource = String(device.emergencySource || '');
@@ -172,15 +181,17 @@
   };
 
   const setSensor = sensor => update(current => {
-    current.sensor.temperature = Number.isFinite(Number(sensor.temperature)) ? Number(sensor.temperature) : null;
-    current.sensor.humidity = Number.isFinite(Number(sensor.humidity)) ? Number(sensor.humidity) : null;
+    const validNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+    current.sensor.temperature = validNumber(sensor.temperature) ? Number(sensor.temperature) : null;
+    current.sensor.humidity = validNumber(sensor.humidity) ? Number(sensor.humidity) : null;
     current.sensor.receivedAt = Date.now();
     current.sensor.raw = sensor;
   }, 'sensor:update');
 
   const setRelay = (relay, value) => {
     if (!Object.prototype.hasOwnProperty.call(state.relays, relay)) return;
-    update(current => { current.relays[relay] = value === true; }, 'relay:status');
+    if (value !== true && value !== false && value !== null) return;
+    update(current => { current.relays[relay] = value; }, 'relay:status');
   };
 
   const setMode = mode => {

@@ -1,0 +1,50 @@
+SMART FARM V7.2.0 OTA-STABLE — BUILD REPORT
+วันที่ตรวจสอบ: 2026-10-01 (UTC+7)
+
+ผลสรุป
+Firmware V7.2.0 คอมไพล์สำเร็จด้วย PlatformIO และ Arduino ESP8266 Core 3.1.2 สำหรับ NodeMCU 1.0 (ESP-12E) ได้ binary ESP8266 แบบ eboot + application image และตรวจ embedded length/CRC ผ่าน การทดสอบใน sandbox เป็น static, build และ browser/dashboard tests; ยังไม่ได้ทดสอบ flash, OTA, sensor, relay หรือการเชื่อม MQTT กับฮาร์ดแวร์จริง
+
+Build configuration
+รายการ | ค่า
+PlatformIO platform | espressif8266@4.2.0 (pin)
+Arduino ESP8266 Core | 3.1.2
+Xtensa toolchain | GCC 10.3.0
+Board | nodemcuv2 — NodeMCU 1.0 / ESP-12E
+CPU / RAM / Flash | 80 MHz / 80 KB / 4 MB
+Upload speed | 115200 baud
+Build maximum application size | 1,044,464 bytes
+Pinned libraries | PubSubClient 2.8.0; WiFiManager 2.0.17; NTPClient 3.2.1; RTClib 2.1.4; DHT sensor library 1.4.6; ArduinoJson 6.21.5
+
+ผลคอมไพล์และพื้นที่
+PlatformIO: SUCCESS (nodemcuv2). Flash usage 606,016 / 1,044,464 bytes (58.0%); build-time flash headroom 438,448 bytes. Static RAM usage 42,268 / 81,920 bytes (51.6%); ส่วนต่างเชิง compile คือ 39,652 bytes แต่ไม่ใช่ค่า free heap ขณะอุปกรณ์ทำงาน ค่า runtime `ESP.getFreeHeap()` และ `ESP.getFreeSketchSpace()` ยังต้องอ่านจากบอร์ดจริง
+
+Firmware binary
+ชื่อไฟล์: SmartFarm_V7.2.0_OTA_STABLE.bin
+ขนาด: 610,176 bytes
+SHA-256: a5a10f5330f946748e51219fdd2fe409a89f924bcac0894db778d0febcc7d469
+Validation: eboot image magic และ application image magic ที่ offset 0x1000 เป็น 0xE9; embedded length 610,176 bytes; CRC32 ตาม algorithm ของ ESP8266 Core `elf2bin.py` ผ่าน (1e364e07). Binary สร้างจาก build output จริง ไม่ใช่ไฟล์จำลอง
+
+OTA และ safety
+ArduinoOTA ใช้ hostname ที่สร้างจาก Chip ID และเปิดรับ OTA เมื่อมี `ota_pass` เท่านั้น มี callbacks สำหรับเริ่ม/ความคืบหน้า/จบ/ข้อผิดพลาด พร้อม error code ที่อ่านได้ ส่วน Web OTA ใช้ HTTP port 80, Basic Authentication (`admin` กับ OTA password), หน้า `/`, upload `POST /update` และ status `/api/status`; ตรวจ `.bin`, ขนาดและพื้นที่ sketch, ตรวจผล `Update.end()` และตอบ numeric error code/reason เมื่อผิดพลาด
+ก่อน OTA จะปิดรีเลย์ทั้งหมด, ตัด MQTT/TLS และหยุด pump runtime หาก OTA ล้มเหลวจะคง relay lock ไว้จนกว่าจะตรวจสาเหตุและรีสตาร์ตเอง การอัปเดต HTTP ที่สำเร็จจะรอส่งคำตอบก่อนรีสตาร์ต; main loop ตรวจ restart timer ก่อน OTA early-return
+Web OTA เป็น HTTP ไม่ใช่ HTTPS ให้ใช้เฉพาะเครือข่าย LAN ที่เชื่อถือได้และห้ามทำ port-forward ออก Internet
+
+การเชื่อม Dashboard และ telemetry
+คง relay pin และ MQTT topic contract เดิม; heartbeat เพิ่ม firmware/mode/relay/OTA status และ diagnostics; MQTT reconnect ใช้ exponential backoff สูงสุด 60 วินาทีและ socket timeout 5 วินาที โดยไม่ทำ TLS preflight ซ้ำทุก reconnect; DHT11 ส่งเฉพาะค่าจริงที่ finite ส่วนค่า null/สถานะ unknown ไม่ถูกแปลงเป็นศูนย์หรือ OFF; Dashboard ปิดคำสั่งควบคุมเมื่อ ESP ไม่มี heartbeat ล่าสุดและต้องยืนยันก่อนสั่งรีเลย์/ฉุกเฉิน
+อัปเดต Service Worker/cache versions ให้ตรงกัน และไม่เปลี่ยน CSS/theme style4; ไม่มี Zone 2 ใน UI
+
+ผลทดสอบ
+รายการ | ผล
+Firmware V7.2.0 source/OTA/Dashboard contract | ผ่าน 29 checks
+Dashboard MQTT contract | ผ่าน
+Firmware relay/safety regression | ผ่าน
+Dashboard smoke/architecture checks | ผ่าน 26 checks
+Mobile layout audit | ผ่าน 15/15
+Headless Chromium browser smoke ที่ 390×844 | ผ่าน 10 checks; ไม่มี console/page error หรือ horizontal overflow
+E2E navigation | ผ่าน 81/81
+JavaScript syntax checks และ `git diff --check` | ผ่าน
+
+ข้อควรตรวจบนบอร์ดก่อนใช้งานจริง
+เชื่อม NodeMCU แล้วทดสอบ relay polarity/active-low และ pin boot levels, DHT11, DS3231/NTP, HiveMQ TLS/credentials, retained heartbeat, ArduinoOTA และ Web OTA success/failure/reboot รวมถึงอ่าน free heap/free sketch space จริง บอร์ดต้องใช้ flash/partition layout ที่สอดคล้องกับ build; ห้ามแฟลชไฟล์นี้ลงอุปกรณ์ควบคุมโหลดจริงก่อนทดสอบขั้นตอน fail-safe ในสภาพแวดล้อมปลอดภัย
+
+หมายเหตุ compiler: ไม่มี warning จาก source Firmware ใน final build; Python bundled `elf2bin.py` มี SyntaxWarning เรื่อง escape sequence `\s` สองจุด แต่ build สำเร็จและ binary CRC ผ่าน

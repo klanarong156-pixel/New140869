@@ -1,9 +1,9 @@
-const CACHE_NAME = 'smartfarm-v48-dashboard-cache-align';
+const CACHE_NAME = 'smartfarm-v49-v720-ota-dashboard-contract';
 const APP_SHELL = [
   './', './index.html', './dashboard/', './dashboard/index.html',
   './dashboard/dashboard.css?v=13', './design4.css?v=10', './dashboard/dashboard-config.js?v=1',
-  './dashboard/dashboard-state.js?v=2', './dashboard/dashboard-mqtt.js?v=3',
-  './dashboard/dashboard.js?v=15', './mqtt.min.js?v=5', './404.html',
+  './dashboard/dashboard-state.js?v=3', './dashboard/dashboard-mqtt.js?v=3',
+  './dashboard/dashboard.js?v=16', './mqtt.min.js?v=5', './404.html',
   './auth.html', './finance.html', './account.html', './admin.html', './ota.html', './control-room/index.html',
   './manifest.json', './app.css', './core-theme.css?v=1', './redesign-lambo.css', './pump-hero.css', './suanlungna-design-system.css', './dashboard-polish.css', './dashboard-realtime.css', './cucumber-sales.css?v=4', './app.js', './dashboard-ota.js', './control-room/control-room.css?v=1', './control-room/control-room.js?v=1', './control-room/control-room-schedule.js?v=2', './config.js', './mqtt-connection.js', './internet-time.js', './weather.js', './auto-weather-guard.js', './schedule.js', './firebase.js', './access.js', './auth-page.js', './finance-core.js', './finance-firebase.js', './finance.js?v=12', './cucumber-sales.js?v=4', './cucumber-sales-ui.js?v=4', './account.js?v=10', './crop-reminders.js', './crop-plots.js', './farm-analytics.js', './ai-farm-advisor.js', './farm-tools.js', './farm-clock.js', './user-management.js',
   './logo.png', './assets/logo-suanlungna-transparent.png', './assets/farm-hero-style4.png', './assets/style4-icons.svg', './assets/cucumber-plot.jpg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
