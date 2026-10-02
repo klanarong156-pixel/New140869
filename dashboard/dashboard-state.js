@@ -153,9 +153,10 @@
     current.esp.lastHeartbeatAt = now;
     current.esp.lastHeartbeatWasRetained = retained;
     current.esp.heartbeatCount += 1;
-    // Firmware retains the latest heartbeat on every publish. It is valid initial
-    // state; the watchdog below is what removes liveness when no fresh heartbeat arrives.
-    current.esp.online = device.online === true && device.mqtt !== false;
+    // A broker replay of a retained snapshot is not proof of current liveness.
+    // Only a non-retained live heartbeat may set online=true; retained data can
+    // update diagnostics but must never clear LWT/offline state or unlock controls.
+    if (!retained) current.esp.online = device.online === true && device.mqtt !== false;
     current.diagnostic.lastMessageAt = now;
   }, retained ? 'esp:retained-heartbeat' : 'esp:heartbeat');
 
@@ -172,7 +173,7 @@
     }
     if (!state.esp.lastHeartbeatAt) return false;
     if (Date.now() - state.esp.lastHeartbeatAt <= timeoutMs) {
-      if (!state.esp.online && state.esp.raw?.online === true && state.esp.raw?.mqtt !== false) {
+      if (!state.esp.online && !state.esp.lastHeartbeatWasRetained && state.esp.raw?.online === true && state.esp.raw?.mqtt !== false) {
         update(current => { current.esp.online = true; }, 'esp:online');
       }
       return state.esp.online;

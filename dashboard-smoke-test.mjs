@@ -25,7 +25,8 @@ const cleanDashboardConfig = read('dashboard/dashboard-config.js');
 const cleanDashboardState = read('dashboard/dashboard-state.js');
 const cleanDashboardMqtt = read('dashboard/dashboard-mqtt.js');
 const cleanDashboardJs = read('dashboard/dashboard.js');
-const finance = read('finance.html');
+const finance = read('dashboard/index.html');
+const financeRedirect = read('finance.html');
 const financeJs = read('finance.js');
 const dashboardCss = read('dashboard/dashboard.css');
 const firmware = read('SmartFarm_V7.2.0_OTA_STABLE.ino');
@@ -54,9 +55,9 @@ const checks = [
   ['Firmware command topics are explicit', /MQTT_COMMAND_TOPICS/.test(firmware) && !/mqtt\.subscribe\(MQTT_BASE "\/#"\)/.test(firmware)],
   ['No fake soil sensor telemetry in unified dashboard', !/soil.*(?:value|temperature|humidity)/i.test(cleanDashboard)],
   ['Legacy duplicate pages are removed from service worker', !/connection\.html|schedule\.html|settings\.html/.test(sw)],
-  ['Finance monthly report UI exists', /financeReportMonth/.test(finance) && /monthlyIncome/.test(finance) && /monthlyCategoryRows/.test(finance)],
+  ['Finance monthly report UI exists inside the unified route', /data-page-section="finance"/.test(finance) && /financeReportMonth/.test(finance) && /monthlyIncome/.test(finance) && /monthlyCategoryRows/.test(finance)],
   ['Finance monthly report calculates from loaded items', /monthlyItems/.test(financeJs) && /renderMonthlyReport/.test(financeJs) && /monthKey/.test(financeJs)],
-  ['Finance legacy entry form is restored', /id="financeForm"/.test(finance) && /id="financeType"/.test(finance) && /id="financeAmount"/.test(finance) && /id="financeItem"/.test(finance) && /id="financeSubmit"/.test(finance)],
+  ['Finance entry form is integrated and standalone URL redirects', /id="financeForm"/.test(finance) && /id="financeType"/.test(finance) && /id="financeAmount"/.test(finance) && /id="financeItem"/.test(finance) && /id="financeSubmit"/.test(finance) && /dashboard\/?\?page=finance/.test(financeRedirect)],
   ['Dashboard routes share the renovated theme', /data-page-section="water"/.test(cleanDashboard) && /data-page-section="devices"/.test(cleanDashboard) && /data-page-section="connection"/.test(cleanDashboard) && /data-page-section="weather"/.test(cleanDashboard) && /data-page-section="settings"/.test(cleanDashboard) && /\.route-page\[hidden\]/.test(dashboardCss)]
 ];
 

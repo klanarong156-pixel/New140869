@@ -9,11 +9,21 @@
   const pageMeta = {
     dashboard: ['หน้าหลัก', 'Smart Farm Dashboard'],
     water: ['ระบบน้ำ', 'ควบคุมระบบน้ำและตั้งเวลา'],
+    finance: ['การเงิน', 'รายรับ รายจ่าย และผลผลิตของบัญชี Firebase'],
     devices: ['อุปกรณ์', 'ข้อมูลอุปกรณ์และสถานะการทำงาน'],
     connection: ['การเชื่อมต่อ', 'สถานะระบบ MQTT และ ESP8266'],
     weather: ['สภาพอากาศ', 'ข้อมูลสภาพอากาศจากอินเทอร์เน็ต (Weather API)'],
     settings: ['ตั้งค่า', 'ปรับแต่งการทำงานของระบบ'],
     info: ['ข้อมูล', 'ประวัติและเหตุการณ์ของระบบ']
+  };
+
+  const scrollToRouteHash = () => {
+    if (!window.location.hash) return;
+    let id;
+    try { id = decodeURIComponent(window.location.hash.slice(1)); } catch (_) { return; }
+    const target = document.getElementById(id);
+    if (!target || target.closest('.finance-auth-hidden') || target.closest('[hidden]')) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const route = () => {
@@ -235,6 +245,24 @@
     setTone(elements.mode, state.mode ? 'good' : 'neutral');
     textAll('[data-mobile-mode]', state.mode || 'ยังไม่มีข้อมูล');
     text(elements.schedule, state.schedule.enabled === null ? '—' : state.schedule.enabled ? 'เปิดใช้งาน' : 'ปิดใช้งาน');
+    const liveCommandReady = mqtt.client?.connected && state.esp.online === true;
+    const espSchedule = state.schedule.byRelay?.pump;
+    const activePumpSlots = Array.isArray(espSchedule?.slots) ? espSchedule.slots.filter(slot => slot?.enabled) : [];
+    const scheduleCurrent = $('[data-firmware-schedule-current]');
+    if (scheduleCurrent) {
+      text(scheduleCurrent, espSchedule
+        ? activePumpSlots.length
+          ? `ESP รายงานตารางปั๊ม: ${activePumpSlots.map(slot => `${slot.on || '—'}–${slot.off || '—'}`).join(' · ')}`
+          : 'ESP รายงานว่าตารางปั๊มปิดใช้งาน'
+        : 'ตารางปัจจุบัน: ยังไม่มีข้อมูลจาก ESP8266');
+    }
+    const firmwareScheduleSubmit = $('[data-firmware-schedule-submit]');
+    if (firmwareScheduleSubmit) firmwareScheduleSubmit.disabled = !liveCommandReady;
+    const firmwareScheduleStatus = $('[data-firmware-schedule-status]');
+    if (firmwareScheduleStatus && !liveCommandReady && !espSchedule) {
+      text(firmwareScheduleStatus, 'ต้องมี MQTT และ heartbeat สดจาก ESP8266 ก่อนส่งคำสั่ง');
+      setTone(firmwareScheduleStatus, 'warn');
+    }
     $$('[data-mode]').forEach(button => {
       button.dataset.active = button.dataset.mode === state.mode ? 'true' : 'false';
       button.disabled = !mqtt.client?.connected || state.esp.online !== true;
@@ -357,6 +385,10 @@
   };
 
   const submitMode = mode => {
+    const prompt = mode === 'AUTO'
+      ? 'ยืนยันเปลี่ยนเป็น AUTO? ตารางที่กำลังทำงานอาจสั่งเปิดรีเลย์ได้ทันที'
+      : 'ยืนยันเปลี่ยนเป็น MANUAL? ตารางอัตโนมัติจะหยุดควบคุม แต่สถานะรีเลย์ปัจจุบันอาจคงเดิม';
+    if (!window.confirm(prompt)) return;
     const sent = mqtt.publish(config.topics.modeSet, mode);
     if (sent) showToast(`ส่งคำสั่งโหมด ${mode} แล้ว · รอ status จาก ESP8266`, 'info');
     else showToast('ยังส่งคำสั่งโหมดไม่ได้ · MQTT ยังไม่เชื่อมต่อ', 'warn');
@@ -370,6 +402,34 @@
     const sent = mqtt.publish(config.topics.emergencySet, command);
     if (sent) showToast(command === 'STOP' ? 'ส่งคำสั่งหยุดฉุกเฉินแล้ว' : 'ส่งคำสั่งปลดหยุดฉุกเฉินแล้ว · รอ status จาก ESP8266', command === 'STOP' ? 'warn' : 'info');
     else showToast('ยังส่งคำสั่งฉุกเฉินไม่ได้ · MQTT ยังไม่เชื่อมต่อ', 'warn');
+  };
+
+  const submitFirmwareSchedule = event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const on = String(data.get('on') || '');
+    const off = String(data.get('off') || '');
+    const current = store.get();
+    const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
+    if (!timePattern.test(on) || !timePattern.test(off) || on === off) {
+      showToast('กรุณาระบุเวลาเริ่ม/หยุดที่ถูกต้องและไม่ซ้ำกัน', 'warn');
+      return;
+    }
+    if (!mqtt.client?.connected || current.esp.online !== true) {
+      showToast('ยังส่งตารางไม่ได้ · ต้องมี MQTT และ heartbeat สดจาก ESP8266', 'warn');
+      return;
+    }
+    const payload = JSON.stringify({ slots: [{ enabled: true, on, off }] });
+    const modeNote = current.mode === 'AUTO' ? ' ขณะนี้อยู่โหมด AUTO จึงอาจเริ่มปั๊มได้ทันทีหากช่วงเวลาครอบคลุมเวลาปัจจุบัน' : '';
+    if (!window.confirm(`ยืนยันส่งตารางปั๊มให้ ESP8266?\nเวลา ${on}–${off}.${modeNote}\nคำสั่งนี้เปลี่ยนตารางบนอุปกรณ์จริง`)) return;
+    const sent = mqtt.publish(config.topics.scheduleSet('pump'), payload);
+    if (sent) {
+      const status = $('[data-firmware-schedule-status]');
+      text(status, 'ส่งคำสั่งแล้ว · รอสถานะตารางยืนยันจาก ESP8266');
+      setTone(status, 'loading');
+      showToast('ส่งตารางไปยัง ESP8266 แล้ว · รอ status จากอุปกรณ์', 'info');
+    } else showToast('ส่งตารางไม่ได้ · MQTT ยังไม่เชื่อมต่อ', 'warn');
   };
 
   let weatherRequestSequence = 0;
@@ -479,6 +539,20 @@
     renderClock();
     window.setInterval(renderClock, 1000);
     store.subscribe(render);
+    window.addEventListener('popstate', route);
+    document.addEventListener('click', event => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = event.target.closest('a[href]');
+      if (!anchor || anchor.target || anchor.hasAttribute('download')) return;
+      const destination = new URL(anchor.href, window.location.href);
+      if (destination.origin !== window.location.origin || destination.pathname !== window.location.pathname || !destination.searchParams.has('page')) return;
+      event.preventDefault();
+      window.history.pushState({}, '', `${destination.pathname}${destination.search}${destination.hash}`);
+      route();
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      if (destination.hash) scrollToRouteHash();
+    });
+    window.addEventListener('firebase:auth-state-changed', event => { loadDashboardData(); if (event.detail?.user) window.requestAnimationFrame(scrollToRouteHash); });
     elements.credentialForm?.addEventListener('submit', event => {
       event.preventDefault();
       try {
@@ -507,6 +581,7 @@
       showToast('ล้าง MQTT credentials จากเครื่องนี้แล้ว', 'info');
     });
     $('[data-weather-retry]')?.addEventListener('click', () => loadWeather());
+    $('[data-firmware-schedule-form]')?.addEventListener('submit', submitFirmwareSchedule);
     $$('[data-relay-toggle]').forEach(button => button.addEventListener('click', () => {
       const relay = button.closest('[data-relay-card]').dataset.relayCard;
       const current = store.get().relays[relay];
@@ -544,6 +619,7 @@
   };
 
   route();
+  window.requestAnimationFrame(scrollToRouteHash);
   fillCredentials();
   bind();
   loadWeather();

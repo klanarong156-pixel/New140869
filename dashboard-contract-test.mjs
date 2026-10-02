@@ -79,31 +79,31 @@ const config = context.window.SmartFarmDashboardConfig;
 const store = context.window.SmartFarmDashboardState;
 const manager = context.window.SmartFarmDashboardMqtt;
 const controlRoomHtml = fs.readFileSync('control-room/index.html', 'utf8');
-const controlRoomJs = fs.readFileSync('control-room/control-room.js', 'utf8');
 const controlRoomScheduleJs = fs.readFileSync('control-room/control-room-schedule.js', 'utf8');
+const canonicalDashboardHtml = fs.readFileSync('dashboard/index.html', 'utf8');
 const check = (condition, message) => {
   if (!condition) throw new Error(`FAIL: ${message}`);
   console.log(`PASS: ${message}`);
 };
 
 check(store.get().esp.emergencyLock === null && store.get().esp.pumpSafeLock === null, 'safety states remain unknown until firmware reports them');
-check(controlRoomHtml.includes('../dashboard/dashboard-mqtt.js') && controlRoomHtml.includes('../dashboard/dashboard-config.js'), 'Control Room loads the canonical Dashboard MQTT config and manager');
-check(!controlRoomJs.includes('mqtt.connect(') && controlRoomJs.includes('mqtt.publish(topic, payload)') && controlRoomJs.includes('publishCommand(config.topics.relaySet(relay)'), 'Control Room publishes through the shared manager without a second MQTT connection');
-check(controlRoomJs.includes('config.topics.modeSet') && controlRoomJs.includes('config.topics.emergencySet'), 'Control Room uses canonical mode and emergency topics');
+check(controlRoomHtml.includes('../dashboard/?page=water'), 'legacy Control Room route redirects to the canonical Water page');
+check((canonicalDashboardHtml.match(/dashboard-mqtt\.js/g) || []).length === 1, 'the unified dashboard loads exactly one shared MQTT manager');
+check(canonicalDashboardHtml.includes('control-room-schedule.js') && canonicalDashboardHtml.includes('id="scheduleForm"'), 'Firebase planning is embedded in the unified dashboard');
 check(controlRoomScheduleJs.includes('data-id="${escapeHtml(item.id)}"'), 'Firebase schedule IDs are escaped before HTML attribute rendering');
 
 manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 10, rssi: -60 }), { retain: true });
-check(store.get().esp.online === true, 'retained heartbeat marks ESP online from real firmware state');
+check(store.get().esp.online === null, 'retained heartbeat snapshot cannot unlock ESP controls');
 check(store.get().esp.pumpRuntimeSec === null, 'missing pump runtime remains unavailable instead of becoming zero');
 check(store.get().esp.lastHeartbeatWasRetained === true, 'retained heartbeat is recorded as retained');
 
 manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 20, rssi: -61 }), { retain: true });
-check(store.get().esp.online === true, 'changed uptime marks a fresh retained heartbeat online');
-check(store.get().esp.lastHeartbeatWasRetained === false, 'changed heartbeat is treated as live telemetry');
+check(store.get().esp.online === null, 'changed retained snapshot still cannot unlock ESP controls');
+check(store.get().esp.lastHeartbeatWasRetained === true, 'retained snapshot remains marked as retained even when payload changes');
 check(store.get().esp.firmware === 'V7.1.1', 'heartbeat firmware is displayed from device payload');
 
 manager.handleMessage(config.topics.device, '{"device_id":"SmartFarm-ESP8266","online":true,"wifi":true,"mqtt":true,"firmware":"V7.1.1","uptimeSec":30,"rssi":-62,"time":"2026-09-23T20:', { retain: false });
-check(store.get().esp.online === true && store.get().esp.deviceId === 'SmartFarm-ESP8266', 'truncated legacy heartbeat still exposes real ESP liveness');
+check(store.get().esp.online === true && store.get().esp.deviceId === 'SmartFarm-ESP8266', 'a live non-retained heartbeat exposes real ESP liveness');
 
 store.state.esp.lastHeartbeatAt = Date.now() - 26000;
 store.checkHeartbeat(config.mqtt.heartbeatTimeoutMs);
@@ -140,6 +140,8 @@ check(store.get().relays.pump === true, 'relay status from ESP changes UI state'
 manager.handleMessage(config.topics.online, 'false', { retain: true });
 check(store.get().esp.online === false, 'LWT status/online=false marks ESP offline');
 check(store.get().diagnostic.connectionReason === 'status/online=false', 'LWT offline reason is recorded');
+manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 24, rssi: -61 }), { retain: true });
+check(store.get().esp.online === false, 'retained heartbeat cannot override LWT offline');
 manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 25, rssi: -61 }), { retain: false });
 check(store.get().esp.online === true, 'live heartbeat restores ESP online after LWT');
 check(fakeClient.published[0].payload === 'ON' && fakeClient.published[0].options.retain === false, 'relay command uses ON payload and non-retained publish');

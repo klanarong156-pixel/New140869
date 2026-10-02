@@ -118,7 +118,6 @@
 
       this.userStopped = false;
       this.authFailed = false;
-      this.lastHeartbeatSignature = '';
       this.clientId = `SmartFarmDashboard-${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`;
       this.setStatus('connecting', { reason: 'กำลังเชื่อมต่อ HiveMQ Cloud', reconnect: false });
       this.dispatch('connecting', { url: mqttConfig.url });
@@ -147,8 +146,7 @@
         if (this.client !== client) return;
         // Firmware publishes the heartbeat with retain=true on every interval.
         // Reset the session marker so only the first snapshot is held offline.
-        this.lastHeartbeatSignature = '';
-        this.setStatus('connected', { reason: 'HiveMQ Cloud เชื่อมต่อสำเร็จ' });
+          this.setStatus('connected', { reason: 'HiveMQ Cloud เชื่อมต่อสำเร็จ' });
         this.dispatch('connected');
         this.subscribeAll(client);
       });
@@ -282,14 +280,9 @@
         if (!device || typeof device !== 'object') return;
         if (device.online === false) appState.setEspOffline('status/device=false');
         else {
-          const uptime = device.uptimeSec ?? device.uptime ?? '';
-          const signature = `${device.device_id || ''}|${uptime}|${device.time || ''}`;
-          const firstSnapshot = !this.lastHeartbeatSignature;
-          this.lastHeartbeatSignature = signature;
-          // The V7 firmware sets retain=true on each heartbeat publish. The
-          // first packet after connect is the broker snapshot; a changed
-          // uptime proves a subsequent packet is a fresh heartbeat.
-          appState.acceptHeartbeat(device, { retained: retained && firstSnapshot });
+          // MQTT's RETAIN flag is authoritative: a retained delivery is only a
+          // broker snapshot. Do not infer liveness from a changed payload/signature.
+          appState.acceptHeartbeat(device, { retained });
         }
         return;
       }
