@@ -8,6 +8,8 @@
       ".firebaserc",
       ".firebaseignore",
       ".gitignore",
+      ".git/**",
+      "**/.git/**",
       ".env",
       ".env.*",
       "**/.*",
