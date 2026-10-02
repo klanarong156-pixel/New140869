@@ -64,6 +64,8 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Verify Firebase service-account secret is configured
         env:
