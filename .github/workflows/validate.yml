@@ -52,3 +52,34 @@ jobs:
           python3 tools/mqtt_contract_audit.py
           python3 tools/test_mqtt_acl_simulation.py
           git diff --check
+
+  deploy-hosting:
+    name: Deploy Firebase Hosting (production)
+    needs: integration
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify Firebase service-account secret is configured
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SMART_FARM_PLATFOR }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
+            echo 'Required repository secret FIREBASE_SERVICE_ACCOUNT_SMART_FARM_PLATFOR is not configured.'
+            exit 1
+          fi
+          echo 'Firebase Hosting service-account secret is configured.'
+
+      - name: Deploy live Hosting site
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SMART_FARM_PLATFOR }}
+          projectId: smart-farm-platfor
+          channelId: live
+          firebaseToolsVersion: 15.28.1

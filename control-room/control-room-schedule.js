@@ -73,12 +73,21 @@
     const button = event.target.closest('[data-action]'); const item = event.target.closest('[data-id]'); if (!button || !item) return;
     const index = schedules.findIndex(entry => entry.id === item.dataset.id); if (index < 0) return;
     if (button.dataset.action === 'edit') { fill(schedules[index]); return; }
-    if (button.dataset.action === 'delete') { const previous = [...schedules]; schedules.splice(index, 1); render(); try { await deleteRecord(item.dataset.id); toast(persistence === 'cloud' ? 'ลบจาก Firebase แล้ว' : 'ลบตารางเวลาแล้ว'); } catch (error) { schedules = previous; render(); toast(`ลบ Firebase ไม่สำเร็จ: ${error.message}`); } }
+    if (button.dataset.action === 'delete') {
+      if (!window.confirm('ยืนยันลบแผนเวลานี้? จะลบเฉพาะรายการวางแผนใน Firebase/เครื่องนี้ ไม่ได้เปลี่ยนตารางที่อยู่บน ESP8266')) return;
+      const previous = [...schedules]; schedules.splice(index, 1); render();
+      try { await deleteRecord(item.dataset.id); toast(persistence === 'cloud' ? 'ลบจาก Firebase แล้ว' : 'ลบตารางเวลาแล้ว'); }
+      catch (error) { schedules = previous; render(); toast(`ลบ Firebase ไม่สำเร็จ: ${error.message}`); }
+    }
   });
   list.addEventListener('change', async event => {
     if (event.target.dataset.action !== 'toggle') return; const item = event.target.closest('[data-id]'); const record = schedules.find(entry => entry.id === item?.dataset.id); if (!record) return;
     const previous = record.enabled; record.enabled = event.target.checked; render(); try { await saveRecord(record); toast(record.enabled ? 'เปิดใช้งานและซิงค์แล้ว' : 'ปิดใช้งานและซิงค์แล้ว'); } catch (error) { record.enabled = previous; render(); toast(`ซิงค์ Firebase ไม่สำเร็จ: ${error.message}`); }
   });
   window.addEventListener('firebase:auth-expired', () => { setStatus('offline', 'Firebase session หมดอายุ · กรุณาเข้าสู่ระบบใหม่'); toast('Firebase session หมดอายุ'); });
+  window.addEventListener('firebase:auth-state-changed', event => {
+    if (event.detail?.user) loadFirebase();
+    else { schedules = localCache().map(normalize).filter(valid); setStatus('offline', 'กรุณาเข้าสู่ระบบเพื่อซิงค์ข้ามอุปกรณ์'); render(); }
+  });
   setStatus('loading', 'กำลังตรวจสอบ Firebase…'); loadFirebase();
 })();

@@ -21,7 +21,6 @@
     "users": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": false,
         "controlRoomSchedules": {
           "$scheduleId": {
             ".validate": "newData.hasChildren(['id', 'relay', 'onTime', 'offTime', 'days', 'enabled', 'updatedAt']) && newData.child('id').isString() && newData.child('id').val() === $scheduleId && newData.child('id').val().length > 0 && newData.child('id').val().length <= 80 && newData.child('relay').isString() && (newData.child('relay').val() === 'pump' || newData.child('relay').val() === 'zone1' || newData.child('relay').val() === 'lighthome' || newData.child('relay').val() === 'lightsala') && newData.child('onTime').isString() && newData.child('onTime').val().matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/) && newData.child('offTime').isString() && newData.child('offTime').val().matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/) && newData.child('days').hasChildren() && newData.child('enabled').isBoolean() && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40",
@@ -84,6 +83,15 @@
             ".validate": "newData.hasChildren(['crop', 'startDate', 'updatedAt']) && newData.child('crop').isString() && newData.child('crop').val().length > 0 && newData.child('crop').val().length <= 100 && newData.child('startDate').isString() && newData.child('startDate').val().length === 10 && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40",
             ".read": "auth != null && auth.uid === $uid",
             ".write": "auth != null && auth.uid === $uid",
+            "crop": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+            },
+            "startDate": {
+              ".validate": "newData.isString() && newData.val().length === 10"
+            },
+            "updatedAt": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
             "$other": {
               ".read": false,
               ".write": false,
@@ -95,6 +103,27 @@
               ".validate": "newData.hasChildren(['id', 'name', 'crop', 'startDate', 'status', 'notes', 'updatedAt']) && newData.child('id').isString() && newData.child('id').val().length > 0 && newData.child('id').val().length <= 32 && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 50 && newData.child('crop').isString() && newData.child('crop').val().length > 0 && newData.child('crop').val().length <= 60 && newData.child('startDate').isString() && newData.child('startDate').val().length === 10 && newData.child('status').isString() && (newData.child('status').val() === 'active' || newData.child('status').val() === 'paused' || newData.child('status').val() === 'archived') && newData.child('notes').isString() && newData.child('notes').val().length <= 120 && newData.child('updatedAt').isString() && newData.child('updatedAt').val().length <= 40",
               ".read": "auth != null && auth.uid === $uid",
               ".write": "auth != null && auth.uid === $uid",
+              "id": {
+                ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 32"
+              },
+              "name": {
+                ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 50"
+              },
+              "crop": {
+                ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60"
+              },
+              "startDate": {
+                ".validate": "newData.isString() && newData.val().length === 10"
+              },
+              "status": {
+                ".validate": "newData.isString() && (newData.val() === 'active' || newData.val() === 'paused' || newData.val() === 'archived')"
+              },
+              "notes": {
+                ".validate": "newData.isString() && newData.val().length <= 120"
+              },
+              "updatedAt": {
+                ".validate": "newData.isString() && newData.val().length <= 40"
+              },
               "$other": {
                 ".read": false,
                 ".write": false,
@@ -138,6 +167,21 @@
                     ".validate": "newData.hasChildren(['id', 'severity', 'title', 'message', 'advice']) && newData.child('id').isString() && newData.child('id').val().length <= 64 && newData.child('severity').isString() && (newData.child('severity').val() === 'info' || newData.child('severity').val() === 'warning' || newData.child('severity').val() === 'critical') && newData.child('title').isString() && newData.child('title').val().length <= 120 && newData.child('message').isString() && newData.child('message').val().length <= 500 && newData.child('advice').isString() && newData.child('advice').val().length <= 500",
                     ".read": "auth != null && auth.uid === $uid",
                     ".write": "auth != null && auth.uid === $uid",
+                    "id": {
+                      ".validate": "newData.isString() && newData.val().length <= 64"
+                    },
+                    "severity": {
+                      ".validate": "newData.isString() && (newData.val() === 'info' || newData.val() === 'warning' || newData.val() === 'critical')"
+                    },
+                    "title": {
+                      ".validate": "newData.isString() && newData.val().length <= 120"
+                    },
+                    "message": {
+                      ".validate": "newData.isString() && newData.val().length <= 500"
+                    },
+                    "advice": {
+                      ".validate": "newData.isString() && newData.val().length <= 500"
+                    },
                     "$other": {
                       ".read": false,
                       ".write": false,
@@ -149,6 +193,18 @@
                 },
                 ".read": "auth != null && auth.uid === $uid",
                 ".write": "auth != null && auth.uid === $uid",
+                "id": {
+                  ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 64"
+                },
+                "at": {
+                  ".validate": "newData.isString() && newData.val().length <= 40"
+                },
+                "reason": {
+                  ".validate": "newData.isString() && newData.val().length <= 24"
+                },
+                "summary": {
+                  ".validate": "newData.isString() && newData.val().length <= 500"
+                },
                 "$other": {
                   ".read": false,
                   ".write": false,
@@ -160,6 +216,12 @@
             },
             ".read": "auth != null && auth.uid === $uid",
             ".write": "auth != null && auth.uid === $uid",
+            "enabled": {
+              ".validate": "newData.isBoolean()"
+            },
+            "updatedAt": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
             "$other": {
               ".read": false,
               ".write": false,
