@@ -32,7 +32,12 @@
     saveLock = true;
     try {
       const data = normalize(item);
-      await FirebaseDB.put(`finance/${data.id}`, data);
+      const path = `finance/${data.id}`;
+      await FirebaseDB.put(path, data);
+      const confirmed = await FirebaseDB.get(path);
+      if (!confirmed || confirmed.id !== data.id || confirmed.type !== data.type || Number(confirmed.amount) !== data.amount) {
+        throw new Error('Firebase ยังไม่ยืนยันการบันทึกรายการ กรุณาลองใหม่');
+      }
       return data;
     } finally {
       saveLock = false;

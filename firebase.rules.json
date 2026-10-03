@@ -52,14 +52,9 @@
         },
         "finance": {
           "$item": {
-            ".validate": "newData.hasChildren(['id', 'type', 'item', 'amount', 'createdAt']) && newData.child('id').isString() && newData.child('id').val().length > 0 && newData.child('id').val().length <= 64 && newData.child('type').isString() && (newData.child('type').val() === 'income' || newData.child('type').val() === 'expense' || newData.child('type').val() === 'pending') && newData.child('item').isString() && newData.child('item').val().length > 0 && newData.child('item').val().length <= 140 && newData.child('amount').isNumber() && newData.child('amount').val() > 0 && newData.child('amount').val() < 1000000000 && newData.child('createdAt').isString() && newData.child('createdAt').val().length <= 40 && (!newData.hasChild('category') || (newData.child('category').isString() && newData.child('category').val().length <= 80))",
+            ".validate": "newData.hasChildren(['id', 'type', 'item', 'amount', 'createdAt']) && newData.child('id').isString() && newData.child('id').val() === $item && newData.child('id').val().length > 0 && newData.child('id').val().length <= 64 && newData.child('type').isString() && (newData.child('type').val() === 'income' || newData.child('type').val() === 'expense' || newData.child('type').val() === 'pending') && newData.child('item').isString() && newData.child('item').val().length > 0 && newData.child('item').val().length <= 140 && newData.child('amount').isNumber() && newData.child('amount').val() > 0 && newData.child('amount').val() < 1000000000 && newData.child('createdAt').isString() && newData.child('createdAt').val().length <= 40 && (!newData.hasChild('category') || (newData.child('category').isString() && newData.child('category').val().length <= 80))",
             ".read": "auth != null && auth.uid === $uid",
-            ".write": "auth != null && auth.uid === $uid",
-            "$other": {
-              ".read": false,
-              ".write": false,
-              ".validate": false
-            }
+            ".write": "auth != null && auth.uid === $uid"
           },
           ".read": "auth != null && auth.uid === $uid",
           ".write": false

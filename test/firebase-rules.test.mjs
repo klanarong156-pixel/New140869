@@ -77,6 +77,15 @@ const validAiAdvisor = () => ({
   ]
 });
 
+const validFinanceItem = (id = 'FIN-test-001') => ({
+  id,
+  type: 'expense',
+  item: 'ค่าปุ๋ย',
+  category: 'ปุ๋ย',
+  amount: 1250.5,
+  createdAt: '2026-09-28T00:00:00.000Z'
+});
+
 const clone = value => JSON.parse(JSON.stringify(value));
 
 function dbFor(uid = null) {
@@ -146,6 +155,24 @@ test('owner can write a valid cropPlots snapshot', async () => {
 
 test('owner can write a valid aiAdvisor snapshot with history and findings', async () => {
   await assertSucceeds(dbFor(OWNER_UID).ref(ownerPath('farm/aiAdvisor')).set(validAiAdvisor()));
+});
+
+test('owner can write and read a valid Finance item', async () => {
+  const ref = dbFor(OWNER_UID).ref(ownerPath('finance/FIN-test-001'));
+  await assertSucceeds(ref.set(validFinanceItem()));
+  const snapshot = await assertSucceeds(ref.once('value'));
+  assert.deepEqual(snapshot.val(), validFinanceItem());
+});
+
+test('another user cannot read or write the owner Finance item', async () => {
+  const ref = dbFor(OTHER_UID).ref(ownerPath('finance/FIN-test-001'));
+  await assertFails(ref.once('value'));
+  await assertFails(ref.set(validFinanceItem()));
+});
+
+test('Finance rejects an item whose id does not match its key', async () => {
+  const value = validFinanceItem('FIN-wrong-id');
+  await assertFails(dbFor(OWNER_UID).ref(ownerPath('finance/FIN-test-002')).set(value));
 });
 
 // Required-field validation.
