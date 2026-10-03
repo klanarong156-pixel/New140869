@@ -37,7 +37,16 @@
       window.dispatchEvent(new CustomEvent('access:ready', { detail: state }));
       return state;
     }
-    if (!(await ensureFreshSession())) {
+    try {
+      if (!(await ensureFreshSession())) {
+        location.replace(loginUrl());
+        return null;
+      }
+    } catch (error) {
+      // A failed REST refresh must fail closed instead of leaving protected
+      // pages stuck in their loading state with a stale local token.
+      console.warn('Firebase session refresh failed; returning to login.', error);
+      FirebaseAuth.clear();
       location.replace(loginUrl());
       return null;
     }

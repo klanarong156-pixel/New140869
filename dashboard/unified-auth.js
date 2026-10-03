@@ -71,10 +71,19 @@
 
   async function init() {
     if (!window.FirebaseAuth) { setText(authStatus, 'Firebase Auth ยังไม่พร้อมใช้งาน'); return; }
+    let refreshError = '';
     if (window.FirebaseAuth.user && window.FirebaseAuth.token && window.FirebaseAuth.refreshToken) {
-      await window.FirebaseAuth.refresh();
+      try {
+        await window.FirebaseAuth.refresh();
+      } catch (error) {
+        // Do not leave the page stuck at “กำลังตรวจสอบสถานะบัญชี…” when a
+        // temporary network failure interrupts the REST token refresh.
+        window.FirebaseAuth.clear();
+        refreshError = error?.message || 'เชื่อมต่อ Firebase ไม่สำเร็จ';
+      }
     }
     publishAuthState();
+    if (refreshError) setText(authStatus, `ตรวจสอบเซสชันไม่สำเร็จ · ${refreshError}`);
   }
   init();
 })();
