@@ -32,7 +32,7 @@ function pagePath(page) {
 
 async function runChecks() {
   const rootIndex = fs.readFileSync('index.html', 'utf8');
-  add('index.html: routes to clean dashboard', /href="dashboard\//.test(rootIndex));
+  add('index.html: routes to canonical Firebase dashboard', /href="dashboard\//.test(rootIndex) || /smart-farm-platfor\.web\.app\/dashboard\//.test(rootIndex));
   const dashboard = fs.readFileSync('dashboard/index.html', 'utf8');
   add('dashboard/index.html: has viewport', /name="viewport"[^>]+viewport-fit=cover/.test(dashboard));
   add('dashboard/index.html: loads clean dashboard CSS', /href="dashboard\.css\?v=\d+"/.test(dashboard));
