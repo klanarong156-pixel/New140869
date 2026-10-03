@@ -129,7 +129,12 @@
     saveLock = true;
     try {
       const data = normalize(record);
-      await FirebaseDB.put(`cucumberSales/${data.id}`, data);
+      const path = `cucumberSales/${data.id}`;
+      await FirebaseDB.put(path, data);
+      const confirmed = await FirebaseDB.get(path);
+      if (!confirmed || confirmed.id !== data.id || Number(confirmed.totalWeight) !== data.totalWeight) {
+        throw new Error('Firebase ยังไม่ยืนยันการบันทึกรายการขาย กรุณาลองใหม่');
+      }
       return data;
     } finally {
       saveLock = false;

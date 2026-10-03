@@ -86,6 +86,17 @@ const validFinanceItem = (id = 'FIN-test-001') => ({
   createdAt: '2026-09-28T00:00:00.000Z'
 });
 
+const validCucumberSale = (id = 'CUC-test-001') => ({
+  id,
+  date: '2026-09-28',
+  totalWeight: 190,
+  weights: { good: 180, sorted: 10, large: 0 },
+  note: 'รายการทดสอบ',
+  createdAt: '2026-09-28T00:00:00.000Z',
+  entryMode: 'quick',
+  totalIncome: 1900
+});
+
 const clone = value => JSON.parse(JSON.stringify(value));
 
 function dbFor(uid = null) {
@@ -173,6 +184,25 @@ test('another user cannot read or write the owner Finance item', async () => {
 test('Finance rejects an item whose id does not match its key', async () => {
   const value = validFinanceItem('FIN-wrong-id');
   await assertFails(dbFor(OWNER_UID).ref(ownerPath('finance/FIN-test-002')).set(value));
+});
+
+test('owner can write and read a valid cucumber sale', async () => {
+  const ref = dbFor(OWNER_UID).ref(ownerPath('cucumberSales/CUC-test-001'));
+  await assertSucceeds(ref.set(validCucumberSale()));
+  const snapshot = await assertSucceeds(ref.once('value'));
+  assert.deepEqual(snapshot.val(), validCucumberSale());
+});
+
+test('another user cannot read or write the owner cucumber sale', async () => {
+  const ref = dbFor(OTHER_UID).ref(ownerPath('cucumberSales/CUC-test-001'));
+  await assertFails(ref.once('value'));
+  await assertFails(ref.set(validCucumberSale()));
+});
+
+test('cucumber sales rejects an item whose id does not match its key', async () => {
+  await assertFails(
+    dbFor(OWNER_UID).ref(ownerPath('cucumberSales/CUC-test-002')).set(validCucumberSale('CUC-wrong-id'))
+  );
 });
 
 // Required-field validation.

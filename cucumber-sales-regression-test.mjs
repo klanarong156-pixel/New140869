@@ -10,7 +10,7 @@ const context = {
   FirebaseDB: {
     writes: [],
     async put(path, data) { this.writes.push({ path, data }); await new Promise(resolve => setTimeout(resolve, 5)); return data; },
-    async get() { return null; },
+    async get(path) { return this.writes.find(entry => entry.path === path)?.data || null; },
     async delete() {}
   }
 };
