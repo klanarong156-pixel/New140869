@@ -1,0 +1,302 @@
+/* Dashboard typography accessibility layer — presentation only. */
+body.dashboard-page {
+  --muted: #50665b;
+  --d4-muted: #50665b;
+  color: #173d2e;
+  font-size: 16px;
+}
+
+/* Keep secondary information readable instead of relying on tiny captions. */
+body.dashboard-page :is(
+  .header-status small,
+  .page-heading p,
+  .live-pill,
+  .status-banner-main small,
+  .status-banner-meta b,
+  .status-banner-meta em,
+  .topbar-datetime span,
+  .metric-ref small,
+  .metric-ref em,
+  .metric-ref .inline-status,
+  .relay-card strong,
+  .toggle-caption,
+  .system-row,
+  .system-row b,
+  .form-card label,
+  .table-card table,
+  .detail-card dl,
+  .inline-status,
+  .status-list,
+  .soil-notice p,
+  .credential-form label,
+  .form-error,
+  .timeline,
+  .weather-main p,
+  .weather-facts,
+  .water-control strong,
+  .water-control small,
+  .emergency-card p,
+  .emergency-card strong,
+  .emergency-card small,
+  .helper,
+  .contract,
+  .firmware-schedule-note,
+  .firebase-schedule-section .schedule-note,
+  .section-kicker,
+  .summary-status,
+  .card-link,
+  .device-summary-list small,
+  .finance-summary-grid small,
+  .quick-action small,
+  .crop-card-copy p,
+  .crop-card-copy dt,
+  .forecast-preview-list,
+  .forecast-list li,
+  .location-card p,
+  .settings-list small,
+  .system-version dl,
+  .filter,
+  .event-timeline time,
+  .event-timeline b,
+  .site-footer,
+  .toast
+) {
+  font-size: max(12px, .75rem);
+  line-height: 1.4;
+}
+
+body.dashboard-page :is(
+  .header-status small,
+  .page-heading p,
+  .status-banner-main small,
+  .status-banner-meta b,
+  .metric-ref small,
+  .metric-ref em,
+  .system-row,
+  .form-card label,
+  .detail-card dt,
+  .status-list,
+  .soil-notice p,
+  .credential-form label,
+  .timeline li span,
+  .weather-main p,
+  .weather-facts,
+  .forecast-list li span,
+  .forecast-list li small,
+  .location-card p,
+  .location-card small,
+  .settings-list small,
+  .system-version dt,
+  .site-footer
+) {
+  color: #50665b;
+}
+
+body.dashboard-page :is(.metric-ref small, .metric-ref em, .relay-card strong, .toggle-caption, .detail-card dt, .status-list) {
+  font-weight: 600;
+}
+body.dashboard-page .button {
+  min-height: 38px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+body.dashboard-page :is(.section-kicker, .summary-status, .helper, .device-summary-list small, .finance-summary-grid small, .quick-action small, .crop-card-copy p, .crop-card-copy dt, .forecast-preview-list) {
+  color: #50665b;
+}
+body.dashboard-page .reference-sensor-grid .sensor-tile small {
+  color: #50665b;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+body.dashboard-page .water-grid .water-control strong,
+body.dashboard-page .water-grid .water-control small {
+  font-size: 13px !important;
+  line-height: 1.35;
+}
+body.dashboard-page .water-grid .water-control > div:nth-child(2) > small {
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+}
+body.dashboard-page .water-grid .water-control b {
+  color: #173d2e !important;
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+}
+body.dashboard-page .firmware-schedule-card .kicker {
+  color: #50665b !important;
+  font-size: 12px !important;
+  line-height: 1.4;
+}
+body.dashboard-page .firmware-schedule-form label,
+body.dashboard-page .firebase-schedule-section label,
+body.dashboard-page .firebase-schedule-section legend {
+  color: #355a48 !important;
+  font-size: 13px;
+  line-height: 1.4;
+}
+body.dashboard-page .firmware-schedule-card .helper,
+body.dashboard-page .firebase-schedule-section .helper {
+  color: #50665b !important;
+}
+body.dashboard-page .firmware-schedule-form input,
+body.dashboard-page .firmware-schedule-form select,
+body.dashboard-page .firebase-schedule-section input,
+body.dashboard-page .firebase-schedule-section select {
+  color: #173d2e !important;
+}
+body.dashboard-page .firebase-schedule-section .schedule-note {
+  color: #50665b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* The compact mobile home previously used 7–10px labels and status text. */
+body.dashboard-page .style4-mobile-home {
+  color: #173d2e;
+  font-size: 16px;
+}
+body.dashboard-page .style4-mobile-brand small,
+body.dashboard-page .style4-mobile-weather-pill,
+body.dashboard-page .style4-mobile-date span,
+body.dashboard-page .style4-mobile-kicker,
+body.dashboard-page .style4-mobile-status b,
+body.dashboard-page .style4-mobile-status small,
+body.dashboard-page .style4-mobile-card > small,
+body.dashboard-page .style4-mobile-card > span,
+body.dashboard-page .style4-mini-status span,
+body.dashboard-page .style4-mobile-mode small,
+body.dashboard-page .style4-mobile-bottom-nav small {
+  font-size: 12px;
+  line-height: 1.35;
+}
+body.dashboard-page .style4-mobile-brand small,
+body.dashboard-page .style4-mobile-date span,
+body.dashboard-page .style4-mobile-card > span,
+body.dashboard-page .style4-mobile-status small,
+body.dashboard-page .style4-relay-tile small {
+  color: #50665b;
+}
+body.dashboard-page .style4-mobile-date strong {
+  font-size: 20px;
+  line-height: 1.15;
+}
+body.dashboard-page .style4-mobile-hero-copy h1 {
+  font-size: 34px;
+  line-height: 1.1;
+}
+body.dashboard-page .style4-mobile-hero-copy p,
+body.dashboard-page .style4-speech {
+  font-size: 14px;
+  line-height: 1.4;
+}
+body.dashboard-page .style4-mobile-status {
+  gap: 7px;
+}
+body.dashboard-page .style4-mobile-status b {
+  font-weight: 800;
+}
+body.dashboard-page .style4-mobile-card > strong {
+  font-size: 18px;
+  line-height: 1.25;
+}
+body.dashboard-page .style4-dual-value b {
+  font-size: 15px;
+  line-height: 1.3;
+}
+body.dashboard-page .style4-mini-status {
+  gap: 6px;
+}
+body.dashboard-page .style4-mini-status span {
+  gap: 3px;
+  font-weight: 600;
+}
+body.dashboard-page .style4-mini-status b {
+  font-size: 10px;
+  line-height: 1.3;
+}
+body.dashboard-page .style4-relay-tile b {
+  font-size: 11px;
+  line-height: 1.3;
+}
+body.dashboard-page .style4-relay-tile small {
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+body.dashboard-page .style4-mobile-mode strong {
+  font-size: 14px;
+}
+body.dashboard-page .style4-mode-buttons button {
+  min-height: 32px;
+  padding: 6px 4px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+body.dashboard-page .style4-mobile-bottom-nav small {
+  color: #50665b;
+  font-size: 11px;
+  font-weight: 800;
+}
+body.dashboard-page .style4-shared-mobile-nav small {
+  color: #50665b !important;
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+  font-weight: 800 !important;
+}
+body.dashboard-page .style4-mobile-bottom-nav a.active small {
+  color: #236b43;
+}
+body.dashboard-page .style4-relay-tile:disabled,
+body.dashboard-page .style4-mode-buttons button:disabled {
+  opacity: .72;
+}
+
+@media (max-width: 650px) {
+  body.dashboard-page .style4-mobile-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body.dashboard-page .style4-mobile-relays {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  body.dashboard-page .style4-relay-tile {
+    min-height: 68px;
+    justify-content: center;
+    padding: 6px 4px;
+    border: 1px solid #e1ede5;
+    border-radius: 12px;
+    background: #f9fcfa;
+  }
+  body.dashboard-page .style4-mobile-mode {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid #d8e9df;
+    border-left: 0;
+    padding: 10px 3px 2px;
+  }
+  body.dashboard-page .style4-mode-buttons {
+    flex: 0 0 auto;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 370px) {
+  body.dashboard-page .style4-mobile-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  body.dashboard-page .style4-mobile-card.irrigation {
+    grid-column: 1 / -1;
+  }
+  body.dashboard-page .style4-mobile-card > strong {
+    font-size: 16px;
+  }
+  body.dashboard-page .style4-mobile-hero-copy h1 {
+    font-size: 31px;
+  }
+  body.dashboard-page .style4-mobile-bottom-nav small {
+    font-size: 10px;
+  }
+}
