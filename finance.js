@@ -2,6 +2,7 @@
   'use strict';
 
   let items = [];
+  let financeBooted = false;
   const $ = id => document.getElementById(id);
   const formatter = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 2 });
   const typeMeta = {
@@ -293,6 +294,10 @@
   }
 
   function boot() {
+    if (financeBooted) return;
+    const authenticated = Boolean(window.FirebaseAuth?.user?.localId && window.FirebaseAuth?.token);
+    if (!authenticated) return;
+    financeBooted = true;
     $('financeForm')?.addEventListener('submit', add);
     window.addEventListener('finance:changed', refresh);
     $('financePrint')?.addEventListener('click', printReport);
@@ -303,4 +308,6 @@
   }
 
   window.addEventListener('access:ready', boot, { once: true });
+  // unified-auth publishes this event before access:ready during login.
+  window.addEventListener('firebase:auth-state-changed', boot);
 })();
