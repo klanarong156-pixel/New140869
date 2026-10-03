@@ -300,3 +300,6 @@ body.dashboard-page .style4-mode-buttons button:disabled {
     font-size: 10px;
   }
 }
+body.dashboard-page .toast[hidden] {
+  display: none !important;
+}
