@@ -29,6 +29,7 @@ const finance = read('dashboard/index.html');
 const financeRedirect = read('finance.html');
 const financeJs = read('finance.js');
 const dashboardCss = read('dashboard/dashboard.css');
+const weatherTypography = read('dashboard/dashboard-typography.css');
 const firmware = read('SmartFarm_V7.2.0_OTA_STABLE.ino');
 const sw = read('sw.js');
 
@@ -58,7 +59,11 @@ const checks = [
   ['Finance monthly report UI exists inside the unified route', /data-page-section="finance"/.test(finance) && /financeReportMonth/.test(finance) && /monthlyIncome/.test(finance) && /monthlyCategoryRows/.test(finance)],
   ['Finance monthly report calculates from loaded items', /monthlyItems/.test(financeJs) && /renderMonthlyReport/.test(financeJs) && /monthKey/.test(financeJs)],
   ['Finance entry form is integrated and standalone URL redirects', /id="financeForm"/.test(finance) && /id="financeType"/.test(finance) && /id="financeAmount"/.test(finance) && /id="financeItem"/.test(finance) && /id="financeSubmit"/.test(finance) && /dashboard\/?\?page=finance/.test(financeRedirect)],
-  ['Dashboard routes share the renovated theme', /data-page-section="water"/.test(cleanDashboard) && /data-page-section="devices"/.test(cleanDashboard) && /data-page-section="connection"/.test(cleanDashboard) && /data-page-section="weather"/.test(cleanDashboard) && /data-page-section="settings"/.test(cleanDashboard) && /\.route-page\[hidden\]/.test(dashboardCss)]
+  ['Dashboard routes share the renovated theme', /data-page-section="water"/.test(cleanDashboard) && /data-page-section="devices"/.test(cleanDashboard) && /data-page-section="connection"/.test(cleanDashboard) && /data-page-section="weather"/.test(cleanDashboard) && /data-page-section="settings"/.test(cleanDashboard) && /\.route-page\[hidden\]/.test(dashboardCss)],
+  ['Weather typography stylesheet cache version is bumped', /dashboard-typography\.css\?v=3/.test(cleanDashboard)],
+  ['Current temperature uses dark high-contrast large numerals', /body\.dashboard-page \.weather-main > div > strong\s*\{[^}]*color: #12382d !important;[^}]*font-size: clamp\(2\.8rem, 8vw, 3\.2rem\)/.test(weatherTypography)],
+  ['Forecast high/low values use dark high-contrast numerals', /body\.dashboard-page \.forecast-list li > strong\s*\{[^}]*color: #12382d !important;[^}]*font-size: clamp\(1\.25rem, 5vw, 1\.55rem\)/.test(weatherTypography)],
+  ['Weather detail values are bold and tabular', /\.weather-facts b,[\s\S]*?\.weather-main p b\s*\{[^}]*font-weight: 900;[^}]*font-variant-numeric: tabular-nums/.test(weatherTypography)]
 ];
 
 let failed = 0;
