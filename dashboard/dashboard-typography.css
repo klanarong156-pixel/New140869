@@ -303,3 +303,33 @@ body.dashboard-page .style4-mode-buttons button:disabled {
 body.dashboard-page .toast[hidden] {
   display: none !important;
 }
+
+
+/* Weather numeric hierarchy: keep key readings legible on light forecast cards. */
+body.dashboard-page .weather-main > div > strong {
+  display: block;
+  color: #12382d !important;
+  font-size: clamp(2.8rem, 8vw, 3.2rem);
+  font-weight: 950;
+  line-height: 1.05;
+  letter-spacing: -.045em;
+  text-shadow: none !important;
+  font-variant-numeric: tabular-nums;
+}
+body.dashboard-page .weather-facts b,
+body.dashboard-page .weather-main p b {
+  color: #0b6650 !important;
+  font-size: 1rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+body.dashboard-page .forecast-list li > strong {
+  display: block;
+  color: #12382d !important;
+  font-size: clamp(1.25rem, 5vw, 1.55rem);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -.025em;
+  text-shadow: none !important;
+  font-variant-numeric: tabular-nums;
+}
