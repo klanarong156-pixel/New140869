@@ -1,4 +1,4 @@
-สวนลุงนะ Smart Farm V7.2.0 OTA STABLE — Unified Dashboard
+สวนลุงนะ Smart Farm V7.2.1 OTA ACCESS FIX — Unified Dashboard
 =========================================================
 
 เอกสารนี้อธิบายระบบที่ checkout อยู่ใน repository นี้ ใช้อ้างอิงก่อนติดตั้ง ตรวจสอบ และแก้ไขระบบจริง
@@ -23,7 +23,7 @@ SmartFarm ประกอบด้วย Dashboard แบบ Progressive Web App
 
 ## บอร์ดและ Pin map
 
-แหล่งอ้างอิงหลักของการต่อบอร์ดอยู่ที่ `BOARD_REFERENCE.md` และต้องสอดคล้องกับ `SmartFarm_V7.2.0_OTA_STABLE.ino` กับ `platformio.ini`
+แหล่งอ้างอิงหลักของการต่อบอร์ดอยู่ที่ `BOARD_REFERENCE.md` และต้องสอดคล้องกับ `SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino` กับ `platformio.ini`
 
 | อุปกรณ์ | NodeMCU | GPIO/ADC | พฤติกรรม |
 |---|---|---:|---|
@@ -120,7 +120,8 @@ MQTT username/password ของ Dashboard ต้องกรอกโดยผ�
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `SmartFarm_V6_PRODUCTION1.ino` | Firmware หลักของ ESP8266 |
+| `SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino` | Firmware หลักของ ESP8266 รุ่น V7.2.1 |
+| `OTA_QUICKSTART_TH.md` | วิธีเปิดหน้า OTA บนบอร์ดและตั้งรหัสผ่าน |
 | `config.js` | MQTT config, topics, pins, relay names และ APP_STATE |
 | `app.js` | Dashboard lifecycle, MQTT UI และสถานะหลัก |
 | `farm-analytics.js` | telemetry, relay runtime, ค่าไฟ และประวัติการใช้งาน |
@@ -134,15 +135,16 @@ MQTT username/password ของ Dashboard ต้องกรอกโดยผ�
 
 เป้าหมาย Arduino คือ NodeMCU 1.0 (ESP-12E Module): `esp8266:esp8266:nodemcuv2` โดยใช้ PlatformIO environment ชื่อ `nodemcuv2` จาก `platformio.ini`
 
-Firmware release ปัจจุบันคือ `SmartFarm_V7.2.0_OTA_STABLE.ino` ใช้ `espressif8266@4.2.0` ซึ่งติดตั้ง Arduino ESP8266 Core 3.1.2, NodeMCU 1.0 / ESP-12E, CPU 80 MHz, Flash 4 MB และ upload speed 115200 baud หลังแก้ firmware ให้ compile ก่อน upload ทุกครั้ง การ build สำเร็จยืนยันเฉพาะการ compile เท่านั้น ต้องทดสอบ Wi-Fi, MQTT, DHT11, DS3231, รีเลย์ และ OTA กับ NodeMCU จริงแยกต่างหาก
+Firmware release ปัจจุบันคือ `V7.2.1-OTA-ACCESS-FIX` ใน `SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino` ใช้ `espressif8266@4.2.0` ซึ่งติดตั้ง Arduino ESP8266 Core 3.1.2, NodeMCU 1.0 / ESP-12E, CPU 80 MHz, Flash 4 MB และ upload speed 115200 baud รุ่นนี้แสดงวิธีตั้งค่า OTA เมื่อ `ota_pass` ยังว่าง โดยไม่เปิดการอัปโหลดแบบไม่ยืนยันตัวตน คู่มือเปิดใช้งานอยู่ที่ `OTA_QUICKSTART_TH.md` หลังแก้ firmware ให้ compile ก่อน upload ทุกครั้ง การ build สำเร็จยืนยันเฉพาะการ compile เท่านั้น ต้องทดสอบ Wi-Fi, MQTT, DHT11, DS3231, รีเลย์ และ OTA กับ NodeMCU จริงแยกต่างหาก
 
 คำสั่งตรวจสอบหลัก:
 ```bash
 mkdir -p src
-cp SmartFarm_V7.2.0_OTA_STABLE.ino src/main.ino
+cp SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino src/main.ino
 pio run -e nodemcuv2
-cp .pio/build/nodemcuv2/firmware.bin SmartFarm_V7.2.0_OTA_STABLE.bin
+cp .pio/build/nodemcuv2/firmware.bin SmartFarm_V7.2.1_OTA_ACCESS_FIX.bin
 node firmware-v720-contract-test.mjs
+node firmware-ota-onboarding-test.mjs
 node dashboard-contract-test.mjs
 node dashboard-layout-audit.mjs
 node dashboard-browser-smoke.mjs

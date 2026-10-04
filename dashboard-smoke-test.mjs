@@ -29,7 +29,7 @@ const finance = read('dashboard/index.html');
 const financeRedirect = read('finance.html');
 const financeJs = read('finance.js');
 const dashboardCss = read('dashboard/dashboard.css');
-const firmware = read('SmartFarm_V7.2.0_OTA_STABLE.ino');
+const firmware = read('SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino');
 const sw = read('sw.js');
 
 const checks = [

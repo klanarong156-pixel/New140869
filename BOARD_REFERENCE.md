@@ -1,15 +1,15 @@
-# SmartFarm ESP8266 Board Reference
+# SmartFarm ESP8266 Board Reference — V7.2.1 OTA Access Fix
 
 เอกสารนี้เป็น **แหล่งอ้างอิงกลางของบอร์ด** สำหรับ SmartFarm และต้องปรับพร้อมเฟิร์มแวร์ทุกครั้งที่มีการเปลี่ยนขา, รีเลย์, เซนเซอร์ หรือ MQTT contract
 
-> Source of truth: `SmartFarm_V6_PRODUCTION1.ino` และ `config.js`
+> Source of truth: `SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino` และ `config.js`
 
 ## ภาพรวมบอร์ด
 
 | รายการ | ค่าปัจจุบัน |
 |---|---|
 | บอร์ด | NodeMCU ESP8266 |
-| Firmware | `V7.1.0-FIELD-STABILITY` |
+| Firmware | `V7.2.1-OTA-ACCESS-FIX` |
 | MQTT broker | HiveMQ Cloud ผ่าน TLS |
 | MQTT secure port | 8883 (บอร์ด), WebSocket 8884 (Dashboard) |
 | เขตเวลา | UTC+7 |
@@ -75,6 +75,6 @@
 
 ## การแก้ไขเอกสารครั้งต่อไป
 
-เมื่อเปลี่ยน pin หรืออุปกรณ์ ให้แก้ตามลำดับ: `SmartFarm_V6_PRODUCTION1.ino` → `config.js` (`HARDWARE_PINS`/topics) → `settings.html` Pin map → เอกสารนี้ → `dashboard-smoke-test.mjs` จากนั้นรัน syntax check และ smoke test ก่อน commit
+เมื่อเปลี่ยน pin หรืออุปกรณ์ ให้แก้ตามลำดับ: `SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino` → `config.js` (`HARDWARE_PINS`/topics) → หน้า Settings Pin map → เอกสารนี้ → `dashboard-smoke-test.mjs` จากนั้นรัน syntax check และ smoke test ก่อน commit
 
 ไม่ควรใส่ MQTT password, OTA password, Telegram Bot Token หรือ secret ใด ๆ ในเอกสารหรือ repository

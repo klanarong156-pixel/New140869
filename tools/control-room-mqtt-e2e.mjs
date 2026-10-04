@@ -52,12 +52,12 @@ try {
   if (!await page.locator('[data-firmware-schedule-submit]').isDisabled()) throw new Error('ESP schedule command must remain disabled before live heartbeat');
 
   await page.evaluate(() => {
-    const device = { device_id: 'SmartFarm-test', online: true, wifi: true, mqtt: true, firmware: 'V7.2.0-OTA-STABLE', uptimeSec: 120, rssi: -58, pumpSafeLock: false, emergencyLock: false };
+    const device = { device_id: 'SmartFarm-test', online: true, wifi: true, mqtt: true, firmware: 'V7.2.1-OTA-ACCESS-FIX', uptimeSec: 120, rssi: -58, pumpSafeLock: false, emergencyLock: false };
     window.__mockMqttClient.emit('message', 'smartfarm/status/device', JSON.stringify(device), { retain: true });
   });
   if (!await page.locator('[data-firmware-schedule-submit]').isDisabled()) throw new Error('retained heartbeat must not enable ESP commands');
   await page.evaluate(() => {
-    const device = { device_id: 'SmartFarm-test', online: true, wifi: true, mqtt: true, firmware: 'V7.2.0-OTA-STABLE', uptimeSec: 121, rssi: -58, pumpSafeLock: false, emergencyLock: false };
+    const device = { device_id: 'SmartFarm-test', online: true, wifi: true, mqtt: true, firmware: 'V7.2.1-OTA-ACCESS-FIX', uptimeSec: 121, rssi: -58, pumpSafeLock: false, emergencyLock: false };
     window.__mockMqttClient.emit('message', 'smartfarm/status/device', JSON.stringify(device), { retain: false });
   });
   await page.waitForFunction(() => !document.querySelector('[data-firmware-schedule-submit]')?.disabled);

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const firmware = fs.readFileSync('SmartFarm_V7.2.0_OTA_STABLE.ino', 'utf8');
+const firmware = fs.readFileSync('SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino', 'utf8');
 const state = fs.readFileSync('dashboard/dashboard-state.js', 'utf8');
 const dashboard = fs.readFileSync('dashboard/dashboard.js', 'utf8');
 const html = fs.readFileSync('dashboard/index.html', 'utf8');
@@ -26,7 +26,7 @@ const bodyOf = (signature) => {
   throw new Error(`unclosed body for ${signature}`);
 };
 
-check(firmware.includes('#define SMARTFARM_VERSION "V7.2.0-OTA-STABLE"'), 'firmware identity is V7.2.0-OTA-STABLE');
+check(firmware.includes('#define SMARTFARM_VERSION "V7.2.1-OTA-ACCESS-FIX"'), 'firmware identity is V7.2.1-OTA-ACCESS-FIX');
 check(ini.includes('platform = espressif8266@4.2.0') && ini.includes('board = nodemcuv2'), 'build pins ESP8266 Core 3.1.2 platform and NodeMCU target');
 check(/#define RELAY_PUMP D5/.test(firmware) && /#define RELAY_ZONE1 D6/.test(firmware) && /#define RELAY_LIGHT_HOME D7/.test(firmware) && /#define RELAY_LIGHT_SALA D8/.test(firmware) && /#define DHT_PIN D2/.test(firmware), 'required relay and DHT11 pins remain unchanged');
 check(firmware.includes('"SmartFarm-%06X"') && firmware.includes('ArduinoOTA.setHostname(otaHostname)') && firmware.includes('ArduinoOTA.setPort(OTA_ARDUINO_PORT)'), 'ArduinoOTA uses chip-derived hostname and configured port');
