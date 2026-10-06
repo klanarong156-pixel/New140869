@@ -90,10 +90,12 @@ const uint32_t WIFI_RESET_HOLD_MS = 5000UL;
 // password in ESP8266 flash so later boots reconnect to the saved network.
 // Close the portal after three minutes when no setup is completed.
 const uint16_t WIFI_PORTAL_TIMEOUT_SECONDS = 180;
-const uint32_t MQTT_RECONNECT_MS = 5000UL;
+const uint32_t MQTT_RECONNECT_MS = 3000UL;
 const uint32_t MQTT_RECONNECT_MAX_MS = 60000UL;
 const uint32_t SENSOR_INTERVAL_MS = 30000UL;
 const uint32_t HEARTBEAT_INTERVAL_MS = 10000UL;
+const uint32_t MQTT_STARTUP_HEARTBEAT_INTERVAL_MS = 2000UL;
+const uint32_t MQTT_STARTUP_HEARTBEAT_BURST_MS = 60000UL;
 const uint32_t SCHEDULE_INTERVAL_MS = 1000UL;
 const uint32_t RTC_NTP_SYNC_INTERVAL_MS = 6UL * 60UL * 60UL * 1000UL;
 const uint32_t NTP_RETRY_INTERVAL_MS = 10UL * 60UL * 1000UL;
@@ -129,7 +131,8 @@ DHT dht(DHT_PIN, DHT11);
 bool fsReady = false, rtcAvailable = false, rtcTimeValid = false, ntpTimeValid = false;
 uint32_t lastRtcSync = 0, lastNtpAttempt = 0, lastMqttAttempt = 0,
          mqttRetryDelayMs = MQTT_RECONNECT_MS, lastSensor = 0,
-         lastHeartbeat = 0, lastSchedule = 0, lastMqttDiagnostic = 0,
+         lastHeartbeat = 0, heartbeatBurstUntil = 0, lastSchedule = 0,
+         lastMqttDiagnostic = 0,
          lastWifiReconnect = 0, lastSensorValidAt = 0;
 uint32_t sensorReadCount = 0, sensorFaultCount = 0;
 uint32_t wifiReconnectRequests = 0, mqttConnectAttempts = 0,
@@ -138,6 +141,7 @@ uint8_t mqttAuthFailures = 0;
 bool mqttPortalOpened = false;
 bool autoMode = true;
 bool mqttConfigReported = false;
+bool heartbeatBurstActive = false;
 bool otaHttpRestartPending = false;
 unsigned long otaHttpRestartAt = 0;
 bool otaUploadFailed = false;
@@ -158,6 +162,7 @@ uint32_t wifiResetStartedAt = 0;
 bool mqttTlsReady = false;
 bool readRtcNow(DateTime &value);
 bool prepareTlsValidationTime();
+void publishHeartbeat();
 
 bool prepareTlsValidationTime() {
   // BearSSL validates the broker certificate against its X509 clock.
@@ -1856,7 +1861,10 @@ void connectMqtt() {
     return;
   }
 
-  if ((uint32_t)(millis() - lastMqttAttempt) < mqttRetryDelayMs)
+  // Permit the first attempt immediately; apply backoff only after an attempt
+  // has actually been made.
+  if (lastMqttAttempt &&
+      (uint32_t)(millis() - lastMqttAttempt) < mqttRetryDelayMs)
     return;
   lastMqttAttempt = millis();
   mqttConnectAttempts++;
@@ -1885,6 +1893,13 @@ void connectMqtt() {
     publishTelegramStatus();
     publishReminderStatus("online");
     publishAiAlertStatus("online");
+    heartbeatBurstActive = true;
+    heartbeatBurstUntil = millis() + MQTT_STARTUP_HEARTBEAT_BURST_MS;
+    lastHeartbeat = millis();
+    // Publish immediately for dashboards already subscribed. The short burst
+    // below also gives a newly opened dashboard a fresh live packet quickly;
+    // retained snapshots alone remain insufficient to mark the ESP online.
+    publishHeartbeat();
     Serial.println(F("MQTT: Connected"));
     queueTelegram(F("เชื่อมต่อ MQTT สำเร็จ"));
     Serial.printf("MQTT: Subscribe command topics=%s\n",
@@ -2369,9 +2384,14 @@ void setup() {
   setupWifi();
   Serial.print(F("Heap after WiFi: "));
   Serial.println(ESP.getFreeHeap());
-  // NTP must be synchronized before TLS certificate validation.
-  // DS3231 is updated from NTP and can then be used as the fallback clock.
-  syncRTCFromNTP(true);
+  // A valid DS3231 clock is sufficient for the TLS certificate check, so avoid
+  // blocking the first MQTT connection on an unnecessary NTP round trip.
+  // If RTC time is invalid/unavailable, preserve the required NTP bootstrap.
+  if (!rtcTimeValid) {
+    syncRTCFromNTP(true);
+  } else {
+    Serial.println(F("RTC: valid; defer NTP refresh until MQTT connection"));
+  }
   reportClockStatus();
   Serial.printf("WiFi: %s IP: %s RSSI: %ld dBm\n",
                 WiFi.status() == WL_CONNECTED ? "CONNECTED" : "OFFLINE",
@@ -2604,7 +2624,14 @@ void loop() {
       mqtt.publish(MQTT_BASE "/sensor/dht11", out, false);
     }
   }
-  if ((uint32_t)(millis() - lastHeartbeat) >= HEARTBEAT_INTERVAL_MS) {
+  bool fastHeartbeat = false;
+  if (heartbeatBurstActive) {
+    fastHeartbeat = (int32_t)(heartbeatBurstUntil - millis()) > 0;
+    if (!fastHeartbeat) heartbeatBurstActive = false;
+  }
+  const uint32_t heartbeatInterval = fastHeartbeat
+      ? MQTT_STARTUP_HEARTBEAT_INTERVAL_MS : HEARTBEAT_INTERVAL_MS;
+  if ((uint32_t)(millis() - lastHeartbeat) >= heartbeatInterval) {
     lastHeartbeat = millis();
     publishHeartbeat();
   }

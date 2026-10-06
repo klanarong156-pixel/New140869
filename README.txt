@@ -135,7 +135,7 @@ MQTT username/password ของ Dashboard ต้องกรอกโดยผ�
 
 เป้าหมาย Arduino คือ NodeMCU 1.0 (ESP-12E Module): `esp8266:esp8266:nodemcuv2` โดยใช้ PlatformIO environment ชื่อ `nodemcuv2` จาก `platformio.ini`
 
-Firmware release ปัจจุบันคือ `V7.2.1-OTA-ACCESS-FIX` ใน `SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino` ใช้ `espressif8266@4.2.0` ซึ่งติดตั้ง Arduino ESP8266 Core 3.1.2, NodeMCU 1.0 / ESP-12E, CPU 80 MHz, Flash 4 MB และ upload speed 115200 baud รุ่นนี้แสดงวิธีตั้งค่า OTA เมื่อ `ota_pass` ยังว่าง โดยไม่เปิดการอัปโหลดแบบไม่ยืนยันตัวตน คู่มือเปิดใช้งานอยู่ที่ `OTA_QUICKSTART_TH.md` หลังแก้ firmware ให้ compile ก่อน upload ทุกครั้ง การ build สำเร็จยืนยันเฉพาะการ compile เท่านั้น ต้องทดสอบ Wi-Fi, MQTT, DHT11, DS3231, รีเลย์ และ OTA กับ NodeMCU จริงแยกต่างหาก
+Firmware release ปัจจุบันคือ `V7.2.1-OTA-ACCESS-FIX` ใน `SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino` ใช้ `espressif8266@4.2.0` ซึ่งติดตั้ง Arduino ESP8266 Core 3.1.2, NodeMCU 1.0 / ESP-12E, CPU 80 MHz, Flash 4 MB และ upload speed 115200 baud รุ่นนี้แสดงวิธีตั้งค่า OTA เมื่อ `ota_pass` ยังว่างโดยไม่เปิดการอัปโหลดแบบไม่ยืนยันตัวตน และเร่งการเชื่อมต่อโดยเริ่ม MQTT ทันที ใช้ DS3231 ที่ valid ยืนยันเวลา TLS ก่อนค่อย sync NTP พร้อมส่ง heartbeat ทันทีและถี่ทุก 2 วินาทีใน 60 วินาทีแรกหลัง MQTT ต่อสำเร็จ จากนั้นกลับ cadence ปกติ 10 วินาที คู่มือ OTA อยู่ที่ `OTA_QUICKSTART_TH.md` หลังแก้ firmware ให้ compile ก่อน upload ทุกครั้ง การ build สำเร็จยืนยันเฉพาะการ compile เท่านั้น ต้องทดสอบ Wi-Fi, MQTT, DHT11, DS3231, รีเลย์ และ OTA กับ NodeMCU จริงแยกต่างหาก
 
 คำสั่งตรวจสอบหลัก:
 ```bash
@@ -161,7 +161,7 @@ git diff --check
 ```
 
 ไฟล์ `.bin` สร้างโดย ESP8266 Core จาก eboot และ application image สำหรับ flash ผ่าน serial หรือ OTA ใช้ artifact นี้กับ NodeMCU ที่มี flash/partition layout ตรงกับ build และทดสอบกับอุปกรณ์จริงก่อนใช้งาน
-ไฟล์ release มีขนาด **610,176 bytes**; SHA-256 คือ `a5a10f5330f946748e51219fdd2fe409a89f924bcac0894db778d0febcc7d469` ผล build ล่าสุดใช้ RAM 42,268/81,920 bytes (51.6%) และ Flash 606,016/1,044,464 bytes (58.0%) จึงเหลือ build-time flash headroom 438,448 bytes ภายใต้ NodeMCU partition ที่ build ใช้ ค่า free heap และ free sketch space จริงยังต้องอ่านจากอุปกรณ์ที่เปิดทำงาน
+ไฟล์ release มีขนาด **612,112 bytes**; SHA-256 คือ `c175648d15a55970a7f5db4d8094caa367ecf064020b9169b335205382b37f58` ผล build ล่าสุดใช้ RAM 42,276/81,920 bytes (51.6%) และ Flash 607,952/1,044,464 bytes (58.2%) จึงเหลือ build-time flash headroom 436,512 bytes ภายใต้ NodeMCU partition ที่ build ใช้ ค่า free heap และ free sketch space จริงยังต้องอ่านจากอุปกรณ์ที่เปิดทำงาน
 
 GitHub Actions รันชุดตรวจสอบเดียวกันทุก push และ pull request รวมถึง simulated
 browser integration สำหรับหน้า Settings/MQTT. งาน browser test ใช้ Chrome ที่

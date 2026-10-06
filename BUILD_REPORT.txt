@@ -1,42 +1,48 @@
-SMART FARM V7.2.1 OTA ACCESS FIX — BUILD REPORT
+SMART FARM V7.2.1 OTA ACCESS + FAST CONNECT — BUILD REPORT
 วันที่ตรวจสอบ: 2026-10-04 (UTC+7)
 
 สรุป
 - PlatformIO build สำเร็จสำหรับ NodeMCU 1.0 / ESP-12E (nodemcuv2), ESP8266 Arduino Core 3.1.2 และ platform espressif8266@4.2.0
-- แก้ปัญหากรณี `ota_pass` ยังว่าง: เมื่อเปิด `http://<IP-ของ-NodeMCU>/` จะแสดงหน้าคู่มือภาษาไทยแบบอ่านอย่างเดียว แทนหน้าเปล่าหรือข้อความ 503
-- ไม่ได้เปิดการอัปโหลดแบบไม่ยืนยันตัวตน: upload `/update` และ API `/api/status` ยังคงบังคับ Basic Authentication (`admin` + `ota_pass`)
-- คง ArduinoOTA, HTTP OTA upload validation, MQTT topics, pin map, safety lock และ Dashboard contract เดิม
+- แก้ปัญหากรณี `ota_pass` ยังว่าง: `http://<IP-ของ-NodeMCU>/` แสดงหน้าคู่มือภาษาไทยแบบอ่านอย่างเดียว; upload และ API ยังคงบังคับ Basic Authentication (`admin` + `ota_pass`)
+- ลดเวลาการเชื่อมต่อ: MQTT attempt แรกเริ่มทันทีเมื่อ Wi-Fi/TLS พร้อม; backoff เริ่ม 3 วินาทีและยังเพิ่มแบบ exponential สูงสุด 60 วินาที
+- ถ้า DS3231 มีเวลาที่ valid จะใช้เวลานั้นตรวจสอบ TLS และเลื่อน NTP sync ไปหลัง MQTT เชื่อมต่อ; ถ้า RTC invalid/unavailable ยังคงต้องรอ NTP ก่อน TLS เพื่อไม่ลดความปลอดภัย
+- ส่ง heartbeat ทันทีเมื่อ MQTT ต่อสำเร็จ และส่งทุก 2 วินาทีใน 60 วินาทีแรก จากนั้นกลับ cadence ปกติทุก 10 วินาที ใช้ topic/payload/retain contract เดิม
+- Dashboard ยังคงไม่ถือ retained snapshot เพียงอย่างเดียวว่า ESP online จึงไม่เปิดใช้งานปุ่มควบคุมจากสถานะเก่าค้างใน broker
+- ไม่เปลี่ยน pin map, รีเลย์, command topic, OTA authentication หรือ safety lock
 
 Build configuration และพื้นที่
 - Board: NodeMCU 1.0 (ESP-12E), CPU 80 MHz, Flash 4 MB
-- RAM static: 42,268 / 81,920 bytes (51.6%)
-- Flash application: 607,788 / 1,044,464 bytes (58.2%)
+- RAM static: 42,276 / 81,920 bytes (51.6%)
+- Flash application: 607,952 / 1,044,464 bytes (58.2%)
 - Build result: SUCCESS
-- มี compiler warning แบบ sign-compare ใน dependency PubSubClient 2.8.0; ไม่มี build failure
+- Build-time flash headroom: 436,512 bytes ภายใต้ partition ที่ build ใช้
 
 Firmware artifact
 - Version string: `V7.2.1-OTA-ACCESS-FIX`
 - Filename: `SmartFarm_V7.2.1_OTA_ACCESS_FIX.bin`
-- Size: 611,936 bytes
-- SHA-256: `f7b0916b443c10fed75d7e499d4b70ed247f44b12c1607a276d17bf8f360b304`
-- ESP8266 eboot/application magic: ผ่าน (`0xE9` ที่ offset 0 และ `0x1000`)
-- Embedded image length: 611,936 bytes — ผ่าน
-- ESP8266 image CRC: `8fc99e7c` — ผ่าน
+- Size: 612,112 bytes
+- SHA-256: `c175648d15a55970a7f5db4d8094caa367ecf064020b9169b335205382b37f58`
+- eboot/application magic: ผ่าน (`0xE9` ที่ offset 0 และ `0x1000`)
+- ESP8266 Core embedded image length: 612,112 bytes — ผ่าน
+- ESP8266 Core CRC: `0xb5bd2763` — ผ่าน
 
 Regression tests
-- Firmware/Dashboard contract: 29 checks ผ่าน
+- Firmware/Dashboard contract: 32 checks ผ่าน
 - OTA onboarding/security: 6 checks ผ่าน
 - Firmware relay/safety regression: ผ่าน
-- Dashboard contract suite: ผ่าน
-- Dashboard smoke/architecture: 26 checks ผ่าน
+- Dashboard contract suite: ผ่าน รวม retained heartbeat safety
+- Dashboard smoke/architecture: 30 checks ผ่าน
+- Dashboard layout audit: 16 checks ผ่าน
 - `git diff --check`: ผ่าน
 
 การใช้งาน
-1. เปิดหน้า device โดยตรง: `http://<IP-ของ-NodeMCU>/` บนอุปกรณ์ใน LAN เดียวกัน (ไม่ใช่ URL `ota.html` บนเว็บ Dashboard)
-2. ถ้าเฟิร์มแวร์เดิมยังไม่มี `ota_pass` ให้ส่ง `OPEN_AP` ผ่าน Serial Monitor 115200 baud, เชื่อม `SmartFarm_Setup`, ตั้งรหัสผ่าน OTA และบันทึก
+1. เปิดหน้า OTA ของอุปกรณ์โดยตรง: `http://<IP-ของ-NodeMCU>/` บน LAN เดียวกัน (ไม่ใช่ `ota.html` บนเว็บ Dashboard)
+2. ถ้า firmware เดิมยังไม่มี `ota_pass` ให้ส่ง `OPEN_AP` ผ่าน Serial Monitor 115200 baud, เชื่อม `SmartFarm_Setup`, ตั้งรหัสผ่าน OTA และบันทึก
 3. เข้า URL อีกครั้งด้วย username `admin` และรหัสผ่าน `ota_pass` แล้วเลือก BIN นี้
 4. ใช้เฉพาะ LAN ที่เชื่อถือได้ ห้าม port-forward พอร์ต 80 ออกอินเทอร์เน็ต
 
 ข้อจำกัด
-- ยังไม่ได้ทดสอบ flash/OTA, Wi-Fi, MQTT, sensor หรือรีเลย์กับ NodeMCU จริงในงานนี้ ต้องทดสอบกับบอร์ดและแหล่งจ่ายไฟที่เสถียรก่อนใช้งานจริง
+- ยังไม่ได้ flash หรือวัดเวลาเชื่อมต่อกับ NodeMCU จริง; ความเร็วจริงยังขึ้นกับ Wi-Fi, เวลา DS3231/NTP, DNS/TLS, อินเทอร์เน็ตและ HiveMQ Cloud
+- เมื่อ Dashboard เปิดอยู่ก่อน ESP ต่อ MQTT จะเห็น heartbeat ทันที; Dashboard ที่เพิ่งเปิดภายใน 60 วินาทีหลังต่อสำเร็จควรได้ heartbeat สดภายในรอบไม่เกิน 2 วินาที ส่วนหลัง burst จะกลับไป heartbeat 10 วินาทีตามปกติ
+- ต้องทดสอบ Wi-Fi, MQTT, DHT11, DS3231, รีเลย์ และ OTA กับบอร์ดจริงก่อนใช้งานจริง
 - หน้า Dashboard `ota.html` รับเฉพาะ HTTPS gateway ตามแบบเดิม จึงไม่ใช่ URL สำหรับเปิดหน้า HTTP OTA ของตัวบอร์ดโดยตรง
