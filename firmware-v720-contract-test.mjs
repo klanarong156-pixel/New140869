@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const firmware = fs.readFileSync('SmartFarm_V7.2.0_OTA_STABLE.ino', 'utf8');
+const firmware = fs.readFileSync('SmartFarm_V7.2.1_OTA_ACCESS_FIX.ino', 'utf8');
 const state = fs.readFileSync('dashboard/dashboard-state.js', 'utf8');
 const dashboard = fs.readFileSync('dashboard/dashboard.js', 'utf8');
 const html = fs.readFileSync('dashboard/index.html', 'utf8');
@@ -26,7 +26,7 @@ const bodyOf = (signature) => {
   throw new Error(`unclosed body for ${signature}`);
 };
 
-check(firmware.includes('#define SMARTFARM_VERSION "V7.2.0-OTA-STABLE"'), 'firmware identity is V7.2.0-OTA-STABLE');
+check(firmware.includes('#define SMARTFARM_VERSION "V7.2.1-OTA-ACCESS-FIX"'), 'firmware identity is V7.2.1-OTA-ACCESS-FIX');
 check(ini.includes('platform = espressif8266@4.2.0') && ini.includes('board = nodemcuv2'), 'build pins ESP8266 Core 3.1.2 platform and NodeMCU target');
 check(/#define RELAY_PUMP D5/.test(firmware) && /#define RELAY_ZONE1 D6/.test(firmware) && /#define RELAY_LIGHT_HOME D7/.test(firmware) && /#define RELAY_LIGHT_SALA D8/.test(firmware) && /#define DHT_PIN D2/.test(firmware), 'required relay and DHT11 pins remain unchanged');
 check(firmware.includes('"SmartFarm-%06X"') && firmware.includes('ArduinoOTA.setHostname(otaHostname)') && firmware.includes('ArduinoOTA.setPort(OTA_ARDUINO_PORT)'), 'ArduinoOTA uses chip-derived hostname and configured port');
@@ -49,9 +49,16 @@ const loop = bodyOf('void loop()');
 check(loop.indexOf('otaHttpRestartPending') >= 0 && loop.indexOf('otaHttpRestartPending') < loop.indexOf('if (otaUpdateInProgress)'), 'HTTP OTA restart timer is serviced before the OTA early-return');
 check(firmware.includes('x.upload.onprogress') && firmware.includes("$('status').textContent=s.otaStatus") && firmware.includes("$('heap').textContent=s.freeHeap"), 'Web OTA page renders device metrics, status and upload progress');
 check(!firmware.includes('Access-Control-Allow-Origin') && firmware.includes('ห้าม Port Forward ไป Internet'), 'Web OTA avoids wildcard CORS and warns against Internet exposure');
-check(firmware.includes('MQTT_RECONNECT_MAX_MS = 60000UL') && firmware.includes('mqttRetryDelayMs * 2'), 'MQTT reconnect uses capped exponential backoff');
+check(firmware.includes('MQTT_RECONNECT_MS = 3000UL') && firmware.includes('MQTT_RECONNECT_MAX_MS = 60000UL') && firmware.includes('mqttRetryDelayMs * 2'), 'MQTT reconnect starts at 3 seconds and keeps capped exponential backoff');
 const connectMqtt = bodyOf('void connectMqtt()');
 check(!connectMqtt.includes('verifyMqttEndpoint()') && firmware.includes('mqtt.setSocketTimeout(5)'), 'MQTT retries avoid duplicate TLS preflight and use bounded socket timeout');
+const connectSuccessStart = connectMqtt.indexOf('if (connected) {');
+const connectFailureStart = connectMqtt.indexOf('} else {', connectSuccessStart);
+const connectSuccess = connectMqtt.slice(connectSuccessStart, connectFailureStart);
+check(connectMqtt.includes('if (lastMqttAttempt &&') && connectSuccess.includes('lastHeartbeat = millis();') && connectSuccess.includes('publishHeartbeat();'), 'first MQTT attempt is immediate and successful connect publishes heartbeat without waiting for the regular interval');
+const setup = bodyOf('void setup()');
+check(setup.includes('if (!rtcTimeValid)') && setup.includes('syncRTCFromNTP(true);') && setup.includes('RTC: valid; defer NTP refresh until MQTT connection'), 'valid DS3231 time avoids blocking MQTT startup on NTP while invalid RTC still requires NTP before TLS');
+check(firmware.includes('MQTT_STARTUP_HEARTBEAT_INTERVAL_MS = 2000UL') && firmware.includes('MQTT_STARTUP_HEARTBEAT_BURST_MS = 60000UL') && loop.includes('fastHeartbeat') && firmware.includes('mqtt.publish(MQTT_BASE "/status/device", out, true)'), 'startup heartbeat burst is time-bounded, returns to 10-second cadence and preserves retained status contract');
 check(firmware.includes('MQTT_BASE "/status/device"') && firmware.includes('d["mode"] = autoMode') && firmware.includes('createNestedObject("relays")') && firmware.includes('d["otaStatus"]'), 'heartbeat includes device, mode, relay and OTA state');
 check(firmware.includes('mqtt.publish(MQTT_BASE "/sensor/dht11"') && firmware.includes('isfinite') && !/if\s*\(isnan\(temperature\)\)[^\n]*25/.test(firmware), 'DHT11 publishes only real finite reads, with no fake fallback');
 check(state.includes('value !== true && value !== false && value !== null') && state.includes('current.relays[relay] = value'), 'Dashboard preserves null relay state as unknown');

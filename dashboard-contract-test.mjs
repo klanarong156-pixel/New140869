@@ -126,8 +126,8 @@ manager.handleMessage(config.topics.relayStatus('pump'), 'OFF', { retain: true }
 check(store.get().relays.pump === false, 'relay OFF status is accepted');
 store.setRelay('pump', null);
 check(store.get().relays.pump === null, 'null relay status remains unknown instead of becoming OFF');
-manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.2.0-OTA-STABLE', uptimeSec: 35, otaReady: true, otaStatus: 'READY', otaProgress: 0, rssi: -60 }), { retain: false });
-check(store.get().esp.firmware === 'V7.2.0-OTA-STABLE' && store.get().esp.otaReady === true && store.get().esp.otaStatus === 'READY', 'V7.2.0 firmware and OTA diagnostics are accepted from heartbeat');
+manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.2.1-OTA-ACCESS-FIX', uptimeSec: 35, otaReady: true, otaStatus: 'READY', otaProgress: 0, rssi: -60 }), { retain: false });
+check(store.get().esp.firmware === 'V7.2.1-OTA-ACCESS-FIX' && store.get().esp.otaReady === true && store.get().esp.otaStatus === 'READY', 'V7.2.1 firmware and OTA diagnostics are accepted from heartbeat');
 
 check(manager.connect() === true && fakeClient, 'MQTT connect starts the single browser client');
 fakeClient.emit('connect');
