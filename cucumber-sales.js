@@ -124,6 +124,64 @@
     };
   }
 
+  function safeCalculate(record) {
+    try { return calculate(record); } catch (_) {
+      return { gradeAKg: 0, gradeAPrice: 0, gradeAIncome: 0, gradeBKg: 0, gradeBPrice: 0, gradeBIncome: 0, legacyLargeKg: 0, totalKg: 0, totalIncome: 0 };
+    }
+  }
+
+  function summarize(items) {
+    const totals = (Array.isArray(items) ? items : []).reduce((sum, item) => {
+      const calculated = safeCalculate(item);
+      sum.total += calculated.totalKg;
+      if (item?.entryMode === 'quick') sum.simple += calculated.totalKg;
+      else sum.good += calculated.gradeAKg;
+      sum.sorted += calculated.gradeBKg;
+      sum.large += calculated.legacyLargeKg;
+      sum.income += calculated.totalIncome;
+      return sum;
+    }, { total: 0, simple: 0, good: 0, sorted: 0, large: 0, income: 0 });
+    return Object.fromEntries(Object.entries(totals).map(([key, value]) => [key, round(value)]));
+  }
+
+  function csvCell(value) {
+    let text = value === undefined || value === null ? '' : String(value);
+    if (/^[\s]*[=+\-@]/.test(text)) text = `'${text}`;
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+
+  function toCsv(items) {
+    const records = Array.isArray(items) ? items : [];
+    const totals = summarize(records);
+    const rows = [
+      ['รายงานผลผลิตและการขายแตงกวา'],
+      ['วันที่สร้างรายงาน', new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })],
+      ['จำนวนรายการ', records.length],
+      ['น้ำหนักรวม (กก.)', totals.total],
+      ['กรอกแบบเร็ว (กก.)', totals.simple],
+      ['เกรด A (กก.)', totals.good],
+      ['เกรด B (กก.)', totals.sorted],
+      ['เกรดใหญ่เดิม (กก.)', totals.large],
+      ['รายรับรวม (บาท)', totals.income],
+      [],
+      ['วันที่ขาย', 'รูปแบบบันทึก', 'น้ำหนักรวม (กก.)', 'เกรด A (กก.)', 'ราคา A (บาท/กก.)', 'รายรับ A (บาท)', 'เกรด B (กก.)', 'ราคา B (บาท/กก.)', 'รายรับ B (บาท)', 'เกรดใหญ่เดิม (กก.)', 'รายรับรวม (บาท)', 'สถานะการจ่าย', 'หมายเหตุ', 'รหัสรายการ'],
+      ...records.map(item => {
+        const calculated = safeCalculate(item);
+        const quick = item?.entryMode === 'quick';
+        const optionalNumber = value => Number(value) > 0 ? round(value) : '';
+        return [
+          item?.date || '', quick ? 'กรอกแบบเร็ว' : 'แยกเกรด', round(calculated.totalKg),
+          quick ? '' : round(calculated.gradeAKg), quick ? '' : optionalNumber(calculated.gradeAPrice),
+          quick ? '' : optionalNumber(calculated.gradeAIncome), quick ? '' : round(calculated.gradeBKg),
+          quick ? '' : optionalNumber(calculated.gradeBPrice), quick ? '' : optionalNumber(calculated.gradeBIncome),
+          optionalNumber(calculated.legacyLargeKg), round(calculated.totalIncome),
+          item?.paymentStatus === 'paid' ? 'จ่ายแล้ว' : 'ค้างจ่าย', item?.note || '', item?.id || ''
+        ];
+      })
+    ];
+    return `\uFEFF${rows.map(row => row.map(csvCell).join(',')).join('\r\n')}`;
+  }
+
   async function saveCucumberSale(record) {
     if (saveLock) throw new Error('กำลังบันทึกข้อมูล กรุณารอสักครู่');
     saveLock = true;
@@ -161,6 +219,8 @@
     GRADE_LABELS,
     normalize,
     calculate,
+    summarize,
+    toCsv,
     save: saveCucumberSale,
     load: loadCucumberSales,
     remove: deleteCucumberSale
