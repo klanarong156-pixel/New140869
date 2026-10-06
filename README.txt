@@ -12,7 +12,7 @@ SmartFarm ประกอบด้วย Dashboard แบบ Progressive Web App
 | Dashboard (`dashboard/`) | หน้าหลัก, สถานะ ESP8266, เซนเซอร์, รีเลย์, สภาพอากาศ, ตั้งค่า MQTT, เครื่องมือการเงิน และแผนเวลา |
 | ระบบน้ำ (`?page=water`) | ควบคุมรีเลย์และส่งตารางปั๊มตรงไปยัง ESP8266 โดยมี interlock จาก MQTT/heartbeat สดและ confirmation |
 | แผนเวลา Firebase | บันทึกแผนส่วนตัวในบัญชี Firebase เท่านั้น **ไม่ส่งหรือสั่งงาน ESP8266** |
-| การเงิน (`?page=finance`) | รายรับ รายจ่าย รายงาน และผลผลิตแตงกวา ภายใต้บัญชี Firebase |
+| การเงิน (`?page=finance`) | รายรับ รายจ่าย รายงาน และผลผลิตแตงกวา ภายใต้บัญชี Firebase; ดาวน์โหลดประวัติแตงกวาเป็น CSV ที่เปิดใน Excel ได้ |
 | บัญชี/ผู้ดูแล/OTA | หน้าจัดการสิทธิ์และ firmware upload แยกตามการป้องกันเดิม |
 | URL เดิม (`finance.html`, `control-room/`) | เปลี่ยนเส้นทางไปยัง Dashboard หลักเพื่อรักษา bookmark เดิม |
 | ESP8266 | อ่านเซนเซอร์, ควบคุมรีเลย์, รันตารางเวลา, sync เวลา, heartbeat, MQTT และ OTA |
@@ -144,6 +144,7 @@ pio run -e nodemcuv2
 cp .pio/build/nodemcuv2/firmware.bin SmartFarm_V7.2.0_OTA_STABLE.bin
 node firmware-v720-contract-test.mjs
 node dashboard-contract-test.mjs
+node cucumber-sales-regression-test.mjs
 node dashboard-layout-audit.mjs
 node dashboard-browser-smoke.mjs
 node --check app.js

@@ -22,14 +22,21 @@
   const summaryLarge = document.getElementById('cucumberSummaryLarge');
   const summaryIncome = document.getElementById('cucumberSummaryIncome');
   const retryButton = document.getElementById('cucumberSalesRetry');
+  const downloadButton = document.getElementById('cucumberSalesDownload');
 
   if (!form || !window.CucumberSales) return;
 
   let started = false;
   let refreshInFlight = null;
   let items = [];
+  let dataReady = false;
   let editingId = '';
   const today = () => new Date().toISOString().slice(0, 10);
+  const reportDate = () => {
+    const parts = new Intl.DateTimeFormat('en', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    const value = type => parts.find(part => part.type === type)?.value || '';
+    return `${value('year')}-${value('month')}-${value('day')}`;
+  };
   dateInput.value = today();
 
   const formatKg = value => `${Number(value || 0).toLocaleString('th-TH', { maximumFractionDigits: 2 })} กก.`;
@@ -48,16 +55,7 @@
   }
 
   function renderSummary(items) {
-    const totals = items.reduce((sum, item) => {
-      const calculated = toCalculated(item);
-      sum.total += calculated.totalKg;
-      if (item.entryMode === 'quick') sum.simple += calculated.totalKg;
-      else sum.good += calculated.gradeAKg;
-      sum.sorted += calculated.gradeBKg;
-      sum.large += calculated.legacyLargeKg;
-      sum.income += calculated.totalIncome;
-      return sum;
-    }, { total: 0, simple: 0, good: 0, sorted: 0, large: 0, income: 0 });
+    const totals = window.CucumberSales.summarize(items);
     summaryTotal.textContent = formatKg(totals.total);
     if (summarySimple) summarySimple.textContent = formatKg(totals.simple);
     summaryGood.textContent = formatKg(totals.good);
@@ -91,20 +89,47 @@
   async function refresh() {
     if (refreshInFlight) return refreshInFlight;
     setStatus('กำลังโหลดข้อมูลแตงกวา…');
+    dataReady = false;
+    if (downloadButton) downloadButton.disabled = true;
     refreshInFlight = window.CucumberSales.load()
       .then(loadedItems => {
         items = loadedItems || [];
+        dataReady = true;
         renderRows(items);
         setStatus(`พร้อมใช้งาน · พบ ${items.length} รายการ`, 'success');
         return items;
       })
       .catch(error => {
+        dataReady = false;
         renderRows(items);
         setStatus(`โหลดข้อมูลล่าสุดไม่สำเร็จ: ${error.message}`, 'error');
         return [];
       })
-      .finally(() => { refreshInFlight = null; });
+      .finally(() => {
+        refreshInFlight = null;
+        if (downloadButton) downloadButton.disabled = !dataReady;
+      });
     return refreshInFlight;
+  }
+
+  function downloadReport() {
+    if (!dataReady) return;
+    try {
+      const csv = window.CucumberSales.toCsv(items);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `cucumber-sales-report-${reportDate()}.csv`;
+      link.hidden = true;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setStatus(`สร้างรายงานแตงกวา CSV แล้ว · ${items.length} รายการ`, 'success');
+    } catch (error) {
+      setStatus(`สร้างไฟล์รายงานไม่สำเร็จ: ${error.message || 'กรุณาลองใหม่'}`, 'error');
+    }
   }
 
   function payloadFromForm() {
@@ -230,6 +255,7 @@
     }
     form.addEventListener('submit', save);
     rows.addEventListener('click', remove);
+    downloadButton?.addEventListener('click', downloadReport);
     [goodWeight, sortedWeight, largeWeight, goodPrice, sortedPrice].filter(Boolean).forEach(input => input.addEventListener('input', updateTotalWeight));
     retryButton?.addEventListener('click', refresh);
     refresh();

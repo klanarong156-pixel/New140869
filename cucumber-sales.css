@@ -19,6 +19,8 @@
 .cucumber-sales-stat.income { grid-column: 1 / -1; background: linear-gradient(135deg, #e9f8ee, #eef7ff); }
 .cucumber-sales-table { overflow: hidden; }
 .cucumber-sales-table .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.cucumber-sales-table .section-head { align-items: center; gap: 12px; }
+#cucumberSalesDownload { min-height: 44px; flex: 0 0 auto; white-space: nowrap; }
 .cucumber-sales-table table { min-width: 820px; }
 .cucumber-sales-table th, .cucumber-sales-table td { white-space: nowrap; vertical-align: middle; }
 .cucumber-sales-table td:nth-child(8) { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
@@ -33,6 +35,8 @@
   .cucumber-grade { gap: 8px; }
   .cucumber-sales-summary { gap: 8px; }
   .cucumber-sales-stat { padding: 11px; }
+  .cucumber-sales-table .section-head { align-items: stretch; flex-direction: column; }
+  #cucumberSalesDownload { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .cucumber-sales-section * { scroll-behavior: auto !important; transition: none !important; }

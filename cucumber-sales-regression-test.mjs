@@ -53,6 +53,17 @@ const gradedPaid = api.normalize({ ...gradedPending, priceA: '20', priceB: '10',
 assert.equal(api.calculate(gradedPaid).totalIncome, 400);
 assert.equal(gradedPaid.paymentStatus, 'paid');
 
+assert.deepEqual(plain(api.summarize([flat, quick])), { total: 115, simple: 25, good: 80, sorted: 10, large: 0, income: 1500 });
+const quoted = api.normalize({ date: '2026-09-24', totalWeight: 1, weights: { good: 1, sorted: 0, large: 0 }, note: 'ตลาด "เช้า", ลูกค้าประจำ' });
+const formula = api.normalize({ date: '2026-09-24', totalWeight: 1, weights: { good: 1, sorted: 0, large: 0 }, note: '=HYPERLINK("https://example.com")' });
+const report = api.toCsv([flat, quick, quoted, formula]);
+assert.equal(report.charCodeAt(0), 0xFEFF);
+assert.match(report, /รายงานผลผลิตและการขายแตงกวา/);
+assert.match(report, /"น้ำหนักรวม \(กก\.\)","117"/);
+assert.ok(report.includes('ตลาด ""เช้า"", ลูกค้าประจำ'));
+assert.ok(report.includes("'=HYPERLINK("));
+assert.ok(api.toCsv([]).includes('"จำนวนรายการ","0"'));
+
 for (const invalid of [
   { date: '2026-09-24', totalWeight: '-1', weights: { good: '1', sorted: '0', large: '0' } },
   { date: '2026-02-30', totalWeight: '1', weights: { good: '1', sorted: '0', large: '0' } },
@@ -75,4 +86,73 @@ const ui = fs.readFileSync('cucumber-sales-ui.js', 'utf8');
 assert.match(ui, /\.then\(loadedItems => \{/);
 assert.match(ui, /items = loadedItems \|\| \[\];/);
 assert.doesNotMatch(ui, /\.then\(items => \{/);
-console.log('Cucumber Sales regression: 23 passed, 0 failed');
+const html = fs.readFileSync('dashboard/index.html', 'utf8');
+const firebase = fs.readFileSync('firebase.js', 'utf8');
+const databaseRules = fs.readFileSync('database.rules.json', 'utf8');
+const sw = fs.readFileSync('sw.js', 'utf8');
+assert.match(firebase, /users\/\$\{encodeURIComponent\(uid\)\}\/\$\{clean\}/);
+const cucumberRuleStart = databaseRules.indexOf('"cucumberSales"');
+const cucumberRuleEnd = databaseRules.indexOf('"farm":', cucumberRuleStart);
+const cucumberRules = databaseRules.slice(cucumberRuleStart, cucumberRuleEnd);
+assert.ok(cucumberRules.includes('".read": "auth != null && auth.uid === $uid"'));
+assert.match(html, /id="cucumberSalesDownload"[^>]*disabled/);
+assert.match(html, /cucumber-sales\.css\?v=5/);
+assert.match(html, /cucumber-sales\.js\?v=6/);
+assert.match(html, /cucumber-sales-ui\.js\?v=5/);
+assert.match(sw, /smartfarm-v54-unified-dashboard/);
+assert.match(sw, /cucumber-sales\.css\?v=5/);
+assert.match(sw, /cucumber-sales-ui\.js\?v=5/);
+assert.match(ui, /window\.CucumberSales\.toCsv\(items\)/);
+assert.match(ui, /downloadButton\?\.addEventListener\('click', downloadReport\)/);
+
+const elementIds = [
+  'cucumberSalesForm', 'cucumberSalesStatus', 'cucumberSalesRows', 'cucumberSalesEmpty',
+  'cucumberTotalWeight', 'cucumberTotalIncome', 'cucumberPaymentStatus', 'cucumberGoodWeight',
+  'cucumberGoodPrice', 'cucumberSortedWeight', 'cucumberSortedPrice', 'cucumberLargeWeight',
+  'cucumberSaleDate', 'cucumberSaleNote', 'cucumberSummaryTotal', 'cucumberSummarySimple',
+  'cucumberSummaryGood', 'cucumberSummarySorted', 'cucumberSummaryLarge', 'cucumberSummaryIncome',
+  'cucumberSalesRetry', 'cucumberSalesDownload'
+];
+const submitButton = { disabled: false, textContent: 'บันทึกผลผลิต' };
+const elements = new Map(elementIds.map(id => [id, {
+  id, value: '', textContent: '', className: '', hidden: false,
+  disabled: id === 'cucumberSalesDownload', dataset: {}, listeners: {}, innerHTML: '',
+  addEventListener(type, handler) { this.listeners[type] = handler; },
+  querySelector() { return submitButton; }
+}]));
+let downloadAnchor;
+let downloadedBlob;
+let revokedUrl = '';
+const documentStub = {
+  body: { appendChild(node) { downloadAnchor = node; } },
+  getElementById(id) { return elements.get(id) || null; },
+  createElement(tag) {
+    assert.equal(tag, 'a');
+    return { click() { this.clicked = true; }, remove() { this.removed = true; } };
+  }
+};
+const windowStub = {
+  SMARTFARM_ACCESS: { ready: true, user: { localId: 'test-user' } },
+  CucumberSales: { ...api, async load() { return [flat, quick]; } },
+  addEventListener() {}, dispatchEvent() {},
+  setTimeout(callback) { callback(); return 1; }
+};
+class MockBlob {
+  constructor(parts, options) { this.parts = parts; this.type = options.type; downloadedBlob = this; }
+}
+const uiContext = {
+  window: windowStub, document: documentStub, Blob: MockBlob, Date,
+  URL: { createObjectURL() { return 'blob:test-cucumber-report'; }, revokeObjectURL(url) { revokedUrl = url; } }
+};
+vm.runInNewContext(ui, uiContext, { filename: 'cucumber-sales-ui.js' });
+assert.equal(elements.get('cucumberSalesDownload').disabled, true);
+await new Promise(resolve => setTimeout(resolve, 0));
+assert.equal(elements.get('cucumberSalesDownload').disabled, false);
+elements.get('cucumberSalesDownload').listeners.click();
+assert.equal(downloadAnchor.clicked, true);
+assert.match(downloadAnchor.download, /^cucumber-sales-report-\d{4}-\d{2}-\d{2}\.csv$/);
+assert.equal(downloadedBlob.type, 'text/csv;charset=utf-8');
+assert.ok(downloadedBlob.parts[0].startsWith('\uFEFF'));
+assert.equal(revokedUrl, 'blob:test-cucumber-report');
+assert.match(elements.get('cucumberSalesStatus').textContent, /สร้างรายงานแตงกวา CSV แล้ว/);
+console.log('Cucumber Sales regression: CSV, privacy, escaping, UI download flow passed');
