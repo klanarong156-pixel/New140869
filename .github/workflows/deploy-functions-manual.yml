@@ -1,0 +1,68 @@
+name: Deploy Firebase Cloud Functions (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_production:
+        description: Confirm deployment of all Cloud Functions to smart-farm-platfor production
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-functions-production
+  cancel-in-progress: false
+
+jobs:
+  deploy-functions:
+    name: Deploy all Cloud Functions
+    if: github.ref == 'refs/heads/main' && inputs.confirm_production == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Cloud Functions dependencies
+        run: npm ci --prefix functions
+
+      - name: Audit production dependencies
+        run: npm audit --prefix functions --omit=dev
+
+      - name: Check Cloud Functions syntax
+        run: npm --prefix functions run lint
+
+      - name: Verify Firebase token is configured
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          if [ -z "$FIREBASE_TOKEN" ]; then
+            echo 'FIREBASE_TOKEN is not configured in the production environment.'
+            exit 1
+          fi
+          echo 'FIREBASE_TOKEN is configured.'
+
+      - name: Note configured Node.js runtime lifecycle
+        run: echo '::warning::This deployment uses the current nodejs20 runtime. Plan migration to nodejs22 before nodejs20 decommission on 2026-10-30.'
+
+      - name: Deploy all Cloud Functions to production
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: >-
+          npx --yes firebase-tools@15.28.1 deploy
+          --only functions
+          --project smart-farm-platfor
+          --token "$FIREBASE_TOKEN"
+          --non-interactive
