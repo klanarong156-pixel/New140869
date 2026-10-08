@@ -6,6 +6,7 @@
 | --- | --- | --- | --- |
 | Relay | `smartfarm/relay/{relay}/set` | `smartfarm/relay/{relay}/status` | `ON` or `OFF` |
 | Emergency latch | `smartfarm/emergency/set` | `smartfarm/emergency/status` | `STOP`/`EMERGENCY_STOP` or `RESET`/`EMERGENCY_RESET` |
+| Wi-Fi reset | `smartfarm/wifi/reset/set` | — | exact payload `RESET` (V7.2.3+) |
 | Mode | `smartfarm/mode/set` | `smartfarm/mode/status` | `AUTO` or `MANUAL` |
 | Schedule | `smartfarm/schedule/{relay}/set` | `smartfarm/schedule/{relay}/status` | JSON slots or `DELETE` |
 | Presence | — | `smartfarm/status/online` | retained `true` / LWT `false` |
@@ -18,7 +19,9 @@
 | Crop reminder | `smartfarm/reminder/set` | `smartfarm/reminder/status` | JSON operation `settings`, `upsert`, `done`, `snooze`, `delete`, `sync` or `test` |
 | Farm AI alert | `smartfarm/ai/alert/set` | `smartfarm/ai/alert/status` | JSON `{ "id": "...", "severity": "info|warning|critical", "title": "...", "message": "..." }`; analysis only, never a relay command |
 
-Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics are non-retained so stale commands are not replayed after reconnect. Relay, schedule, mode and emergency status messages are retained by the device so a newly connected dashboard can render the current state.
+Relay identifiers are `pump`, `zone1`, `lighthome` and `lightsala`. Command topics, including Wi-Fi reset, are non-retained so stale commands are not replayed after reconnect. Relay, schedule, mode and emergency status messages are retained by the device so a newly connected dashboard can render the current state.
+
+Remote Wi-Fi reset is supported only by firmware `V7.2.3-REMOTE-WIFI-RESET`. The dashboard enables the button only when that exact firmware reports a live heartbeat and the dashboard MQTT connection is active; a confirmation dialog is required before sending. The firmware accepts only the exact `RESET` payload, clears the saved Wi-Fi network settings and reboots into the `SmartFarm_Setup` portal. It does not clear farm records or the MQTT credentials stored separately by the firmware. The browser must publish with `retain=false`; broker ACLs must allow the dashboard credential to publish `smartfarm/wifi/reset/set` and the ESP8266 credential to subscribe to it.
 
 ## Mode behavior
 

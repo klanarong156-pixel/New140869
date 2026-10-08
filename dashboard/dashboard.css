@@ -589,3 +589,51 @@ body.dashboard-page .quick-actions-grid { grid-template-columns: repeat(4, minma
 }
 
 .credential-form label.remember-mqtt{display:flex;grid-template-columns:none;align-items:center;gap:8px;color:var(--ink);font-size:.68rem}.credential-form .remember-mqtt input{width:16px;height:16px;margin:0;accent-color:var(--green)}
+
+
+/* Live device telemetry and guarded Wi-Fi recovery controls */
+body.dashboard-page .device-diagnostics-panel { margin-top: 14px; padding: 20px; border: 1px solid rgba(255,255,255,.78); border-radius: 24px; background: rgba(255,255,255,.84); box-shadow: 0 12px 28px rgba(27,95,53,.09); backdrop-filter: blur(12px); }
+body.dashboard-page .device-diagnostics-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+body.dashboard-page .device-diagnostics-heading h2 { margin: 4px 0 0; color: var(--ref-deep, #12382d); font-size: 1.12rem; }
+body.dashboard-page .device-diagnostics-heading > small { color: #71897c; font-size: .66rem; }
+body.dashboard-page .device-diagnostics-heading > small b { color: var(--ref-green, #087b50); }
+body.dashboard-page .device-status-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+body.dashboard-page .device-status-group { min-width: 0; padding: 15px; border: 1px solid rgba(121,169,137,.22); border-radius: 18px; background: linear-gradient(145deg, #fbfefc, #f3faf5); }
+body.dashboard-page .device-status-group h3 { margin: 0 0 8px; color: #286746; font-size: .77rem; }
+body.dashboard-page .device-status-group dl { display: grid; gap: 0; margin: 0; }
+body.dashboard-page .device-status-group dl > div { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-height: 31px; padding: 7px 0; border-bottom: 1px solid rgba(121,169,137,.16); }
+body.dashboard-page .device-status-group dl > div:last-child { border-bottom: 0; }
+body.dashboard-page .device-status-group dt { flex: 0 0 auto; color: #70877a; font-size: .64rem; }
+body.dashboard-page .device-status-group dd { min-width: 0; margin: 0; color: #264f3b; font-size: .65rem; font-weight: 750; text-align: right; overflow-wrap: anywhere; }
+body.dashboard-page .device-status-group dd[data-tone="good"] { color: #16814d; }
+body.dashboard-page .device-status-group dd[data-tone="bad"] { color: #bd4e4e; }
+body.dashboard-page .device-status-group dd[data-tone="warn"] { color: #a4771f; }
+body.dashboard-page .device-status-group dd[data-tone="neutral"] { color: #73877c; }
+body.dashboard-page .wifi-reset-control { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 12px; padding: 14px 16px; border: 1px solid #efcaca; border-radius: 17px; background: linear-gradient(110deg, #fff8f6, #fff 70%); }
+body.dashboard-page .wifi-reset-control b { color: #8f3535; font-size: .78rem; }
+body.dashboard-page .wifi-reset-control p { margin: 4px 0; color: #795f5b; font-size: .65rem; line-height: 1.5; }
+body.dashboard-page .wifi-reset-control small { color: #8a6f69; font-size: .6rem; }
+body.dashboard-page .wifi-reset-control small[data-tone="good"] { color: #16814d; }
+body.dashboard-page .wifi-reset-button { flex: none; min-height: 38px; padding: 9px 14px; border: 1px solid #d66b6b; border-radius: 10px; color: #fff; background: #bd4e4e; font-size: .68rem; font-weight: 850; }
+body.dashboard-page .wifi-reset-button:hover:not(:disabled) { background: #a93f3f; }
+body.dashboard-page .wifi-reset-dialog { width: min(480px, calc(100vw - 28px)); max-width: none; padding: 0; border: 1px solid #dbe8e1; border-radius: 22px; color: #17352c; background: #fff; box-shadow: 0 24px 80px rgba(4,45,32,.3); }
+body.dashboard-page .wifi-reset-dialog::backdrop { background: rgba(5,36,27,.55); backdrop-filter: blur(3px); }
+body.dashboard-page .wifi-reset-dialog-card { padding: 24px; }
+body.dashboard-page .wifi-reset-dialog-icon { display: grid; place-items: center; width: 38px; height: 38px; margin-bottom: 12px; border-radius: 13px; color: #a33f3f; background: #fff0ed; font-size: 1.2rem; font-weight: 900; }
+body.dashboard-page .wifi-reset-dialog h2 { margin: 0; color: #803838; font-size: 1rem; }
+body.dashboard-page .wifi-reset-dialog p { margin: 10px 0 18px; color: #63796d; font-size: .76rem; line-height: 1.7; }
+body.dashboard-page .wifi-reset-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+body.dashboard-page .wifi-reset-dialog-actions .button { min-height: 37px; }
+@media (max-width: 760px) {
+  body.dashboard-page .device-diagnostics-panel { padding: 15px; border-radius: 20px; }
+  body.dashboard-page .device-status-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  body.dashboard-page .device-diagnostics-heading { align-items: flex-start; flex-direction: column; gap: 5px; }
+  body.dashboard-page .device-status-group { padding: 12px; border-radius: 15px; }
+  body.dashboard-page .wifi-reset-control { align-items: stretch; flex-direction: column; gap: 11px; }
+  body.dashboard-page .wifi-reset-button { width: 100%; }
+  body.dashboard-page .wifi-reset-dialog-card { padding: 19px; }
+  body.dashboard-page .wifi-reset-dialog-actions { flex-direction: column-reverse; }
+  body.dashboard-page .wifi-reset-dialog-actions .button { width: 100%; }
+}

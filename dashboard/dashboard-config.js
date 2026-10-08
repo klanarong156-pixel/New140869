@@ -34,6 +34,7 @@
     aiAlertStatus: 'smartfarm/ai/alert/status',
     emergencySet: 'smartfarm/emergency/set',
     emergencyStatus: 'smartfarm/emergency/status',
+    wifiResetSet: 'smartfarm/wifi/reset/set',
     time: 'smartfarm/time',
     error: 'smartfarm/system/error'
   });
@@ -64,6 +65,7 @@
   window.SmartFarmDashboardConfig = Object.freeze({
     mqtt: mqttConfig,
     topics,
+    remoteWifiResetFirmware: 'V7.2.3-REMOTE-WIFI-RESET',
     relays,
     hardware: Object.freeze({
       board: 'ESP8266 NodeMCU',

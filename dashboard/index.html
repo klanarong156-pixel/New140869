@@ -10,13 +10,13 @@
   <link rel="manifest" href="../manifest.json">
   <link rel="icon" href="../icon-192.png">
   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-  <link rel="stylesheet" href="dashboard.css?v=15">
+  <link rel="stylesheet" href="dashboard.css?v=16">
   <link rel="stylesheet" href="../app.css?v=40">
   <link rel="stylesheet" href="../redesign-lambo.css?v=2">
   <link rel="stylesheet" href="../cucumber-sales.css?v=5">
   <link rel="stylesheet" href="../suanlungna-design-system.css?v=1">
   <link rel="stylesheet" href="../core-theme.css?v=1">
-  <link rel="stylesheet" href="../design4.css?v=10">
+  <link rel="stylesheet" href="../design4.css?v=11">
   <link rel="stylesheet" href="unified-dashboard.css?v=1">
   <link rel="stylesheet" href="dashboard-typography.css?v=3">
   <title>สวนลุงนะ · Smart Farm Dashboard</title>
@@ -145,6 +145,57 @@
             <article class="ref-card metric-ref sensor-tile soil-tile"><span class="ref-icon soil" aria-hidden="true"><svg class="sf-icon sf-icon-soil" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#soil"></use></svg></span><div><small>สภาพดิน</small><strong>ไม่ได้ติดตั้ง</strong><em>รออุปกรณ์</em></div></article>
             <article class="ref-card metric-ref sensor-tile weather-tile"><span class="ref-icon yellow" aria-hidden="true"><svg class="sf-icon sf-icon-sun" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#sun"></use></svg></span><div><small>สภาพอากาศจริง</small><strong data-weather-current>ยังไม่มีข้อมูล</strong><em data-weather-status>กำลังโหลดข้อมูล...</em></div></article>
           </section>
+          <section class="ref-card device-diagnostics-panel" aria-labelledby="deviceDiagnosticsTitle">
+            <div class="device-diagnostics-heading">
+              <div><span class="section-kicker">DEVICE HEALTH · LIVE TELEMETRY</span><h2 id="deviceDiagnosticsTitle">สถานะอุปกรณ์ทั้งหมด</h2></div>
+              <small>Heartbeat ล่าสุด <b data-detail-heartbeat-age>ยังไม่มีข้อมูล</b></small>
+            </div>
+            <div class="device-status-grid">
+              <article class="device-status-group"><h3>อุปกรณ์และเครือข่าย</h3><dl>
+                <div><dt>สถานะ ESP8266</dt><dd data-detail-device-online data-tone="neutral">ยังไม่มีข้อมูล</dd></div>
+                <div><dt>Device ID</dt><dd data-detail-device-id>ยังไม่มีข้อมูล</dd></div>
+                <div><dt>Wi‑Fi</dt><dd data-detail-wifi data-tone="neutral">ยังไม่มีข้อมูล</dd></div>
+                <div><dt>MQTT บนอุปกรณ์</dt><dd data-detail-device-mqtt data-tone="neutral">ยังไม่มีข้อมูล</dd></div>
+                <div><dt>IP / RSSI</dt><dd><span data-detail-ip>ยังไม่มีข้อมูล</span> · <span data-detail-rssi>—</span></dd></div>
+                <div><dt>Firmware</dt><dd data-detail-firmware>—</dd></div>
+                <div><dt>เวลาทำงาน</dt><dd data-detail-uptime>—</dd></div>
+                <div><dt>สาเหตุรีเซ็ตล่าสุด</dt><dd data-detail-reset-reason>—</dd></div>
+              </dl></article>
+              <article class="device-status-group"><h3>หน่วยความจำและการเชื่อมต่อ</h3><dl>
+                <div><dt>Free heap</dt><dd data-detail-heap>—</dd></div>
+                <div><dt>Heap block สูงสุด</dt><dd data-detail-heap-max-block>—</dd></div>
+                <div><dt>Heap fragmentation</dt><dd data-detail-heap-frag>—</dd></div>
+                <div><dt>Wi‑Fi reconnects</dt><dd data-detail-wifi-reconnects>—</dd></div>
+                <div><dt>MQTT attempts / failures</dt><dd><span data-detail-mqtt-connects>—</span> / <span data-detail-mqtt-failures>—</span></dd></div>
+                <div><dt>Dashboard reconnects</dt><dd data-detail-dashboard-reconnects>0</dd></div>
+                <div><dt>สาเหตุการเชื่อมต่อล่าสุด</dt><dd data-detail-connection-reason>—</dd></div>
+                <div><dt>ข้อผิดพลาดล่าสุด</dt><dd data-detail-system-error>ไม่มี</dd></div>
+              </dl></article>
+              <article class="device-status-group"><h3>โหมด เวลา และความปลอดภัย</h3><dl>
+                <div><dt>โหมด</dt><dd data-detail-mode>—</dd></div>
+                <div><dt>ตารางปั๊ม</dt><dd data-detail-schedule>ยังไม่มีข้อมูล</dd></div>
+                <div><dt>นาฬิกา / แหล่งเวลา</dt><dd data-detail-clock>ยังไม่ valid</dd></div>
+                <div><dt>RTC / NTP</dt><dd><span data-detail-rtc>—</span> / <span data-detail-ntp>—</span></dd></div>
+                <div><dt>Emergency lock</dt><dd data-detail-emergency data-tone="neutral">ยังไม่มีข้อมูล</dd></div>
+                <div><dt>แหล่ง Emergency</dt><dd data-detail-emergency-source>—</dd></div>
+                <div><dt>Pump safety lock</dt><dd data-detail-pump-lock data-tone="neutral">ยังไม่มีข้อมูล</dd></div>
+                <div><dt>เวลาปั๊มทำงาน</dt><dd data-detail-pump-runtime>—</dd></div>
+              </dl></article>
+              <article class="device-status-group"><h3>เซนเซอร์และ OTA</h3><dl>
+                <div><dt>DHT11</dt><dd data-detail-sensor-ok data-tone="neutral">ยังไม่มีข้อมูล</dd></div>
+                <div><dt>อายุข้อมูลเซนเซอร์</dt><dd data-detail-sensor-age>—</dd></div>
+                <div><dt>จำนวนอ่าน / ผิดพลาด</dt><dd><span data-detail-sensor-reads>—</span> / <span data-detail-sensor-faults>—</span></dd></div>
+                <div><dt>OTA</dt><dd data-detail-ota-status>ยังไม่มีข้อมูล</dd></div>
+                <div><dt>OTA ready / กำลังอัปเดต</dt><dd><span data-detail-ota-ready>—</span> / <span data-detail-ota-in-progress>—</span></dd></div>
+                <div><dt>OTA progress</dt><dd data-detail-ota-progress>—</dd></div>
+                <div><dt>พอร์ต OTA / HTTP OTA</dt><dd><span data-detail-ota-port>—</span> / <span data-detail-http-ota-port>—</span></dd></div>
+              </dl></article>
+            </div>
+            <div class="wifi-reset-control" role="group" aria-labelledby="wifiResetTitle">
+              <div><b id="wifiResetTitle">ตั้งค่า Wi‑Fi ใหม่</b><p>ล้างเฉพาะ SSID และรหัสผ่าน Wi‑Fi ที่บันทึกใน ESP8266 แล้วรีสตาร์ทเพื่อเปิด SmartFarm_Setup</p><small data-wifi-reset-availability role="status" aria-live="polite">รอข้อมูลอุปกรณ์</small></div>
+              <button class="button wifi-reset-button" data-wifi-reset type="button" disabled>ล้างค่า Wi‑Fi</button>
+            </div>
+          </section>
           <section class="section-block water-section"><div class="section-title-row"><div><span class="section-kicker">SMART IRRIGATION</span><h2>ระบบน้ำ</h2></div><div class="mode-actions" role="group" aria-label="เลือกโหมดการทำงาน"><button class="button mode-button" data-mode="AUTO" type="button">AUTO</button><button class="button mode-button" data-mode="MANUAL" type="button">MANUAL</button></div></div><div class="relay-grid compact-relays">
             <article class="relay-card smart-relay-card" data-relay-card="pump">
               <span class="relay-icon" aria-hidden="true"><svg class="sf-icon sf-icon-pump" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#pump"></use></svg></span>
@@ -239,7 +290,7 @@
 
         <section class="route-page" data-page-section="weather" hidden><article class="ref-card weather-main"><div class="weather-icon" aria-hidden="true"><svg class="sf-icon sf-icon-sun" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#sun"></use></svg>️</div><div><strong data-weather-current>ยังไม่มีข้อมูล</strong><h2 data-weather-status>กำลังโหลดข้อมูล...</h2><p>ฝน <b data-weather-rain>ยังไม่มีข้อมูล</b></p></div><div class="weather-facts"><span>ความชื้น <b data-weather-humidity>ยังไม่มีข้อมูล</b></span><span>ลม <b data-weather-wind>ยังไม่มีข้อมูล</b></span><span>ทิศทางลม <b data-weather-wind-direction>ยังไม่มีข้อมูล</b></span></div></article><section class="section-block"><h2>พยากรณ์อากาศ</h2><ul class="forecast-list large" data-forecast></ul></section><article class="ref-card location-card"><h2>ตำแหน่งฟาร์ม</h2><p>GPS 7.798754, 99.990505</p><p>UTM Zone 47N · X: 609211 · Y: 862178</p><small data-weather-updated>ข้อมูลจาก Weather API</small><button class="button outline-button weather-retry" type="button" data-weather-retry hidden>ลองใหม่</button></article></section>
 
-        <section class="route-page" data-page-section="settings" hidden><div class="settings-list"><div class="settings-list-item"><span>◉</span><span><b>WiFi</b><small>ตั้งค่าที่หน้า ESP8266 เพื่อไม่ให้ credentials อยู่ใน Dashboard</small></span><em>อุปกรณ์</em></div><a href="?page=connection">◉ <span><b>MQTT</b><small>ตั้งค่าการเชื่อมต่อ MQTT</small></span>›</a><a href="?page=water">◉ <span><b>ระบบน้ำ</b><small>ดูสถานะและคำสั่งระบบน้ำ</small></span>›</a><div class="settings-list-item"><span>◉</span><span><b>Telegram</b><small>การแจ้งเตือนจะใช้งานเมื่อมี configuration จากอุปกรณ์</small></span><em>อ่านอย่างเดียว</em></div><div class="settings-list-item"><span>◉</span><span><b>แจ้งเตือน</b><small>ยังไม่มีหน้าจัดการแยกใน Dashboard รุ่นนี้</small></span><em>ยังไม่เปิดใช้</em></div><div class="settings-list-item"><span><svg class="sf-icon sf-icon-settings" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#settings"></use></svg></span><span><b>ระบบ</b><small>ข้อมูลระบบและเวอร์ชัน</small></span><em>ข้อมูลด้านล่าง</em></div></div><article class="ref-card system-version"><h2>ข้อมูลระบบ</h2><dl><dt>Firmware Version</dt><dd data-firmware>—</dd><dt>Dashboard Version</dt><dd>2.1.0</dd><dt>Cache Version</dt><dd>smartfarm-v53-unified-dashboard</dd></dl><button class="button primary-button" type="button" onclick="location.reload()">Reload Dashboard</button></article></section>
+        <section class="route-page" data-page-section="settings" hidden><div class="settings-list"><div class="settings-list-item"><span>◉</span><span><b>WiFi</b><small>ตั้งค่าที่หน้า ESP8266 เพื่อไม่ให้ credentials อยู่ใน Dashboard</small></span><em>อุปกรณ์</em></div><a href="?page=connection">◉ <span><b>MQTT</b><small>ตั้งค่าการเชื่อมต่อ MQTT</small></span>›</a><a href="?page=water">◉ <span><b>ระบบน้ำ</b><small>ดูสถานะและคำสั่งระบบน้ำ</small></span>›</a><div class="settings-list-item"><span>◉</span><span><b>Telegram</b><small>การแจ้งเตือนจะใช้งานเมื่อมี configuration จากอุปกรณ์</small></span><em>อ่านอย่างเดียว</em></div><div class="settings-list-item"><span>◉</span><span><b>แจ้งเตือน</b><small>ยังไม่มีหน้าจัดการแยกใน Dashboard รุ่นนี้</small></span><em>ยังไม่เปิดใช้</em></div><div class="settings-list-item"><span><svg class="sf-icon sf-icon-settings" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#settings"></use></svg></span><span><b>ระบบ</b><small>ข้อมูลระบบและเวอร์ชัน</small></span><em>ข้อมูลด้านล่าง</em></div></div><article class="ref-card system-version"><h2>ข้อมูลระบบ</h2><dl><dt>Firmware Version</dt><dd data-firmware>—</dd><dt>Dashboard Version</dt><dd>2.2.0</dd><dt>Cache Version</dt><dd>smartfarm-v54-unified-dashboard</dd></dl><button class="button primary-button" type="button" onclick="location.reload()">Reload Dashboard</button></article></section>
 
         <section class="route-page" data-page-section="info" hidden><div class="filter-row"><button class="filter active" type="button" data-event-filter="all">ทั้งหมด</button><button class="filter" type="button" data-event-filter="relay">Relay</button><button class="filter" type="button" data-event-filter="temperature">Temperature</button><button class="filter" type="button" data-event-filter="humidity">Humidity</button><button class="filter" type="button" data-event-filter="esp">ESP</button><button class="filter" type="button" data-event-filter="mqtt">MQTT</button></div><article class="ref-card event-card"><ul class="timeline event-timeline"><li data-event-type="relay"><time>—</time><b>Relay Status (pump)</b><span>รอข้อมูลจาก ESP8266</span></li><li data-event-type="relay"><time>—</time><b>Relay Command (pump)</b><span>รอคำสั่งจริง</span></li><li data-event-type="esp"><time>—</time><b>ESP Heartbeat</b><span>รอข้อมูลจากอุปกรณ์</span></li><li data-event-type="temperature humidity"><time>—</time><b>DHT11 Update</b><span data-temperature>—</span> / <span data-humidity>—</span></li><li data-event-type="mqtt"><time>—</time><b>MQTT Connected</b><span data-diagnostic-mqtt>ออฟไลน์</span></li><li data-event-type="relay"><time>—</time><b>Relay Status (zone1)</b><span>รอข้อมูลจาก ESP8266</span></li><li data-event-type="mqtt"><time>—</time><b>MQTT Disconnected</b><span data-diagnostic-reason>—</span></li><li data-event-type="esp"><time>—</time><b>System Restart</b><span>รอข้อมูลจากอุปกรณ์</span></li></ul></article></section>
 
@@ -298,7 +349,13 @@
     <a data-shared-route="weather" href="?page=weather" data-shared-route="weather"><span><svg class="sf-icon sf-icon-sun" aria-hidden="true" focusable="false"><use href="../assets/style4-icons.svg#sun"></use></svg></span><small>อากาศ</small></a>
   </nav>
   <div class="toast" data-toast hidden role="status" aria-live="polite"></div>
-  <script src="../firebase.js?v=11"></script><script src="../finance-core.js?v=9"></script><script src="../finance-firebase.js?v=11"></script><script src="../crop-cycle.js?v=1"></script><script src="../crop-dashboard.js?v=15"></script><script src="../cucumber-sales.js?v=6"></script><script src="../mqtt.min.js?v=5"></script><script src="dashboard-config.js?v=1"></script><script src="dashboard-state.js?v=5"></script><script src="dashboard-mqtt.js?v=4"></script><script src="dashboard.js?v=18"></script><script src="../control-room/control-room-schedule.js?v=5"></script><script src="../finance.js?v=14"></script><script src="../cucumber-sales-ui.js?v=5"></script><script src="unified-auth.js?v=1"></script>
+  <dialog class="wifi-reset-dialog" data-wifi-reset-dialog aria-labelledby="wifiResetDialogTitle" aria-describedby="wifiResetDialogDescription">
+    <div class="wifi-reset-dialog-card"><span class="wifi-reset-dialog-icon" aria-hidden="true">!</span><h2 id="wifiResetDialogTitle">ยืนยันล้างค่า Wi‑Fi</h2>
+      <p id="wifiResetDialogDescription">คำสั่งจะลบเฉพาะเครือข่าย Wi‑Fi ที่บันทึกไว้ใน ESP8266 แล้วรีสตาร์ท อุปกรณ์จะออฟไลน์ชั่วคราว จากนั้นให้เชื่อมต่อเครือข่าย <b>SmartFarm_Setup</b> เพื่อตั้งค่า Wi‑Fi ใหม่ ข้อมูลฟาร์มและ MQTT credentials จะไม่ถูกลบ</p>
+      <div class="wifi-reset-dialog-actions"><button class="button outline-button" data-wifi-reset-cancel type="button">ยกเลิก</button><button class="button wifi-reset-button" data-wifi-reset-confirm type="button">ยืนยันและล้าง Wi‑Fi</button></div>
+    </div>
+  </dialog>
+  <script src="../firebase.js?v=11"></script><script src="../finance-core.js?v=9"></script><script src="../finance-firebase.js?v=11"></script><script src="../crop-cycle.js?v=1"></script><script src="../crop-dashboard.js?v=15"></script><script src="../cucumber-sales.js?v=6"></script><script src="../mqtt.min.js?v=5"></script><script src="dashboard-config.js?v=2"></script><script src="dashboard-state.js?v=5"></script><script src="dashboard-mqtt.js?v=4"></script><script src="dashboard.js?v=19"></script><script src="../control-room/control-room-schedule.js?v=5"></script><script src="../finance.js?v=14"></script><script src="../cucumber-sales-ui.js?v=5"></script><script src="unified-auth.js?v=1"></script>
   <script>if ('serviceWorker' in navigator) { const swUrl = new URL('../sw.js', location.href); const swScope = new URL('../', location.href).pathname; navigator.serviceWorker.register(swUrl, { scope: swScope }).catch(() => {}); }</script>
 </body>
 </html>
