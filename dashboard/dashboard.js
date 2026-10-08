@@ -94,10 +94,15 @@
     weatherCurrent: $('[data-weather-current]'),
     weatherRain: $('[data-weather-rain]'),
     weatherUpdated: $('[data-weather-updated]'),
-    forecast: $('[data-forecast]')
+    forecast: $('[data-forecast]'),
+    wifiResetButton: $('[data-wifi-reset]'),
+    wifiResetDialog: $('[data-wifi-reset-dialog]'),
+    wifiResetAvailability: $('[data-wifi-reset-availability]')
   };
 
   let toastTimer = null;
+  let wifiResetPending = false;
+  let wifiResetPendingTimer = null;
   const previousMetrics = new Map();
 
   const text = (element, value) => {
@@ -155,7 +160,20 @@
   const textAll = (selector, value) => $$(selector).forEach(element => text(element, value));
   const toneAll = (selector, tone) => $$(selector).forEach(element => setTone(element, tone));
 
+  const connectionLabel = value => value === null ? 'ยังไม่มีข้อมูล' : value ? 'เชื่อมต่อแล้ว' : 'ไม่ได้เชื่อมต่อ';
+  const yesNoLabel = value => value === null || value === undefined ? '—' : value ? 'ใช่' : 'ไม่ใช่';
   const metricValue = (value, suffix = '') => hasNumber(value) ? `${formatNumber(value, suffix === ' °C' ? 1 : 0)}${suffix}` : 'ยังไม่มีข้อมูล';
+
+  const canResetWifi = current => current.esp.firmware === config.remoteWifiResetFirmware
+    && current.esp.online === true && mqtt.client?.connected === true;
+
+  const wifiResetBlockMessage = current => {
+    if (!current.esp.firmware) return 'รอข้อมูล firmware จาก ESP8266';
+    if (current.esp.firmware !== config.remoteWifiResetFirmware) return `ต้องอัปเดตเป็น ${config.remoteWifiResetFirmware} ก่อน`;
+    if (!mqtt.client?.connected) return 'ต้องเชื่อมต่อ MQTT ก่อน';
+    if (current.esp.online !== true) return 'ต้องมี heartbeat สดจาก ESP8266';
+    return 'พร้อมใช้งาน · จะมีหน้าต่างยืนยันก่อนส่งคำสั่ง';
+  };
 
   const renderMetric = (selector, value) => {
     $$(selector).forEach(element => {
@@ -229,10 +247,62 @@
     textAll('[data-esp-ota-status]', otaLabel);
     textAll('[data-esp-ota-progress]', state.esp.otaProgress === null ? '—' : `${state.esp.otaProgress}%`);
     textAll('[data-esp-reset-reason]', state.esp.resetReason || '—');
-    textAll('[data-esp-clock]', state.esp.clockValid ? `${state.esp.clockSource.toUpperCase()} · ${state.esp.time || 'valid'}` : 'ยังไม่ valid');
+    const hasHeartbeat = state.esp.heartbeatCount > 0;
+    const clockLabel = !hasHeartbeat ? 'ยังไม่มีข้อมูล' : state.esp.clockValid ? `${state.esp.clockSource.toUpperCase()} · ${state.esp.time || 'valid'}` : 'ยังไม่ valid';
+    textAll('[data-esp-clock]', clockLabel);
     textAll('[data-emergency-status]', state.esp.emergencyLock === null ? 'ยังไม่มีข้อมูล' : state.esp.emergencyLock ? `หยุดฉุกเฉินทำงาน${state.esp.emergencySource ? ` · ${state.esp.emergencySource}` : ''}` : 'ปกติ');
     textAll('[data-pump-safety-status]', state.esp.pumpSafeLock === null ? 'ยังไม่มีข้อมูล' : state.esp.pumpSafeLock ? 'ล็อกปั๊มเพื่อความปลอดภัย' : 'พร้อมตามคำสั่ง/ตาราง');
     toneAll('[data-emergency-status]', state.esp.emergencyLock === null ? 'neutral' : state.esp.emergencyLock ? 'bad' : 'good');
+    textAll('[data-detail-device-online]', connectionLabel(espOnline));
+    toneAll('[data-detail-device-online]', espOnline === null ? 'neutral' : espOnline ? 'good' : 'bad');
+    textAll('[data-detail-device-id]', state.esp.deviceId || 'ยังไม่มีข้อมูล');
+    textAll('[data-detail-firmware]', state.esp.firmware || '—');
+    textAll('[data-detail-wifi]', connectionLabel(state.esp.wifi));
+    toneAll('[data-detail-wifi]', state.esp.wifi === null ? 'neutral' : state.esp.wifi ? 'good' : 'bad');
+    textAll('[data-detail-device-mqtt]', connectionLabel(state.esp.mqtt));
+    toneAll('[data-detail-device-mqtt]', state.esp.mqtt === null ? 'neutral' : state.esp.mqtt ? 'good' : 'bad');
+    textAll('[data-detail-ip]', state.esp.ip || 'ยังไม่มีข้อมูล');
+    textAll('[data-detail-rssi]', state.esp.rssi === null ? '—' : `${state.esp.rssi} dBm`);
+    textAll('[data-detail-uptime]', formatDuration(state.esp.uptimeSec));
+    textAll('[data-detail-reset-reason]', state.esp.resetReason || '—');
+    const heartbeatAge = elapsed(state.esp.lastHeartbeatAt);
+    textAll('[data-detail-heartbeat-age]', state.esp.lastHeartbeatWasRetained ? `${heartbeatAge} · retained snapshot` : heartbeatAge);
+    textAll('[data-detail-heap]', state.esp.heap === null ? '—' : `${state.esp.heap} B`);
+    textAll('[data-detail-heap-max-block]', state.esp.heapMaxBlock === null ? '—' : `${state.esp.heapMaxBlock} B`);
+    textAll('[data-detail-heap-frag]', state.esp.heapFrag === null ? '—' : `${state.esp.heapFrag}%`);
+    textAll('[data-detail-wifi-reconnects]', formatNumber(state.esp.wifiReconnects));
+    textAll('[data-detail-mqtt-connects]', formatNumber(state.esp.mqttConnects));
+    textAll('[data-detail-mqtt-failures]', formatNumber(state.esp.mqttFailures));
+    textAll('[data-detail-dashboard-reconnects]', String(state.mqtt.reconnectCount));
+    textAll('[data-detail-connection-reason]', state.diagnostic.connectionReason || '—');
+    textAll('[data-detail-system-error]', state.diagnostic.lastError || state.mqtt.error || (hasHeartbeat ? 'ยังไม่มีรายงาน' : 'ยังไม่มีข้อมูล'));
+    textAll('[data-detail-mode]', state.mode || '—');
+    const homePumpSchedule = state.schedule.byRelay?.pump;
+    const homeActiveSlots = Array.isArray(homePumpSchedule?.slots) ? homePumpSchedule.slots.filter(slot => slot?.enabled) : [];
+    const homeScheduleLabel = !homePumpSchedule ? 'ยังไม่มีข้อมูล' : homeActiveSlots.length ? `เปิดใช้งาน · ${homeActiveSlots.map(slot => `${slot.on || '—'}–${slot.off || '—'}`).join(' · ')}` : 'ปิดใช้งาน';
+    textAll('[data-detail-schedule]', homeScheduleLabel);
+    textAll('[data-detail-clock]', clockLabel);
+    textAll('[data-detail-rtc]', hasHeartbeat ? yesNoLabel(state.esp.rtc) : 'ยังไม่มีข้อมูล');
+    textAll('[data-detail-ntp]', hasHeartbeat ? yesNoLabel(state.esp.ntp) : 'ยังไม่มีข้อมูล');
+    textAll('[data-detail-emergency]', state.esp.emergencyLock === null ? 'ยังไม่มีข้อมูล' : state.esp.emergencyLock ? 'หยุดฉุกเฉินทำงาน' : 'ปกติ');
+    toneAll('[data-detail-emergency]', state.esp.emergencyLock === null ? 'neutral' : state.esp.emergencyLock ? 'bad' : 'good');
+    textAll('[data-detail-emergency-source]', state.esp.emergencySource || '—');
+    textAll('[data-detail-pump-lock]', state.esp.pumpSafeLock === null ? 'ยังไม่มีข้อมูล' : state.esp.pumpSafeLock ? 'ล็อกความปลอดภัย' : 'พร้อมทำงาน');
+    toneAll('[data-detail-pump-lock]', state.esp.pumpSafeLock === null ? 'neutral' : state.esp.pumpSafeLock ? 'warn' : 'good');
+    textAll('[data-detail-pump-runtime]', formatDuration(state.esp.pumpRuntimeSec));
+    const sensorNeverRead = state.esp.sensorReads === 0;
+    const sensorHealthLabel = state.esp.sensorReads === null ? 'ยังไม่มีข้อมูล' : sensorNeverRead ? 'ยังไม่เคยอ่าน' : state.esp.sensorOk ? 'ปกติ' : 'ผิดปกติ';
+    textAll('[data-detail-sensor-ok]', sensorHealthLabel);
+    toneAll('[data-detail-sensor-ok]', state.esp.sensorReads === null || sensorNeverRead ? 'neutral' : state.esp.sensorOk ? 'good' : 'bad');
+    textAll('[data-detail-sensor-age]', state.esp.sensorAgeSec === null || sensorNeverRead ? '—' : formatDuration(state.esp.sensorAgeSec));
+    textAll('[data-detail-sensor-reads]', formatNumber(state.esp.sensorReads));
+    textAll('[data-detail-sensor-faults]', formatNumber(state.esp.sensorFaults));
+    textAll('[data-detail-ota-status]', otaLabel);
+    textAll('[data-detail-ota-ready]', yesNoLabel(state.esp.otaReady));
+    textAll('[data-detail-ota-in-progress]', yesNoLabel(state.esp.otaInProgress));
+    textAll('[data-detail-ota-progress]', state.esp.otaProgress === null ? '—' : `${state.esp.otaProgress}%`);
+    textAll('[data-detail-ota-port]', formatNumber(state.esp.otaPort));
+    textAll('[data-detail-http-ota-port]', formatNumber(state.esp.httpOtaPort));
     const lwtOffline = state.diagnostic.connectionReason === 'status/online=false';
     textAll('[data-esp-status-detail]', espOnline ? `ออนไลน์ · heartbeat ${elapsed(state.esp.lastHeartbeatAt)}` : lwtOffline ? `LWT · ESP/WiFi หลุด · ล่าสุด ${elapsed(state.esp.lastHeartbeatAt)}` : state.mqtt.status !== 'connected' ? 'รอการเชื่อมต่อ MQTT' : state.esp.lastHeartbeatAt ? `ไม่พบ heartbeat ใหม่ · ${elapsed(state.esp.lastHeartbeatAt)}` : 'ยังไม่ได้รับ heartbeat จากอุปกรณ์จริง');
 
@@ -246,6 +316,12 @@
     textAll('[data-mobile-mode]', state.mode || 'ยังไม่มีข้อมูล');
     text(elements.schedule, state.schedule.enabled === null ? '—' : state.schedule.enabled ? 'เปิดใช้งาน' : 'ปิดใช้งาน');
     const liveCommandReady = mqtt.client?.connected && state.esp.online === true;
+    const wifiResetReady = canResetWifi(state) && !wifiResetPending;
+    if (elements.wifiResetButton) elements.wifiResetButton.disabled = !wifiResetReady;
+    if (elements.wifiResetAvailability) {
+      text(elements.wifiResetAvailability, wifiResetPending ? 'ส่งคำสั่งแล้ว · รออุปกรณ์รีสตาร์ท' : wifiResetBlockMessage(state));
+      setTone(elements.wifiResetAvailability, wifiResetReady ? 'good' : 'warn');
+    }
     const espSchedule = state.schedule.byRelay?.pump;
     const activePumpSlots = Array.isArray(espSchedule?.slots) ? espSchedule.slots.filter(slot => slot?.enabled) : [];
     const scheduleCurrent = $('[data-firmware-schedule-current]');
@@ -402,6 +478,40 @@
     const sent = mqtt.publish(config.topics.emergencySet, command);
     if (sent) showToast(command === 'STOP' ? 'ส่งคำสั่งหยุดฉุกเฉินแล้ว' : 'ส่งคำสั่งปลดหยุดฉุกเฉินแล้ว · รอ status จาก ESP8266', command === 'STOP' ? 'warn' : 'info');
     else showToast('ยังส่งคำสั่งฉุกเฉินไม่ได้ · MQTT ยังไม่เชื่อมต่อ', 'warn');
+  };
+
+  const WIFI_RESET_CONFIRM_TEXT = 'ยืนยันล้างเฉพาะค่า Wi‑Fi ที่บันทึกใน ESP8266? อุปกรณ์จะรีสตาร์ทและเปิด SmartFarm_Setup เพื่อเลือกเครือข่ายใหม่ ข้อมูลฟาร์มและ MQTT credentials จะไม่ถูกลบ';
+  const submitWifiReset = () => {
+    const current = store.get();
+    if (wifiResetPending || !canResetWifi(current)) {
+      showToast(wifiResetPending ? 'กำลังรออุปกรณ์รีสตาร์ท' : wifiResetBlockMessage(current), 'warn');
+      elements.wifiResetDialog?.close();
+      return;
+    }
+    const sent = mqtt.publish(config.topics.wifiResetSet, 'RESET');
+    elements.wifiResetDialog?.close();
+    if (!sent) {
+      showToast('ยังส่งคำสั่งไม่ได้ · ตรวจสอบ MQTT และสถานะ ESP8266', 'warn');
+      return;
+    }
+    wifiResetPending = true;
+    showToast('ส่งคำสั่งแล้ว · ESP8266 จะล้าง Wi‑Fi และเปิด SmartFarm_Setup', 'warn');
+    render(store.get());
+    window.clearTimeout(wifiResetPendingTimer);
+    wifiResetPendingTimer = window.setTimeout(() => {
+      wifiResetPending = false;
+      render(store.get());
+    }, 15000);
+  };
+
+  const openWifiResetDialog = () => {
+    const current = store.get();
+    if (wifiResetPending || !canResetWifi(current)) {
+      showToast(wifiResetPending ? 'กำลังรออุปกรณ์รีสตาร์ท' : wifiResetBlockMessage(current), 'warn');
+      return;
+    }
+    if (typeof elements.wifiResetDialog?.showModal === 'function') elements.wifiResetDialog.showModal();
+    else if (window.confirm(WIFI_RESET_CONFIRM_TEXT)) submitWifiReset();
   };
 
   const submitFirmwareSchedule = event => {
@@ -581,6 +691,12 @@
       showToast('ล้าง MQTT credentials จากเครื่องนี้แล้ว', 'info');
     });
     $('[data-weather-retry]')?.addEventListener('click', () => loadWeather());
+    elements.wifiResetButton?.addEventListener('click', openWifiResetDialog);
+    $('[data-wifi-reset-cancel]')?.addEventListener('click', () => elements.wifiResetDialog?.close());
+    $('[data-wifi-reset-confirm]')?.addEventListener('click', submitWifiReset);
+    elements.wifiResetDialog?.addEventListener('click', event => {
+      if (event.target === elements.wifiResetDialog) elements.wifiResetDialog.close();
+    });
     $('[data-firmware-schedule-form]')?.addEventListener('submit', submitFirmwareSchedule);
     $$('[data-relay-toggle]').forEach(button => button.addEventListener('click', () => {
       const relay = button.closest('[data-relay-card]').dataset.relayCard;
@@ -612,6 +728,13 @@
     });
     window.addEventListener('smartfarm:mqtt:error', event => showToast(event.detail?.error || 'MQTT error', 'bad'));
     window.addEventListener('smartfarm:mqtt:subscribe-error', event => showToast(`สมัครรับ topic ไม่สำเร็จ: ${event.detail.topic}`, 'bad'));
+    window.addEventListener('smartfarm:mqtt:publish-error', event => {
+      if (event.detail?.topic !== config.topics.wifiResetSet) return;
+      wifiResetPending = false;
+      window.clearTimeout(wifiResetPendingTimer);
+      render(store.get());
+      showToast(`ส่งคำสั่งรีเซ็ต Wi-Fi ไม่สำเร็จ: ${event.detail.error || 'MQTT publish error'}`, 'bad');
+    });
     window.setInterval(() => {
       store.checkHeartbeat(config.mqtt.heartbeatTimeoutMs);
       render(store.get());

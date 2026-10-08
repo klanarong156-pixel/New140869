@@ -35,6 +35,8 @@
       otaReady: null,
       otaInProgress: null,
       otaProgress: null,
+      otaPort: null,
+      httpOtaPort: null,
       otaStatus: '',
       pumpSafeLock: null,
       emergencyLock: null,
@@ -135,6 +137,8 @@
     current.esp.otaInProgress = typeof device.otaInProgress === 'boolean' ? device.otaInProgress : null;
     current.esp.otaProgress = device.otaProgress === null || device.otaProgress === undefined || device.otaProgress === ''
       ? null : Number.isFinite(Number(device.otaProgress)) ? Number(device.otaProgress) : null;
+    current.esp.otaPort = Number.isFinite(Number(device.otaPort)) ? Number(device.otaPort) : null;
+    current.esp.httpOtaPort = Number.isFinite(Number(device.httpOtaPort)) ? Number(device.httpOtaPort) : null;
     current.esp.otaStatus = String(device.otaStatus || '');
     current.esp.pumpSafeLock = typeof device.pumpSafeLock === 'boolean' ? device.pumpSafeLock : null;
     current.esp.emergencyLock = typeof device.emergencyLock === 'boolean' ? device.emergencyLock : null;

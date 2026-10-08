@@ -5,7 +5,8 @@ const files = [
   'config.js','mqtt-connection.js','app.js','schedule.js','telegram-settings.js',
   'crop-reminders.js','crop-plots.js','farm-analytics.js','ai-farm-advisor.js',
   'farm-tools.js','farm-clock.js','internet-time.js','user-management.js',
-  'weather.js','auto-weather-guard.js','dashboard-ota.js','finance.js'
+  'weather.js','auto-weather-guard.js','dashboard-ota.js','finance.js',
+  'dashboard/dashboard-config.js','dashboard/dashboard-state.js','dashboard/dashboard-mqtt.js','dashboard/dashboard.js'
 ];
 for (const file of files) {
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
@@ -29,6 +30,7 @@ const finance = read('dashboard/index.html');
 const financeRedirect = read('finance.html');
 const financeJs = read('finance.js');
 const dashboardCss = read('dashboard/dashboard.css');
+const design4 = read('design4.css');
 const weatherTypography = read('dashboard/dashboard-typography.css');
 const firmware = read('SmartFarm_V7.2.0_OTA_STABLE.ino');
 const sw = read('sw.js');
@@ -48,6 +50,10 @@ const checks = [
   ['Clean dashboard loads MQTT.js and state modules', /mqtt\.min\.js/.test(cleanDashboard) && /dashboard-state\.js/.test(cleanDashboard) && /dashboard-mqtt\.js/.test(cleanDashboard)],
   ['Dashboard modes match firmware commands', /data-mode="AUTO"/.test(cleanDashboard) && /data-mode="MANUAL"/.test(cleanDashboard) && !/data-mode="SCHEDULE"/.test(cleanDashboard)],
   ['Dashboard exposes firmware emergency controls', /data-emergency-stop/.test(cleanDashboard) && /data-emergency-reset/.test(cleanDashboard) && /emergencySet/.test(cleanDashboardConfig)],
+  ['Home dashboard exposes full device diagnostics and guarded Wi-Fi reset', /data-detail-device-online/.test(cleanDashboard) && /data-detail-sensor-faults/.test(cleanDashboard) && /data-detail-ota-port/.test(cleanDashboard) && /data-wifi-reset-dialog/.test(cleanDashboard) && /data-wifi-reset-confirm/.test(cleanDashboard)],
+  ['Wi-Fi reset command uses the exact isolated topic and compatible firmware', /smartfarm\/wifi\/reset\/set/.test(cleanDashboardConfig) && /V7\.2\.3-REMOTE-WIFI-RESET/.test(cleanDashboardConfig) && /retain: false/.test(cleanDashboardMqtt)],
+  ['Approved telemetry panel remains visible below the compact mobile home', /route-page\[data-page-section="dashboard"\]\s*>\s*\.device-diagnostics-panel\s*\{\s*display:\s*block\s*!important/.test(design4)],
+  ['Mobile layout stylesheet cache URL is bumped in dashboard and Service Worker', cleanDashboard.includes('../design4.css?v=11') && sw.includes('./design4.css?v=11')],
   ['Clean dashboard does not fake soil telemetry', /ไม่ได้ติดตั้ง/.test(cleanDashboard) && !/soil.*(?:value|temperature|humidity)/i.test(cleanDashboardJs)],
   ['Firmware uses HiveMQ TLS 8883', /#define MQTT_SERVER "25305924f68c41f2a1e089a1836d3287\.s1\.eu\.hivemq\.cloud"/.test(firmware) && /#define MQTT_PORT 8883/.test(firmware)],
   ['Firmware uses smartfarm base topic', /#define MQTT_BASE "smartfarm"/.test(firmware)],

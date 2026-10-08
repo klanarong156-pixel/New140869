@@ -81,6 +81,7 @@ const manager = context.window.SmartFarmDashboardMqtt;
 const controlRoomHtml = fs.readFileSync('control-room/index.html', 'utf8');
 const controlRoomScheduleJs = fs.readFileSync('control-room/control-room-schedule.js', 'utf8');
 const canonicalDashboardHtml = fs.readFileSync('dashboard/index.html', 'utf8');
+const dashboardLogic = fs.readFileSync('dashboard/dashboard.js', 'utf8');
 const check = (condition, message) => {
   if (!condition) throw new Error(`FAIL: ${message}`);
   console.log(`PASS: ${message}`);
@@ -90,6 +91,9 @@ check(store.get().esp.emergencyLock === null && store.get().esp.pumpSafeLock ===
 check(controlRoomHtml.includes('../dashboard/?page=water'), 'legacy Control Room route redirects to the canonical Water page');
 check((canonicalDashboardHtml.match(/dashboard-mqtt\.js/g) || []).length === 1, 'the unified dashboard loads exactly one shared MQTT manager');
 check(canonicalDashboardHtml.includes('control-room-schedule.js') && canonicalDashboardHtml.includes('id="scheduleForm"'), 'Firebase planning is embedded in the unified dashboard');
+check(config.remoteWifiResetFirmware === 'V7.2.3-REMOTE-WIFI-RESET' && config.topics.wifiResetSet === 'smartfarm/wifi/reset/set', 'remote Wi-Fi reset is bound to the compatible firmware and exact command topic');
+check(canonicalDashboardHtml.includes('data-detail-ota-status') && canonicalDashboardHtml.includes('data-detail-sensor-faults') && canonicalDashboardHtml.includes('data-wifi-reset-dialog') && canonicalDashboardHtml.includes('data-wifi-reset-confirm'), 'home page exposes grouped device diagnostics and an explicit Wi-Fi reset confirmation dialog');
+check(dashboardLogic.includes('current.esp.firmware === config.remoteWifiResetFirmware') && dashboardLogic.includes('current.esp.online === true') && dashboardLogic.includes('showModal()'), 'Wi-Fi reset is gated by compatible firmware and a live ESP heartbeat');
 check(controlRoomScheduleJs.includes('data-id="${escapeHtml(item.id)}"'), 'Firebase schedule IDs are escaped before HTML attribute rendering');
 
 manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.1.1', uptimeSec: 10, rssi: -60 }), { retain: true });
@@ -128,6 +132,8 @@ store.setRelay('pump', null);
 check(store.get().relays.pump === null, 'null relay status remains unknown instead of becoming OFF');
 manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: 'V7.2.0-OTA-STABLE', uptimeSec: 35, otaReady: true, otaStatus: 'READY', otaProgress: 0, rssi: -60 }), { retain: false });
 check(store.get().esp.firmware === 'V7.2.0-OTA-STABLE' && store.get().esp.otaReady === true && store.get().esp.otaStatus === 'READY', 'V7.2.0 firmware and OTA diagnostics are accepted from heartbeat');
+manager.handleMessage(config.topics.device, JSON.stringify({ online: true, mqtt: true, firmware: config.remoteWifiResetFirmware, ip: '192.168.1.55', otaPort: 8266, httpOtaPort: 80 }), { retain: false });
+check(store.get().esp.ip === '192.168.1.55' && store.get().esp.otaPort === 8266 && store.get().esp.httpOtaPort === 80, 'IP address and OTA ports are parsed from the current firmware heartbeat');
 
 check(manager.connect() === true && fakeClient, 'MQTT connect starts the single browser client');
 fakeClient.emit('connect');
@@ -135,6 +141,9 @@ check(store.get().mqtt.status === 'connected', 'MQTT connected state is exposed 
 store.state.relays.pump = null;
 check(manager.publish(config.topics.relaySet('pump'), 'ON') === true, 'relay command publishes through the single manager');
 check(store.get().relays.pump === null, 'relay command does not optimistically change UI state');
+check(manager.publish(config.topics.wifiResetSet, 'RESET') === true, 'confirmed Wi-Fi reset publishes through the shared MQTT manager');
+const wifiResetPacket = fakeClient.published.find(packet => packet.topic === config.topics.wifiResetSet);
+check(wifiResetPacket?.payload === 'RESET' && wifiResetPacket.options.retain === false && wifiResetPacket.options.qos === 1, 'Wi-Fi reset command is exact, QoS 1 and non-retained');
 manager.handleMessage(config.topics.relayStatus('pump'), 'ON', { retain: true });
 check(store.get().relays.pump === true, 'relay status from ESP changes UI state');
 manager.handleMessage(config.topics.online, 'false', { retain: true });

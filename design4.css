@@ -1107,3 +1107,10 @@ body.compact-ui .page-heading{
     padding-top:8px !important;
   }
 }
+
+/* Keep the approved live telemetry visible below the compact home on mobile. */
+@media (max-width: 650px) {
+  body.dashboard-page .route-page[data-page-section="dashboard"] > .device-diagnostics-panel {
+    display: block !important;
+  }
+}

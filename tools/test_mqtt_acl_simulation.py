@@ -14,8 +14,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FIRMWARE = (ROOT / "SmartFarm_V7.1.2_TLS_TIME_COMPILE_FIX.ino").read_text()
+FIRMWARE = (ROOT / "SmartFarm_V7.2.3_REMOTE_WIFI_RESET.ino").read_text()
 CONFIG = (ROOT / "config.js").read_text()
+DASHBOARD_CONFIG = (ROOT / "dashboard/dashboard-config.js").read_text()
 
 RELAYS = ("pump", "zone1", "lighthome", "lightsala")
 
@@ -27,6 +28,7 @@ DEVICE_SUBSCRIBE = [
     "smartfarm/reminder/set",
     "smartfarm/emergency/set",
     "smartfarm/ai/alert/set",
+    "smartfarm/wifi/reset/set",
 ]
 
 DEVICE_PUBLISH = [
@@ -61,6 +63,7 @@ DASHBOARD_PUBLISH = [
     "smartfarm/reminder/set",
     "smartfarm/ai/alert/set",
     "smartfarm/emergency/set",
+    "smartfarm/wifi/reset/set",
 ]
 
 
@@ -116,6 +119,7 @@ def main() -> int:
             Permission("subscribe", "smartfarm/reminder/set"),
             Permission("subscribe", "smartfarm/emergency/set"),
             Permission("subscribe", "smartfarm/ai/alert/set"),
+            Permission("subscribe", "smartfarm/wifi/reset/set"),
             Permission("publish", "smartfarm/relay/+/status"),
             Permission("publish", "smartfarm/schedule/+/status"),
             Permission("publish", "smartfarm/status/online"),
@@ -149,6 +153,7 @@ def main() -> int:
 
     forbidden = [
         (device, "publish", "smartfarm/relay/pump/set"),
+        (device, "publish", "smartfarm/wifi/reset/set"),
         (device, "subscribe", "smartfarm/status/device"),
         (dashboard, "publish", "smartfarm/relay/pump/status"),
         (dashboard, "subscribe", "smartfarm/relay/pump/set"),
@@ -167,7 +172,7 @@ def main() -> int:
 
     required_firmware_fragments = [
         "/reminder/", "/emergency/", "/ai/alert/", "/status/online",
-        "status/device", "/sensor/dht11",
+        "status/device", "/sensor/dht11", "/wifi/reset/set",
     ]
     for fragment in required_firmware_fragments:
         check(fragment in FIRMWARE, f"firmware contains topic contract fragment: {fragment}")
@@ -176,6 +181,8 @@ def main() -> int:
     check("smartfarm/relay/+/status" in CONFIG and "smartfarm/status/+" in CONFIG, "web config uses explicit status subscription filters")
     check("relayStatus: relay" in CONFIG, "web config exposes relay status topic factory")
     check("smartfarm/emergency/status" in CONFIG, "web config includes emergency status subscription")
+    check('"/wifi/reset/set"' in FIRMWARE, "firmware subscribes to the isolated Wi-Fi reset command topic")
+    check("smartfarm/wifi/reset/set" in DASHBOARD_CONFIG, "dashboard config publishes Wi-Fi reset on its dedicated topic")
 
     print("\nACL SIMULATION RESULT: Smart Farm topic permissions passed")
     print("NOTE: This is a local policy simulation; it does not prove HiveMQ permissions are deployed.")
