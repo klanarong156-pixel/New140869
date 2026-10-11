@@ -33,6 +33,111 @@
     return items.filter(item => monthKey(item.createdAt) === selected);
   }
 
+  function csvCell(value) {
+    let text = String(value ?? '');
+    if (/^[=+\-@]/.test(text)) text = `'${text}`;
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+
+  function toCsv(reportItems = items, title = 'รายงานการเงินฟาร์ม') {
+    const selectedItems = Array.isArray(reportItems) ? reportItems : [];
+    const totals = window.FinanceCore?.summary(selectedItems, 0) || { income: 0, expense: 0, pending: 0, profit: 0 };
+    const rows = [
+      ['รายงาน', title],
+      ['สร้างเมื่อ', new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })],
+      [],
+      ['สรุป', 'จำนวนเงิน (บาท)'],
+      ['รายรับรวม', totals.income],
+      ['รายจ่ายรวม', totals.expense],
+      ['ค้างซื้อรวม', totals.pending],
+      ['กำไรสุทธิ', totals.profit],
+      [],
+      ['วันที่', 'ประเภท', 'หมวดต้นทุน', 'รายการ', 'จำนวนเงิน (บาท)']
+    ];
+    selectedItems.forEach(item => rows.push([
+      formatDate(item.createdAt),
+      typeMeta[item.type]?.label || item.type || '',
+      item.category || (item.type === 'income' ? '—' : 'ไม่ระบุ'),
+      item.item || '',
+      Number(item.amount || 0)
+    ]));
+    return `\uFEFF${rows.map(row => row.map(csvCell).join(',')).join('\r\n')}\r\n`;
+  }
+
+  function reportDate() {
+    return new Intl.DateTimeFormat('en', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' })
+      .format(new Date()).replace(/\//g, '-');
+  }
+
+  function downloadCsv(reportItems, filename, title) {
+    try {
+      const blob = new Blob([toCsv(reportItems, title)], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.hidden = true;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      window.showToast?.(`ดาวน์โหลดรายงาน CSV แล้ว · ${reportItems.length} รายการ`, 'success');
+    } catch (error) {
+      console.error('Finance CSV export failed:', error);
+      window.showToast?.(`สร้างไฟล์รายงานไม่สำเร็จ: ${error.message || 'กรุณาลองใหม่'}`, 'error');
+    }
+  }
+
+  function excelRows(reportItems = items, title = 'รายงานการเงินฟาร์ม') {
+    const selectedItems = Array.isArray(reportItems) ? reportItems : [];
+    const totals = window.FinanceCore?.summary(selectedItems, 0) || { income: 0, expense: 0, pending: 0, profit: 0 };
+    return {
+      summary: [
+        ['รายงาน', title],
+        ['สร้างเมื่อ', new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })],
+        [],
+        ['รายการสรุป', 'จำนวนเงิน (บาท)'],
+        ['รายรับรวม', totals.income],
+        ['รายจ่ายรวม', totals.expense],
+        ['ค้างซื้อรวม', totals.pending],
+        ['กำไรสุทธิ', totals.profit]
+      ],
+      transactions: [
+        ['วันที่', 'ประเภท', 'หมวดต้นทุน', 'รายการ', 'จำนวนเงิน (บาท)'],
+        ...selectedItems.map(item => [
+          formatDate(item.createdAt),
+          typeMeta[item.type]?.label || item.type || '',
+          item.category || (item.type === 'income' ? '—' : 'ไม่ระบุ'),
+          item.item || '',
+          Number(item.amount || 0)
+        ])
+      ]
+    };
+  }
+
+  function downloadExcel(reportItems, filename, title) {
+    const xlsx = window.XLSX;
+    if (!xlsx?.utils || typeof xlsx.writeFile !== 'function') {
+      window.showToast?.('ระบบ Excel ยังโหลดไม่เสร็จ กรุณาลองใหม่อีกครั้ง หรือใช้ CSV แทน', 'warning');
+      return;
+    }
+    try {
+      const rows = excelRows(reportItems, title);
+      const workbook = xlsx.utils.book_new();
+      const summarySheet = xlsx.utils.aoa_to_sheet(rows.summary);
+      const transactionSheet = xlsx.utils.aoa_to_sheet(rows.transactions);
+      summarySheet['!cols'] = [{ wch: 24 }, { wch: 22 }];
+      transactionSheet['!cols'] = [{ wch: 22 }, { wch: 14 }, { wch: 20 }, { wch: 34 }, { wch: 18 }];
+      xlsx.utils.book_append_sheet(workbook, summarySheet, 'สรุปการเงิน');
+      xlsx.utils.book_append_sheet(workbook, transactionSheet, 'รายการทั้งหมด');
+      xlsx.writeFile(workbook, filename, { bookType: 'xlsx' });
+      window.showToast?.(`ดาวน์โหลดรายงาน Excel แล้ว · ${reportItems.length} รายการ`, 'success');
+    } catch (error) {
+      console.error('Finance Excel export failed:', error);
+      window.showToast?.(`สร้างไฟล์ Excel ไม่สำเร็จ: ${error.message || 'กรุณาลองใหม่'}`, 'error');
+    }
+  }
+
   function renderMonthlyReport() {
     const picker = $('financeReportMonth');
     if (!picker) return;
@@ -301,12 +406,23 @@
     $('financeForm')?.addEventListener('submit', add);
     window.addEventListener('finance:changed', refresh);
     $('financePrint')?.addEventListener('click', printReport);
+    $('financeDownloadCsv')?.addEventListener('click', () => downloadCsv(items, `รายงานการเงิน-${reportDate()}.csv`, 'รายงานการเงินทั้งหมด'));
+    $('financeDownloadExcel')?.addEventListener('click', () => downloadExcel(items, `รายงานการเงิน-${reportDate()}.xlsx`, 'รายงานการเงินทั้งหมด'));
     $('financeReportMonth')?.addEventListener('input', renderMonthlyReport);
     $('financeMonthlyPrint')?.addEventListener('click', printMonthlyReport);
+    $('financeMonthlyDownloadCsv')?.addEventListener('click', () => {
+      const selected = $('financeReportMonth')?.value || currentMonthKey();
+      downloadCsv(monthlyItems(), `รายงานการเงิน-${selected}.csv`, `รายงานการเงินประจำเดือน ${selected}`);
+    });
+    $('financeMonthlyDownloadExcel')?.addEventListener('click', () => {
+      const selected = $('financeReportMonth')?.value || currentMonthKey();
+      downloadExcel(monthlyItems(), `รายงานการเงิน-${selected}.xlsx`, `รายงานการเงินประจำเดือน ${selected}`);
+    });
     renderMonthlyReport();
     refresh();
   }
 
+  window.FinanceReport = { toCsv, excelRows };
   window.addEventListener('access:ready', boot, { once: true });
   // unified-auth publishes this event before access:ready during login.
   window.addEventListener('firebase:auth-state-changed', boot);
