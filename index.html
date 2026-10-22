@@ -2,14 +2,107 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=https://smart-farm-platfor.web.app/dashboard/">
-  <link rel="canonical" href="https://smart-farm-platfor.web.app/dashboard/">
-  <meta name="theme-color" content="#0d3d2a">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173f32">
+  <meta name="description" content="ระบบบัญชีคู่สำหรับสวนและธุรกิจเกษตร บันทึกต้นทุน รายรับ และตรวจสอบสมุดรายวันได้ในที่เดียว">
   <link rel="manifest" href="manifest.json">
-  <title>สวนลุงนะ · Smart Farm</title>
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="accounting.css?v=1">
+  <title>บัญชีสวน · ระบบบัญชีเกษตร</title>
 </head>
 <body>
-  <p>กำลังเปิดแดชบอร์ด Firebase ของสวนลุงนะ… <a href="https://smart-farm-platfor.web.app/dashboard/">เปิดแดชบอร์ด</a></p>
+  <div class="app-frame">
+    <aside class="sidebar" aria-label="เมนูระบบบัญชี">
+      <a class="brand" href="#overview" data-route="overview" aria-label="หน้าภาพรวมบัญชีสวน">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 34V17m0 8c-7 0-12-4-13-11 7-1 12 3 13 11Zm0-7c0-7 4-12 11-14 1 7-3 12-11 14Z"/></svg></span>
+        <span><strong>บัญชีสวน</strong><small>AGRI LEDGER</small></span>
+      </a>
+      <p class="nav-caption">จัดการบัญชี</p>
+      <nav class="nav-list">
+        <button class="nav-item active" type="button" data-route="overview"><span class="nav-icon">◫</span><span>ภาพรวม</span></button>
+        <button class="nav-item" type="button" data-route="journal"><span class="nav-icon">≡</span><span>สมุดรายวัน</span></button>
+        <button class="nav-item" type="button" data-route="accounts"><span class="nav-icon">▤</span><span>ผังบัญชี</span></button>
+        <button class="nav-item" type="button" data-route="reports"><span class="nav-icon">▥</span><span>รายงาน</span></button>
+        <button class="nav-item" type="button" data-route="legacy"><span class="nav-icon">↶</span><span>ข้อมูลเดิม</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="privacy-note"><span class="privacy-dot"></span><span><b>ข้อมูลส่วนตัว</b><small>แยกตามบัญชีผู้ใช้</small></span></div>
+        <button class="user-row" id="signOutButton" type="button" title="ออกจากระบบ">
+          <span class="avatar" id="userAvatar">ส</span><span class="user-copy"><b id="userEmail">กำลังโหลด…</b><small>ออกจากระบบ</small></span><span class="signout">↗</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="brand-mark small-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 34V17m0 8c-7 0-12-4-13-11 7-1 12 3 13 11Zm0-7c0-7 4-12 11-14 1 7-3 12-11 14Z"/></svg></span><b>บัญชีสวน</b></div>
+        <div class="topbar-label"><span class="eyebrow">ระบบบัญชีธุรกิจเกษตร</span><span id="todayLabel">ภาพรวมประจำเดือน</span></div>
+        <div class="topbar-actions"><span class="sync-state" id="syncState"><i></i><span>กำลังเชื่อมต่อ</span></span><button class="button primary compact" type="button" data-open-entry>＋ <span>บันทึกรายการ</span></button></div>
+      </header>
+
+      <div class="content-wrap">
+        <section class="page-view active" data-view="overview">
+          <div class="page-heading"><div><p class="eyebrow">บัญชีของสวนคุณ</p><h1>ภาพรวมบัญชี</h1><p class="subheading">เห็นรายรับ ต้นทุน และผลสุทธิของสวนในหน้าเดียว</p></div><label class="period-field">เดือนที่ดู<input id="overviewMonth" type="month" aria-label="เลือกเดือนสำหรับภาพรวม"></label></div>
+          <div class="metric-grid">
+            <article class="metric-card revenue-card"><div class="metric-top"><span>รายได้เดือนนี้</span><span class="metric-symbol">↗</span></div><strong id="overviewIncome">฿0.00</strong><small>บันทึกในเดือนที่เลือก</small></article>
+            <article class="metric-card expense-card"><div class="metric-top"><span>ต้นทุนและค่าใช้จ่าย</span><span class="metric-symbol">↘</span></div><strong id="overviewExpense">฿0.00</strong><small>รายการที่ผ่านการบันทึก</small></article>
+            <article class="metric-card profit-card"><div class="metric-top"><span>กำไรสุทธิ</span><span class="metric-symbol">＝</span></div><strong id="overviewProfit">฿0.00</strong><small>รายได้หักค่าใช้จ่าย</small></article>
+            <article class="metric-card count-card"><div class="metric-top"><span>รายการบัญชี</span><span class="metric-symbol">≡</span></div><strong id="overviewCount">0</strong><small>รายการในเดือนที่เลือก</small></article>
+          </div>
+          <div class="dashboard-grid">
+            <article class="panel expense-panel"><div class="panel-heading"><div><p class="eyebrow">ต้นทุนตามบัญชี</p><h2>ค่าใช้จ่ายสูงสุด</h2></div><button class="text-button" type="button" data-route="reports">ดูรายงาน <span>→</span></button></div><div id="expenseBreakdown" class="breakdown-list"><p class="empty-inline">ยังไม่มีรายการในช่วงนี้</p></div></article>
+            <article class="panel note-panel"><span class="panel-icon">✳</span><p class="eyebrow">หลักการบันทึก</p><h2>ทุกยอดมีที่มา</h2><p>แต่ละรายการใช้ระบบเดบิต–เครดิต ยอดรวมสองด้านต้องเท่ากัน และรายการที่บันทึกแล้วจะเก็บเป็นประวัติถาวร</p><button class="button primary" type="button" data-open-entry>＋ บันทึกรายการแรก</button></article>
+          </div>
+          <article class="panel table-panel"><div class="panel-heading"><div><p class="eyebrow">รายการล่าสุด</p><h2>สมุดรายวัน</h2></div><button class="text-button" type="button" data-route="journal">เปิดสมุดรายวัน <span>→</span></button></div><div class="table-scroll"><table><thead><tr><th>วันที่ / เลขที่</th><th>รายละเอียด</th><th>บัญชี</th><th class="number-cell">เดบิต</th><th class="number-cell">เครดิต</th><th>สถานะ</th></tr></thead><tbody id="recentRows"></tbody></table><div class="empty-state" id="recentEmpty">ยังไม่มีรายการบัญชีในเดือนนี้</div></div></article>
+        </section>
+
+        <section class="page-view" data-view="journal" hidden>
+          <div class="page-heading"><div><p class="eyebrow">ตรวจสอบทุกรายการ</p><h1>สมุดรายวัน</h1><p class="subheading">เรียงตามวันที่และแบ่งเก็บข้อมูลเป็นรายเดือน</p></div><div class="heading-actions"><label class="period-field">เดือน<input id="journalMonth" type="month" aria-label="เลือกเดือนของสมุดรายวัน"></label><button class="button primary" type="button" data-open-entry>＋ เพิ่มรายการ</button></div></div>
+          <article class="panel table-panel"><div class="table-heading-row"><div><h2 id="journalPeriodTitle">รายการประจำเดือน</h2><small id="journalCount">0 รายการ</small></div><button class="button secondary compact" id="refreshButton" type="button">↻ <span>รีเฟรช</span></button></div><div class="table-scroll"><table><thead><tr><th>วันที่ / เลขที่</th><th>รายละเอียด</th><th>บัญชี</th><th class="number-cell">เดบิต</th><th class="number-cell">เครดิต</th><th>สถานะ</th></tr></thead><tbody id="journalRows"></tbody></table><div class="empty-state" id="journalEmpty">ไม่พบรายการในเดือนนี้</div></div></article>
+        </section>
+
+        <section class="page-view" data-view="accounts" hidden>
+          <div class="page-heading"><div><p class="eyebrow">จัดหมวดธุรกรรม</p><h1>ผังบัญชี</h1><p class="subheading">บัญชีมาตรฐานสำหรับต้นทุนและรายได้จากการเกษตร</p></div></div>
+          <div class="account-layout"><article class="panel account-list-panel"><div class="panel-heading"><div><p class="eyebrow">จัดกลุ่มตามประเภท</p><h2>บัญชีที่ใช้งาน</h2></div><span class="count-pill" id="accountCount">0 บัญชี</span></div><div id="accountGroups"></div></article>
+            <article class="panel add-account-panel"><p class="eyebrow">ขยายผังบัญชี</p><h2>เพิ่มบัญชีใหม่</h2><p class="helper-copy">เช่น ค่าเช่าที่ดิน ค่าบรรจุภัณฑ์ หรือแหล่งรายได้เฉพาะของสวน</p><form id="accountForm" class="stack-form"><label>รหัสบัญชี<input name="code" inputmode="numeric" pattern="[0-9]{3,8}" maxlength="8" placeholder="เช่น 5100" required></label><label>ชื่อบัญชี<input name="name" maxlength="80" placeholder="เช่น ค่าบรรจุภัณฑ์" required></label><label>ประเภทบัญชี<select name="type" required><option value="expense">ค่าใช้จ่าย</option><option value="income">รายได้</option><option value="asset">สินทรัพย์</option><option value="liability">หนี้สิน</option><option value="equity">ส่วนของเจ้าของ</option></select></label><button class="button primary" type="submit">เพิ่มบัญชี</button></form></article></div>
+        </section>
+
+        <section class="page-view" data-view="reports" hidden>
+          <div class="page-heading"><div><p class="eyebrow">สรุปเพื่อการตัดสินใจ</p><h1>รายงาน</h1><p class="subheading">สรุปผลการดำเนินงานจากรายการที่บันทึกแล้ว</p></div><label class="period-field">ปีบัญชี (พ.ศ.)<select id="reportYear" aria-label="เลือกปีบัญชี พ.ศ."></select></label></div>
+          <div class="report-highlight"><div><span>กำไรสุทธิทั้งปี</span><strong id="reportProfit">฿0.00</strong></div><div><span>รายได้รวม</span><strong id="reportIncome">฿0.00</strong></div><div><span>ค่าใช้จ่ายรวม</span><strong id="reportExpense">฿0.00</strong></div><div><span>จำนวนรายการ</span><strong id="reportCount">0</strong></div></div>
+          <article class="panel table-panel"><div class="panel-heading"><div><p class="eyebrow">แยกตามบัญชี</p><h2>ความเคลื่อนไหวสุทธิในปี</h2></div><button class="button secondary compact" id="downloadReport" type="button">↓ <span>ดาวน์โหลด CSV</span></button></div><div class="table-scroll"><table><thead><tr><th>รหัส</th><th>ชื่อบัญชี</th><th>ประเภท</th><th class="number-cell">ความเคลื่อนไหวสุทธิ (บาท)</th></tr></thead><tbody id="reportRows"></tbody></table><div class="empty-state" id="reportEmpty">ยังไม่มีรายการในปีบัญชีนี้</div></div></article>
+          <p class="accounting-caveat">รายงานนี้คำนวณจากรายการสมุดรายวันที่บันทึกในระบบใหม่ ข้อมูลเก่าจะแยกแสดงในเมนู “ข้อมูลเดิม” และยังไม่ถูกรวมในยอดบัญชี</p>
+        </section>
+
+        <section class="page-view" data-view="legacy" hidden>
+          <div class="page-heading"><div><p class="eyebrow">เก็บรักษาข้อมูลเดิม</p><h1>ข้อมูลเดิม</h1><p class="subheading">รายการรับ–จ่ายและยอดขายผลผลิตที่บันทึกไว้ก่อนปรับระบบ แสดงแบบอ่านอย่างเดียว</p></div><button class="button secondary" id="loadLegacyButton" type="button">↻ โหลดข้อมูลเดิม</button></div>
+          <div class="legacy-notice"><strong>ข้อมูลเหล่านี้ยังอยู่ใน Firebase เดิม</strong><span>ยังไม่ถูกรวมในรายงานใหม่ เพื่อป้องกันยอดซ้ำหรือการแปลงรายการที่ไม่ชัดเจน คุณสามารถตรวจสอบหรือดาวน์โหลดเพื่อใช้อ้างอิงได้</span></div>
+          <article class="panel table-panel"><div class="panel-heading"><div><p class="eyebrow">รายการรับ–จ่ายเดิม</p><h2>การเงินเดิม</h2></div><button class="text-button" type="button" data-export="legacy-finance">ดาวน์โหลด CSV <span>↓</span></button></div><div class="table-scroll"><table><thead><tr><th>วันที่</th><th>ประเภท</th><th>หมวด</th><th>รายการ</th><th class="number-cell">จำนวนเงิน</th></tr></thead><tbody id="legacyFinanceRows"></tbody></table><div class="empty-state" id="legacyFinanceEmpty">กด “โหลดข้อมูลเดิม” เพื่อดูข้อมูล</div></div></article>
+          <article class="panel table-panel"><div class="panel-heading"><div><p class="eyebrow">ผลผลิตและการขายเดิม</p><h2>ยอดขายผลผลิต</h2></div><button class="text-button" type="button" data-export="legacy-sales">ดาวน์โหลด CSV <span>↓</span></button></div><div class="table-scroll"><table><thead><tr><th>วันที่</th><th>น้ำหนักรวม</th><th>เกรด A (กก.)</th><th>เกรด B (กก.)</th><th class="number-cell">รายรับ</th><th>หมายเหตุ</th></tr></thead><tbody id="legacySalesRows"></tbody></table><div class="empty-state" id="legacySalesEmpty">กด “โหลดข้อมูลเดิม” เพื่อดูข้อมูล</div></div></article>
+        </section>
+      </div>
+      <footer class="app-footer"><span>บัญชีสวน · สมุดรายวันเดบิต–เครดิต</span><span>เวลาไทย (UTC+7)</span></footer>
+    </main>
+  </div>
+
+  <dialog class="entry-dialog" id="entryDialog" aria-labelledby="entryTitle">
+    <form id="entryForm" method="dialog" novalidate>
+      <div class="dialog-heading"><div><p class="eyebrow">บันทึกสองด้าน</p><h2 id="entryTitle">รายการบัญชีใหม่</h2><p>ตรวจยอดเดบิตและเครดิตให้เท่ากันก่อนบันทึก</p></div><button class="icon-button" type="button" data-close-entry aria-label="ปิดหน้าต่าง">×</button></div>
+      <div class="form-grid"><label>วันที่<input id="entryDate" name="date" type="date" required></label><label>พืช / รอบการผลิต <span class="optional">ไม่บังคับ</span><input id="entryCrop" name="crop" maxlength="60" placeholder="เช่น แตงกวา รอบ ก.ค."></label><label class="wide-field">รายละเอียด<input id="entryDescription" name="description" maxlength="180" placeholder="เช่น ซื้อปุ๋ยสำหรับแปลง 2" required></label></div>
+      <div class="line-header"><div><h3>บรรทัดบัญชี</h3><p>เลือกบัญชีและกรอกยอดเดบิตหรือเครดิตด้านใดด้านหนึ่ง</p></div><button class="button secondary compact" id="addLineButton" type="button">＋ เพิ่มบรรทัด</button></div>
+      <div class="journal-line-labels"><span>บัญชี</span><span>เดบิต (บาท)</span><span>เครดิต (บาท)</span><span></span></div>
+      <div id="entryLines" class="entry-lines"></div>
+      <div class="balance-check" id="balanceCheck" aria-live="polite"><span>เดบิต <b id="debitTotal">฿0.00</b></span><span>เครดิต <b id="creditTotal">฿0.00</b></span><strong id="balanceStatus">เพิ่มรายการอย่างน้อย 2 บรรทัด</strong></div>
+      <p class="dialog-error" id="entryError" role="alert" hidden></p>
+      <div class="dialog-actions"><button class="button secondary" type="button" data-close-entry>ยกเลิก</button><button class="button primary" id="postEntryButton" type="submit">บันทึกลงสมุดรายวัน</button></div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="firebase.js?v=12"></script>
+  <script src="accounting-core.js?v=1"></script>
+  <script src="accounting-store.js?v=1"></script>
+  <script src="accounting.js?v=1"></script>
 </body>
 </html>

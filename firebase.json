@@ -13,46 +13,44 @@
       "**/.*",
       "node_modules/**",
       "**/node_modules/**",
-      "functions/**",
-      "archive/**",
-      "tools/**",
-      "test/**",
-      "examples/**",
-      "src/**",
-      ".pio/**",
       ".github/**",
-      "*.ino",
-      "**/*.ino",
-      "*.bin",
-      "**/*.bin",
-      "*.elf",
-      "**/*.elf",
+      "test/**",
       "*.md",
       "**/*.md",
       "*.mjs",
       "**/*.mjs",
       "*.py",
       "**/*.py",
-      "*.log",
-      "**/*.log",
+      "*.txt",
+      "**/*.txt",
+      "*.ino",
+      "**/*.ino",
+      "*.bin",
+      "**/*.bin",
+      "*.elf",
+      "**/*.elf",
       "*.zip",
       "**/*.zip",
-      "platformio.ini",
-      "package.json",
-      "package-lock.json",
-      "pnpm-lock.yaml",
-      "yarn.lock",
-      "README.txt",
-      "BUILD_REPORT.txt",
-      "BUILD_STATUS.txt",
-      "SYSTEM_VERSION.txt"
+      "*.log",
+      "**/*.log"
     ],
     "cleanUrls": false,
-    "trailingSlash": false
-  },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs20"
+    "trailingSlash": false,
+    "headers": [
+      {
+        "source": "**/*.@(html|js|css|json)",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      }
+    ],
+    "redirects": [
+      { "source": "/dashboard", "destination": "/index.html", "type": 302 },
+      { "source": "/dashboard/**", "destination": "/index.html", "type": 302 },
+      { "source": "/finance.html", "destination": "/index.html#legacy", "type": 302 },
+      { "source": "/control-room", "destination": "/index.html", "type": 302 },
+      { "source": "/control-room/**", "destination": "/index.html", "type": 302 }
+    ]
   },
   "database": {
     "rules": "firebase.rules.json"

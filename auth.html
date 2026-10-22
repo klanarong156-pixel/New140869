@@ -1,13 +1,21 @@
 <!doctype html>
 <html lang="th">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="เข้าสู่ระบบสวนลุงนะ Smart Farm Dashboard"><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#087b50"><title>เข้าสู่ระบบ · Smart Farm Dashboard</title>  <link rel="stylesheet" href="readability-overhaul.css?v=1">
-  <link rel="stylesheet" href="redesign-lambo.css?v=2"><link rel="stylesheet" href="app.css?v=40"><link rel="stylesheet" href="core-theme.css?v=1">
-  <link rel="stylesheet" href="design4.css?v=10">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173f32"><title>เข้าสู่ระบบ · บัญชีสวน</title>
+  <link rel="stylesheet" href="accounting.css?v=1">
+  <style>
+    body{min-height:100vh;display:grid;place-items:center;padding:22px;background:radial-gradient(ellipse at 10% 5%,#e9efe2 0,transparent 42%),#f5f6f2}.auth-card{width:min(440px,100%);background:#fff;border:1px solid #e6ebe4;border-radius:18px;padding:30px;box-shadow:0 22px 65px rgba(25,55,38,.09)}.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:24px}.auth-brand strong,.auth-brand small{display:block}.auth-brand strong{font-size:18px}.auth-brand small{font-size:9px;letter-spacing:.17em;color:#8d9990}.auth-card h1{font-size:23px;margin:0}.auth-copy{font-size:11px;line-height:1.8;color:#78857c;margin:5px 0 18px}.auth-switch{display:flex;background:#f2f5f0;padding:4px;border-radius:9px;margin:0 0 16px}.auth-switch button{flex:1;border:0;background:transparent;color:#7a877e;border-radius:7px;height:34px;font-size:11px;font-weight:700}.auth-switch button.active{background:#fff;color:#1b6545;box-shadow:0 2px 7px rgba(28,53,36,.07)}.auth-form{display:grid;gap:12px}.auth-form label{display:grid;gap:6px;font-weight:700;font-size:10px;color:#627166}.auth-form input{height:41px;border:1px solid #dfe6dd;border-radius:8px;padding:0 11px;font-size:12px;outline:none}.auth-form button{margin-top:4px;height:42px}.notice{font-size:10px;line-height:1.65;padding:9px 10px;border-radius:7px;background:#f8efed;color:#a24e40}.notice.success{background:#edf6ed;color:#39724e}.notice.hidden{display:none}.auth-foot{font-size:9px;color:#9aa49d;margin-top:19px;text-align:center}.auth-mark{width:42px;height:42px}
+  </style>
 </head>
 <body>
-  <main class="auth-layout">
-    <section class="card auth-card" aria-labelledby="authTitle"><p class="kicker">DASHBOARD V7.1 · FARM ACCOUNT</p><h1 id="authTitle">เข้าสู่ Dashboard ใหม่</h1><p id="authDescription" class="subtitle">เข้าสู่ระบบเพื่อจัดการอุปกรณ์ รอบปลูก การเงิน และการแจ้งเตือน Telegram</p><div class="auth-switch" role="group" aria-label="ประเภทการใช้งานบัญชี"><button type="button" data-auth-mode="signin" aria-pressed="true">เข้าสู่ระบบ</button><button type="button" data-auth-mode="signup" aria-pressed="false">สร้างบัญชี</button></div><form id="authForm" class="form-grid" aria-describedby="authDescription"><div class="field full"><label for="email">อีเมล</label><input id="email" type="email" autocomplete="email" required placeholder="name@example.com"></div><div class="field full"><label for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" aria-describedby="passwordHint" required minlength="6" placeholder="••••••••"><span id="passwordHint" class="field-note"></span></div><div id="authStatus" class="notice hidden" role="status" aria-live="polite" aria-atomic="true"></div><div class="field full"><button id="authSubmit" class="btn primary block" type="submit">เข้าสู่ระบบ</button></div></form><p class="helper" style="margin-top:16px">แดชบอร์ดควบคุมอุปกรณ์ยังเปิดดูได้ที่ <a href="index.html">หน้าแรก</a></p></section>
+  <main class="auth-card">
+    <a class="brand auth-brand" href="index.html"><span class="brand-mark auth-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M20 34V17m0 8c-7 0-12-4-13-11 7-1 12 3 13 11Zm0-7c0-7 4-12 11-14 1 7-3 12-11 14Z"/></svg></span><span><strong>บัญชีสวน</strong><small>AGRI LEDGER</small></span></a>
+    <h1 id="authTitle">เข้าสู่ระบบ</h1><p class="auth-copy" id="authDescription">เข้าสู่ระบบเพื่อบันทึกและตรวจสอบบัญชีของสวนคุณ</p>
+    <div class="auth-switch" role="group" aria-label="เลือกวิธีเข้าใช้งาน"><button type="button" data-auth-mode="signin" class="active" aria-pressed="true">เข้าสู่ระบบ</button><button type="button" data-auth-mode="signup" aria-pressed="false">สร้างบัญชีใหม่</button></div>
+    <form id="authForm" class="auth-form"><label>อีเมล<input id="email" name="email" type="email" autocomplete="email" required></label><label>รหัสผ่าน<input id="password" name="password" type="password" autocomplete="current-password" minlength="6" required><small id="passwordHint" style="font-weight:400;color:#97a199">ใช้รหัสผ่านของบัญชี</small></label><p id="authStatus" class="notice hidden" role="status" aria-live="polite"></p><button id="authSubmit" class="button primary" type="submit">เข้าสู่ระบบ</button></form>
+    <p class="auth-foot">ข้อมูลบัญชีถูกแยกตามผู้ใช้ และไม่แสดงต่อผู้ใช้อื่น</p>
   </main>
-  <script src="firebase.js?v=11"></script><script src="auth-page.js?v=8"></script>
+  <script src="firebase.js?v=12"></script><script src="auth-page.js?v=9"></script>
 </body>
 </html>

@@ -4,3 +4,8 @@ node_modules/
 .env.*
 /.pio/
 /src/
+firebase-debug.log
+database-debug.log
+firestore-debug.log
+hosting-debug.log
+ui-debug.log

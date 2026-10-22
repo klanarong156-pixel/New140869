@@ -1,13 +1,9 @@
-// Smart Farm V7.1 - Firebase Auth + Realtime Database
-// Firebase = persistent storage. MQTT = real-time transport.
+// Agri Ledger - Firebase Authentication + per-user Realtime Database.
 
 const FIREBASE_CONFIG = Object.freeze({
   projectId: "smart-farm-platfor",
-  functionsRegion: "us-central1",
   databaseURL: "https://smart-farm-platfor-default-rtdb.asia-southeast1.firebasedatabase.app",
-  apiKey: "AIzaSyBFklOdg4RXeXlHfG826DwaKTjf5hV4eHo",
-  authDomain: "smart-farm-platfor.firebaseapp.com",
-  paths: Object.freeze({ farms: "farms", farm: "farm" }),
+  apiKey: "AIzaSyBFklOdg4RXeXHfG826DwaKTjf5hV4eHo",
   timeoutMs: 10000
 });
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
@@ -21,7 +17,7 @@ const FirebaseAuth = {
   clear(){[this.tokenKey,this.refreshKey,this.userKey].forEach(k=>localStorage.removeItem(k));},
   configured(){return !!(FIREBASE_CONFIG.apiKey&&!FIREBASE_CONFIG.apiKey.includes('PUT_YOUR_'));},
   async authRequest(endpoint,body){
-    if(!this.configured())throw new Error('ยังไม่ได้ใส่ Firebase Web API Key ใน dashboard/firebase.js');
+    if(!this.configured())throw new Error('ยังไม่ได้ตั้งค่า Firebase Web API Key ใน firebase.js');
     const res=await fetch(`https://identitytoolkit.googleapis.com/v1/${endpoint}?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(this.authError(data?.error?.message));this.setSession(data);return data;
   },
@@ -61,20 +57,3 @@ const FirebaseDB = {
 };
 
 window.FirebaseDB = FirebaseDB;
-
-// Root-level Firebase access is intentionally separate from FirebaseDB.
-// It is required for /roles, whose security rules live at the database root.
-const FirebaseRoot = {
-  url(path=''){const clean=String(path).replace(/^\/+|\/+$/g,'');const auth=FirebaseAuth.token?`?auth=${encodeURIComponent(FirebaseAuth.token)}`:'';return FIREBASE_CONFIG.databaseURL.replace(/\/+$/,'')+'/'+clean+'.json'+auth;},
-  async request(path,options={},retry=true){
-    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),FIREBASE_CONFIG.timeoutMs);
-    try{
-      const res=await fetch(this.url(path),{cache:'no-store',signal:controller.signal,headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
-      if(res.status===401&&retry){if(await FirebaseAuth.refresh())return this.request(path,options,false);notifyAuthExpired();}
-      if(!res.ok){let detail='';try{detail=await res.text()}catch(_){}throw new Error('Firebase root HTTP '+res.status+(detail?' • '+detail.slice(0,160):''));}
-      return res.status===204?null:res.json();
-    }catch(err){if(err?.name==='AbortError')throw new Error('Firebase connection timeout');throw err;}finally{clearTimeout(timer);}
-  },
-  get(path){return this.request(path);},put(path,data){return this.request(path,{method:'PUT',body:JSON.stringify(data)});},patch(path,data){return this.request(path,{method:'PATCH',body:JSON.stringify(data)});},delete(path){return this.request(path,{method:'DELETE'});}
-};
-window.FirebaseRoot = FirebaseRoot;

@@ -1,61 +1,73 @@
-name: Validate Smart Farm integration
+name: Agri Ledger validation and hosting deploy
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  integration:
-    name: Dashboard, firmware, and Firebase checks
+  validate:
+    name: Validate accounting app
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: functions/package-lock.json
-
-      - name: Install Firebase Functions dependencies
-        run: npm ci --prefix functions
-
-      - name: Install browser test dependency
-        run: npm install --no-save --no-package-lock playwright-core@1.54.1
-
-      - name: Install Chrome for browser integration test
-        id: chrome
-        uses: browser-actions/setup-chrome@v1
-
-      - name: Run static and integration regression checks
-        env:
-          CHROMIUM_PATH: ${{ steps.chrome.outputs.chrome-path }}
+          node-version: 22
+      - name: Check JavaScript syntax
         run: |
-          node dashboard-smoke-test.mjs
-          node dashboard-contract-test.mjs
-          node cucumber-sales-regression-test.mjs
-          node auth-expiry-regression-test.mjs
-          node schedule-regression-test.mjs
-          node usage-reset-calculation-test.mjs
-          node ai-advisor-regression-test.mjs
-          node firmware-logic-regression-test.mjs
-          node e2e-navigation-test.mjs
-          node dashboard-browser-smoke.mjs
-          node tools/settings-mqtt-e2e.mjs
-          npm --prefix functions run lint
-          python3 tools/mqtt_contract_audit.py
-          python3 tools/test_mqtt_acl_simulation.py
-          git diff --check
+          set -euo pipefail
+          node --check accounting-core.js
+          node --check accounting-store.js
+          node --check accounting.js
+          node --check auth-page.js
+          node --check firebase.js
+          node --check sw.js
+      - name: Run accounting domain tests
+        run: node --test test/accounting-core.test.mjs
+      - name: Validate JSON and rules twin
+        run: |
+          set -euo pipefail
+          python3 -m json.tool firebase.json >/dev/null
+          python3 -m json.tool firebase.rules.json >/dev/null
+          python3 -m json.tool database.rules.json >/dev/null
+          python3 -m json.tool manifest.json >/dev/null
+          cmp -s firebase.rules.json database.rules.json
+      - name: Check local browser assets
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urlsplit
+          class Assets(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.refs=[]
+              def handle_starttag(self, tag, attrs):
+                  values=dict(attrs)
+                  for key in ('src','href'):
+                      ref=values.get(key,'')
+                      if ref and not ref.startswith(('http:','https:','data:','#','mailto:','javascript:')):
+                          self.refs.append(ref)
+          for name in ('index.html','auth.html'):
+              parser=Assets(); parser.feed(Path(name).read_text(encoding='utf-8'))
+              for ref in parser.refs:
+                  path=urlsplit(ref).path
+                  if path and not Path(path).exists():
+                      raise SystemExit(f'{name}: missing asset {ref}')
+          print('Local browser assets: PASS')
+          PY
+      - name: Check whitespace
+        run: git diff --check
 
   deploy-hosting:
-    name: Deploy Firebase Hosting (production)
-    needs: integration
+    name: Deploy Firebase Hosting
+    needs: validate
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -64,18 +76,15 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-
-      - name: Verify Firebase service-account secret is configured
+      - name: Verify Firebase service account is configured
         env:
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SMART_FARM_PLATFOR }}
         run: |
           if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
-            echo 'Required repository secret FIREBASE_SERVICE_ACCOUNT_SMART_FARM_PLATFOR is not configured.'
+            echo 'Firebase Hosting service-account secret is not configured.'
             exit 1
           fi
-          echo 'Firebase Hosting service-account secret is configured.'
-
-      - name: Deploy live Hosting site
+      - name: Deploy Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}

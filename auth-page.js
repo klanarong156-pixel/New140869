@@ -27,8 +27,8 @@
       button.classList.toggle('active', active);
       button.setAttribute('aria-pressed', String(active));
     });
-    $('authTitle').textContent = mode === 'signin' ? 'ยินดีต้อนรับกลับมา' : 'เริ่มต้นฟาร์มของคุณ';
-    $('authDescription').textContent = mode === 'signin' ? 'เข้าสู่ระบบเพื่อจัดการข้อมูลฟาร์มและบันทึกการเงินของคุณ' : 'สร้างบัญชีเพื่อบันทึกข้อมูลฟาร์มของคุณอย่างเป็นส่วนตัว';
+    $('authTitle').textContent = mode === 'signin' ? 'ยินดีต้อนรับกลับมา' : 'เริ่มต้นบัญชีสวนของคุณ';
+    $('authDescription').textContent = mode === 'signin' ? 'เข้าสู่ระบบเพื่อบันทึกและตรวจสอบบัญชีของสวนคุณ' : 'สร้างบัญชีเพื่อเก็บข้อมูลบัญชีอย่างเป็นส่วนตัว';
     $('authSubmit').textContent = mode === 'signin' ? 'เข้าสู่ระบบ' : 'สร้างบัญชี';
     $('passwordHint').textContent = mode === 'signin' ? 'ใช้รหัสผ่านของบัญชี Smart Farm' : 'อย่างน้อย 6 ตัวอักษร';
     $('password').setAttribute('autocomplete', mode === 'signin' ? 'current-password' : 'new-password');
@@ -47,14 +47,7 @@
     setStatus(mode === 'signin' ? 'กำลังเข้าสู่ระบบ…' : 'กำลังสร้างบัญชี…');
     try {
       const session = mode === 'signin' ? await FirebaseAuth.signIn(email, password) : await FirebaseAuth.signUp(email, password);
-      if (mode === 'signup') {
-        try {
-          await FirebaseRoot.put(`roles/${session.localId}`, { role: 'user', email: session.email || email, createdAt: new Date().toISOString() });
-        } catch (error) {
-          console.warn('Could not create role record.', error);
-        }
-      }
-      setStatus('สำเร็จ กำลังพาไปยังหน้าฟาร์มของคุณ…', 'success');
+      setStatus('สำเร็จ กำลังเปิดบัญชีสวนของคุณ…', 'success');
       window.setTimeout(() => location.replace(safeNextUrl()), 350);
     } catch (error) {
       setStatus(error.message || 'ไม่สามารถยืนยันตัวตนได้', 'danger');
