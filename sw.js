@@ -1,23 +1,20 @@
-const CACHE_NAME = 'smartfarm-v55-unified-dashboard';
+const CACHE_NAME = 'agri-ledger-v1';
 const APP_SHELL = [
-  './', './index.html', './dashboard/', './dashboard/index.html',
-  './dashboard/dashboard.css?v=15', './dashboard/unified-dashboard.css?v=1', './app.css?v=40', './redesign-lambo.css?v=2', './cucumber-sales.css?v=5', './suanlungna-design-system.css?v=1', './core-theme.css?v=1', './design4.css?v=10', './dashboard/dashboard-config.js?v=1',
-  './dashboard/dashboard-state.js?v=5', './dashboard/dashboard-mqtt.js?v=4',
-  './dashboard/dashboard.js?v=18', './dashboard/unified-auth.js?v=1', './mqtt.min.js?v=5', './404.html',
-  './auth.html', './finance.html', './account.html', './admin.html', './ota.html', './control-room/index.html',
-  './manifest.json', './app.css', './core-theme.css?v=1', './redesign-lambo.css', './pump-hero.css', './suanlungna-design-system.css', './dashboard-polish.css', './dashboard-realtime.css', './cucumber-sales.css?v=5', './app.js', './dashboard-ota.js', './control-room/control-room.css?v=2', './control-room/control-room.js?v=3', './control-room/control-room-schedule.js?v=5', './dashboard/dashboard-config.js?v=1', './dashboard/dashboard-state.js?v=5', './dashboard/dashboard-mqtt.js?v=4', './config.js', './mqtt-connection.js', './internet-time.js', './weather.js', './auto-weather-guard.js', './schedule.js', './firebase.js', './access.js', './auth-page.js', './finance-core.js', './finance-firebase.js', './finance.js?v=15', './cucumber-sales.js?v=6', './cucumber-sales-ui.js?v=5', './account.js?v=10', './crop-reminders.js', './crop-plots.js', './farm-analytics.js', './ai-farm-advisor.js', './farm-tools.js', './user-management.js',
-  './logo.png', './assets/logo-suanlungna-transparent.png', './assets/farm-hero-style4.png', './assets/style4-icons.svg', './assets/cucumber-plot.jpg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
+  './', './index.html', './auth.html', './manifest.json', './accounting.css?v=1',
+  './firebase.js?v=12', './auth-page.js?v=9', './accounting-core.js?v=1',
+  './accounting-store.js?v=1', './accounting.js?v=1', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
 ];
-const MEDIA_EXT = /\.(?:png|jpg|jpeg|gif|webp|svg|ico|woff2?|ttf)$/i;
 
 self.addEventListener('install', event => event.waitUntil(
-  caches.open(CACHE_NAME).then(cache => Promise.all(APP_SHELL.map(url => cache.add(url).catch(() => null)))).then(() => self.skipWaiting())
+  caches.open(CACHE_NAME)
+    .then(cache => Promise.all(APP_SHELL.map(asset => cache.add(asset).catch(() => null))))
+    .then(() => self.skipWaiting())
 ));
 
 self.addEventListener('activate', event => event.waitUntil(
-  caches.keys().then(keys => Promise.all(
-    keys.filter(key => key.startsWith('smartfarm-') && key !== CACHE_NAME).map(key => caches.delete(key))
-  )).then(() => self.clients.claim())
+  caches.keys()
+    .then(keys => Promise.all(keys.filter(key => key.startsWith('smartfarm-') || key.startsWith('agri-ledger-') && key !== CACHE_NAME).map(key => caches.delete(key))))
+    .then(() => self.clients.claim())
 ));
 
 self.addEventListener('fetch', event => {
@@ -27,34 +24,21 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request, { cache: 'no-store' })
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => {});
-          return response;
-        })
-        .catch(() => caches.match(request).then(cached => cached || caches.match('./dashboard/index.html')))
-    );
-    return;
-  }
-
-  if (/\.(?:js|css|html|json)$/i.test(url.pathname)) {
-    event.respondWith(
-      fetch(request, { cache: 'no-store' }).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => {});
+    event.respondWith(fetch(request, { cache: 'no-store' })
+      .then(response => {
+        if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone())).catch(() => {});
         return response;
-      }).catch(() => caches.match(request))
-    );
+      })
+      .catch(() => caches.match(request).then(cached => cached || caches.match('./index.html'))));
     return;
   }
 
-  if (MEDIA_EXT.test(url.pathname)) {
-    event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => {});
-      return response;
-    })));
+  if (/\.(?:js|css|html|json|png|svg|ico)$/i.test(url.pathname)) {
+    event.respondWith(fetch(request, { cache: 'no-store' })
+      .then(response => {
+        if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone())).catch(() => {});
+        return response;
+      })
+      .catch(() => caches.match(request)));
   }
 });
